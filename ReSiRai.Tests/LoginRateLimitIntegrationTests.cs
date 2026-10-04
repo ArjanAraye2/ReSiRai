@@ -25,16 +25,24 @@ public sealed class LoginRateLimitIntegrationTests
         var limiter = new LoginAttemptLimiter(clock);
         var controller = CreateController(db, limiter);
         for (int i = 0; i < 4; i++)
-            Assert.IsType<UnauthorizedObjectResult>(await Login(controller, i % 2 == 0 ? "09123456789" : "1234567890", "wrong"));
+        {
+            var failed = Assert.IsType<UnauthorizedObjectResult>(await Login(controller, i % 2 == 0 ? "09123456789" : "1234567890", "wrong"));
+            Assert.Equal(i + 1, JsonSerializer.SerializeToElement(failed.Value).GetProperty("failedAttempts").GetInt32());
+        }
         var blocked = Assert.IsType<ObjectResult>(await Login(controller, "1234567890", "wrong"));
         Assert.Equal(429, blocked.StatusCode);
         Assert.Equal("900", controller.Response.Headers.RetryAfter.ToString());
         Assert.Equal(LoginAttemptLimiter.Message, JsonSerializer.SerializeToElement(blocked.Value).GetProperty("message").GetString());
-        Assert.Equal(429, Assert.IsType<ObjectResult>(await Login(controller, "09123456789", "correct-password")).StatusCode);
+        Assert.Equal(5, JsonSerializer.SerializeToElement(blocked.Value).GetProperty("failedAttempts").GetInt32());
+        var stillBlocked = Assert.IsType<ObjectResult>(await Login(controller, "09123456789", "correct-password"));
+        Assert.Equal(429, stillBlocked.StatusCode);
+        Assert.Equal(5, JsonSerializer.SerializeToElement(stillBlocked.Value).GetProperty("failedAttempts").GetInt32());
         Assert.Single(db.AppEvents.Where(x => x.Kind == "LoginRateLimitExceeded"));
         clock.Advance(TimeSpan.FromMinutes(15));
         Assert.IsType<OkObjectResult>(await Login(controller, "09123456789", "correct-password"));
         Assert.False(limiter.CheckAccount(LoginAttemptLimiter.AccountKey(1, "1234567890")).IsBlocked);
+        var restarted = Assert.IsType<UnauthorizedObjectResult>(await Login(controller, "1234567890", "wrong"));
+        Assert.Equal(1, JsonSerializer.SerializeToElement(restarted.Value).GetProperty("failedAttempts").GetInt32());
     }
 
     [Fact]

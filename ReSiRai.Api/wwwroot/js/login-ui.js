@@ -70,7 +70,7 @@
 
   function ensureLoginStyles(){
     if(document.getElementById('reSiRaiFinalLoginCss'))return;
-    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261003.8';document.head.appendChild(l);
+    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261004.2';document.head.appendChild(l);
   }
 
   function createLogin(){
@@ -109,7 +109,7 @@
               <label class="login-remember"><input id="loginRememberMe" type="checkbox" /> مرا به خاطر بسپار</label>
               <button id="forgotPasswordButton" type="button" class="login-recovery-link">رمز عبور را فراموش کرده‌ام</button>
             </div>
-            <div id="loginStatus" class="login-status" role="status"></div>
+            <div id="loginStatus" class="login-status login-feedback" role="status" aria-live="polite" aria-atomic="true"><span id="loginFeedbackEmoji" class="login-feedback-emoji" aria-hidden="true" hidden></span><span id="loginFeedbackText" class="login-feedback-text"></span></div>
             <button id="loginSubmit" class="login-submit" type="submit"><span>ورود</span><span class="login-submit-arrow">←</span></button>
           </form>
           <p class="login-footer"><span class="login-shield">${iconSvg('shield')}</span>ورود امن به سامانه ReSiRai</p>
@@ -142,35 +142,55 @@
     const form=document.getElementById('reSiRaiLoginForm'),userName=document.getElementById('loginUserName'),password=document.getElementById('loginPassword');
     const toggle=document.getElementById('toggleLoginPassword'),status=document.getElementById('loginStatus'),submit=document.getElementById('loginSubmit');
     const label=document.getElementById('loginIdentifierLabel'),icon=document.getElementById('loginIdentifierIcon'),remember=document.getElementById('loginRememberMe');
+    const feedbackEmoji=document.getElementById('loginFeedbackEmoji'),feedbackText=document.getElementById('loginFeedbackText');
+    function setFeedback(message='',tone='',emoji=''){
+      status.className=`login-status login-feedback ${tone}`.trim();
+      feedbackText.textContent=message;
+      feedbackEmoji.textContent=emoji;
+      feedbackEmoji.hidden=!emoji;
+    }
+    function failureEmoji(count){
+      const attempt=Number(count);
+      return Number.isInteger(attempt)&&attempt>0?['😕','😟','😣','😫'][Math.min(attempt,4)-1]:'😕';
+    }
     let mode='mobile';
     function applyMode(next){
       mode=next; document.querySelectorAll('.login-id-tab').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
       userName.value='';
       if(mode==='mobile'){label.textContent='شماره موبایل';icon.innerHTML=iconSvg('mobile');userName.inputMode='tel';userName.maxLength=11;userName.placeholder='مثال: 09123456789';}
       else{label.textContent='کد ملی';icon.innerHTML=iconSvg('id');userName.inputMode='numeric';userName.maxLength=10;userName.placeholder='کد ملی خود را وارد کنید';}
-      status.textContent=''; userName.focus();
+      setFeedback(); userName.focus();
     }
     document.querySelectorAll('.login-id-tab').forEach(b=>b.onclick=()=>applyMode(b.dataset.mode));
-    userName.addEventListener('input',()=>{userName.value=userName.value.replace(/\D/g,'').slice(0,mode==='mobile'?11:10);status.textContent='';status.className='login-status';});
+    userName.addEventListener('input',()=>{userName.value=userName.value.replace(/\D/g,'').slice(0,mode==='mobile'?11:10);setFeedback();});
+    // Clear the previous reaction as the user starts correcting the password;
+    // the authoritative attempt count remains on the server.
+    password.addEventListener('input',()=>setFeedback());
     toggle.onclick=()=>{const show=password.type==='password';password.type=show?'text':'password';toggle.setAttribute('aria-label',show?'پنهان کردن رمز عبور':'نمایش رمز عبور');};
     form.onsubmit=async e=>{
       e.preventDefault(); if(submit.disabled)return;
       const identifier=userName.value.trim();
       if((mode==='mobile'&&!/^09\d{9}$/.test(identifier))||(mode==='national'&&!/^\d{10}$/.test(identifier))){
-        status.textContent=mode==='mobile'?'شماره موبایل معتبر وارد کنید.':'کد ملی ۱۰ رقمی وارد کنید.';status.className='login-status error';return;
+        setFeedback(mode==='mobile'?'شماره موبایل معتبر وارد کنید.':'کد ملی ۱۰ رقمی وارد کنید.','error');return;
       }
-      status.className='login-status info';status.textContent='در حال ورود...';submit.disabled=true;
+      setFeedback('در حال ورود...','info');submit.disabled=true;
+      let reaction='';
       try{
         const r=await fetch('/api/auth/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({userName:identifier,password:password.value,rememberMe:remember.checked})});
         const d=await r.json();
         if(r.status===429){
+          reaction='😔🔒';
           const seconds=Number(r.headers.get('Retry-After')||d.retryAfterSeconds);
           const wait=Number.isFinite(seconds)&&seconds>0?` حدود ${Math.ceil(seconds/60).toLocaleString('fa-IR')} دقیقه بعد دوباره تلاش کنید.`:'';
           throw new Error((d.message||'تعداد تلاش‌های ورود بیش از حد مجاز است.')+wait);
         }
-        if(!r.ok||!d.success)throw new Error('شماره موبایل/کد ملی یا رمز عبور صحیح نیست.');
+        if(r.status===401){
+          reaction=failureEmoji(d.failedAttempts);
+          throw new Error('شماره موبایل/کد ملی یا رمز عبور صحیح نیست.');
+        }
+        if(!r.ok||!d.success)throw new Error('ورود انجام نشد. دوباره تلاش کنید.');
         password.value='';showApplication(d.user);
-      }catch(err){password.value='';password.focus();status.textContent=err.message||'ورود انجام نشد.';status.className='login-status error';}
+      }catch(err){password.value='';password.focus();setFeedback(err.message||'ورود انجام نشد.','error',reaction);}
       finally{submit.disabled=false;}
     };
     document.getElementById('forgotPasswordButton').onclick=()=>showRecovery(screen,mode==='national'?userName.value.trim():'');
