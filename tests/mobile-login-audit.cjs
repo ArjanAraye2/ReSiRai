@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
 const root = path.resolve('ReSiRai.Api/wwwroot');
 const output = path.resolve('mobile-login-audit');
 fs.mkdirSync(output, { recursive: true });
@@ -48,6 +49,16 @@ async function capture(page, name) {
   await page.screenshot({ path: path.join(output, name + '.png') });
   return measure(page);
 }
+async function assertButtonReachable(page, name) {
+  const size = page.viewportSize();
+  await page.mouse.move(size.width / 2, size.height / 2);
+  await page.mouse.wheel(0, 10000);
+  await page.waitForTimeout(250);
+  const measured = await capture(page, name + '-scrolled');
+  const button = measured.elements['.login-submit'];
+  assert.ok(button.fullyInViewport && button.centerHit, `${name}: submit button is clipped or cannot be tapped`);
+  return measured;
+}
 (async () => {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
@@ -74,6 +85,8 @@ async function capture(page, name) {
     await page.waitForTimeout(300);
     const name = width + 'x' + height;
     const initial = await capture(page, name + '-initial');
+    const reachableInitial = await assertButtonReachable(page, name + '-initial');
+    await page.evaluate(() => document.getElementById('reSiRaiLoginScreen').scrollTop = 0);
     const digits = {};
     await page.locator('#loginUserName').fill('۱۲۳۴۵۶۷۸۹۰');
     digits.nationalPersian = await page.locator('#loginUserName').inputValue();
@@ -81,13 +94,12 @@ async function capture(page, name) {
     await page.locator('#loginUserName').fill('۰۹۱۲۳۴۵۶۷۸۹');
     digits.mobilePersian = await page.locator('#loginUserName').inputValue();
     await page.evaluate(() => document.querySelector('[data-mode="national"]').click());
-    await page.evaluate(() => {
-      document.getElementById('loginUserName').value = '1234567890';
-      document.getElementById('loginPassword').value = 'wrong';
-      document.getElementById('reSiRaiLoginForm').requestSubmit();
-    });
+    await page.locator('#loginUserName').fill('1234567890');
+    await page.locator('#loginPassword').fill('wrong');
+    await page.locator('#loginSubmit').click();
     await page.waitForFunction(() => document.getElementById('loginFeedbackEmoji').textContent === '😕');
     const wrong = await capture(page, name + '-wrong');
+    const reachableWrong = await assertButtonReachable(page, name + '-wrong');
     const reactions = ['😕'];
     for (const count of [2, 3, 4]) {
       await page.unroute('**/api/auth/login');
@@ -104,17 +116,30 @@ async function capture(page, name) {
     });
     await page.waitForFunction(() => document.getElementById('loginFeedbackEmoji').textContent === '😔🔒');
     const blocked = await capture(page, name + '-blocked');
+    const reachableBlocked = await assertButtonReachable(page, name + '-blocked');
     await page.mouse.move(width / 2, height / 2);
     await page.mouse.wheel(0, 1000);
     await page.waitForTimeout(150);
     const afterWheel = await measure(page);
     await page.evaluate(() => document.getElementById('forgotPasswordButton').click());
     const recovery = await capture(page, name + '-recovery');
+    const reachableRecovery = await assertButtonReachable(page, name + '-recovery');
     await page.evaluate(() => document.getElementById('recoveryRequestForm').requestSubmit());
     await page.waitForSelector('#recoveryCode');
     await page.evaluate(() => document.fonts.ready);
     const verify = await capture(page, name + '-verify');
-    results.push({ viewport: { width, height }, initial, digits, reactions, wrong, blocked, afterWheel, recovery, verify, errors });
+    const reachableVerify = await assertButtonReachable(page, name + '-verify');
+    const resized = [];
+    if (width === 390 && height === 844) {
+      for (const size of [{ width: 844, height: 390 }, { width: 390, height: 360 }, { width: 390, height: 844 }]) {
+        await page.setViewportSize(size);
+        await page.waitForTimeout(150);
+        const measured = await assertButtonReachable(page, `${name}-resize-${size.width}x${size.height}`);
+        assert.ok(Math.abs(measured.elements['#reSiRaiLoginScreen'].height - measured.visualHeight) < 1, 'Mobile scroll area must follow the visible viewport after resize');
+        resized.push(measured);
+      }
+    }
+    results.push({ viewport: { width, height }, initial, digits, reactions, wrong, blocked, afterWheel, recovery, verify, reachableInitial, reachableWrong, reachableBlocked, reachableRecovery, reachableVerify, resized, errors });
     await context.close();
   }
   fs.writeFileSync(path.join(output, 'results.json'), JSON.stringify(results, null, 2));
