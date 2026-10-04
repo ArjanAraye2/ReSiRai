@@ -127,7 +127,7 @@ const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 
 /* ---------- تعریفِ بخش‌ها (الگوی پیش‌فرضِ پزشک عمومی) ---------- */
-const SYSTEMS = ["قلب","ریه","شکم","عصبی","پوست","گوش‌حلق‌بینی","چشم","اسکلت‌عضله"];
+const SYSTEMS = ["قلب","ریه","شکم","عمومی/ظاهر","عصبی","پوست","اسکلت‌عضله","گوش‌حلق‌بینی","چشم","دهان","ادراری/تناسلی","روان‌وضعیت"];
 
 const EXTRAS = [
   { id:"phq",   title:"سلامتِ روان (غربالگریِ PHQ-2)", build:buildPhq,   key:()=>$$(".phq").every(r=>r.dataset.v), summarize:sumPhq },
@@ -142,9 +142,9 @@ const SECTIONS = [
   { id:"sugar",     title:"ارزیابیِ قند",      build:buildSugar,     key:sugarOk,     summarize:sumSugar, repeat:true },
   { id:"life",      title:"سبکِ زندگی",        build:buildLife,      key:lifeOk,      summarize:sumLife },
   { id:"screen",    title:"غربالگری و پیشگیری",build:buildScreen,    key:screenOk,    summarize:sumScreen },
-  { id:"linkLab",   title:"آزمایش ⤵",  link:true, build:buildLink, items:["CBC","کم‌خونی/فریتین","قند/چربی","اوره-کراتینین","تیروئید","کشت ادرار"], key:()=>linkCount("linkLab")>0, summarize:()=>linkSum("linkLab") },
-  { id:"linkImg",   title:"تصویر و رادیولوژی ⤵", link:true, build:buildLink, items:["عکس سینه","رادیوگرافی شکم","سونوگرافی","ECG"], key:()=>linkCount("linkImg")>0, summarize:()=>linkSum("linkImg") },
-  { id:"linkDoc",   title:"اسنادِ بالینی ⤵", link:true, build:buildLink, items:["عکس زخم","نسخهٔ بیمارستان","کاربرگِ معرفی"], key:()=>linkCount("linkDoc")>0, summarize:()=>linkSum("linkDoc") }
+  { id:"linkLab",   title:"آزمایش ⤵",  link:true, build:buildLink, items:["CBC","قند/چربی","فاکتورهای التهاب","تیروئید","کبدی","کلیوی/اوره-کراتینین","ادرار","آهن/فریتین","ویتامین D","کشت","تومورمارکرها"], key:()=>linkCount("linkLab")>0, summarize:()=>linkSum("linkLab") },
+  { id:"linkImg",   title:"تصویر و رادیولوژی ⤵", link:true, build:buildLink, items:["ECG","رادیوگرافی سینه","رادیوگرافی شکم","سونوگرافی","OPG/CBCT","ماموگرافی","MRI","CT"], key:()=>linkCount("linkImg")>0, summarize:()=>linkSum("linkImg") },
+  { id:"linkDoc",   title:"اسنادِ بالینی ⤵", link:true, build:buildLink, items:["عکسِ بالینی/زخم","نسخه","کاربرگِ معرفی","برگهٔ بیمارستان","پاسخِ ارجاعِ تخصصی"], key:()=>linkCount("linkDoc")>0, summarize:()=>linkSum("linkDoc") }
 ];
 
 const state = {};           // id -> { recorded:bool, summary:string }
@@ -196,7 +196,7 @@ function nowLocal(){
 function buildAnamnesis(body){
   const f=document.createElement("div"); f.className="field";
   f.innerHTML='<label>شکایتِ اصلی <span class="hint">(کلیدی — تیک یا متن)</span></label>';
-  const g = chipGroup("chief",["پیگیری","سرماخوردگی","درد","فشارخون","قند","سایر"]);
+  const g = chipGroup("chief",["پیگیری","فشارخون","دیابت/قند","سرماخوردگی","درد","تب","سرفه","خستگی","سرگیجه","اسهال","حساسیت","خواب/عصبی","پوستی","ادراری","سایر"]);
   const t = document.createElement("input"); t.className="txt"; t.id="chiefTxt"; t.style.marginTop="8px";
   t.placeholder="یا بنویسید…";
   f.append(g,t); body.append(f);
@@ -206,7 +206,7 @@ function buildAnamnesis(body){
   const f2=document.createElement("div"); f2.className="field";
   f2.innerHTML='<label>مدت و شدت</label>';
   const row=document.createElement("div"); row.className="row";
-  row.append(chipGroup("dur",["امروز","چند روز","چند هفته","مزمن"]));
+  row.append(chipGroup("dur",["امروز","چند روز","چند هفته","چند ماه","سال","مزمن","از بدو تولد"]));
   const sev=document.createElement("div");
   sev.className="row"; sev.style.marginTop="8px";
   sev.innerHTML='<span style="font-size:13px">شدت</span>';
@@ -220,14 +220,18 @@ function buildAnamnesis(body){
   const f3=document.createElement("div"); f3.className="field";
   f3.innerHTML='<label>بیماری‌های زمینه‌ای <span class="hint">(چک‌لیست)</span></label>';
   const base=document.createElement("div"); base.className="chips"; base.id="base";
-  ["فشارخون","دیابت","بیماری قلبی","تیروئید","آسم","هیچکدام"].forEach(o=>{
+  ["فشارخون","دیابت","چربی","تیروئید","بیماری قلبی","هیچکدام","آسم/ریوی","کلیوی","سرطان","سکته","روماتیسمی","صرع","گوارشی","کم‌خونی","اختلال روان","سایر"].forEach(o=>{
     const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=o; b.dataset.v=o;
     b.onclick=()=>{ $$(".chip",base).forEach(c=>c.classList.remove("on")); b.classList.add("on"); };
     base.append(b);
   });
   f3.append(base); body.append(f3);
 
-  body.append(txtField("allergy","حساسیت‌ها (اختیاری)",false));
+  const f4=document.createElement("div"); f4.className="field";
+  f4.innerHTML='<label>حساسیت‌ها <span class="hint">(اختیاری)</span></label>';
+  f4.append(chipGroup("allergy",["پنی‌سیلین","سولفا","ید","غذا","گردو","لاتکس","سایر"]));
+  body.append(f4);
+  body.append(txtField("allergyTxt","توضیحِ حساسیت (اختیاری)",false));
   body.append(txtField("surgery","سابقهٔ بستری/عمل (اختیاری)",false));
   body.append(footRow(body.closest(".sec")));
 }
@@ -307,7 +311,7 @@ function buildBp(body, sec){
     const d=document.createElement("input"); d.type="number"; d.className="num small"; d.dataset.req="1"; d.placeholder="دیاستول";
     const p=document.createElement("input"); p.type="number"; p.className="num small"; p.placeholder="نبض";
     row.append(s,d,p); r.append(row);
-    const g=chipGroup("when",["صبح","شب","قبل از فشارشکن","بعد از فشارشکن"]); r.append(g);
+    const g=chipGroup("when",["صبح","شب","قبل از فشارشکن","بعد از فشارشکن","استراحت","بعد از فعالیت"]); r.append(g);
     const prev=list.querySelector("[data-row]");
     if(prev){ // قاعدهٔ ۲: تکرارِ صریح با برچسبِ منبع
       const rep=document.createElement("button"); rep.type="button"; rep.className="chip"; rep.textContent="🔁 تکرارِ اندازهٔ قبلی";
@@ -350,22 +354,26 @@ function buildSugar(body, sec){
   body.append(list, more, footRow(sec));
 }
 function buildLife(body){
-  body.append(chipGroup("smoke",["هرگز","سابقه","فعلی"]));
+  body.append(chipGroup("smoke",["هرگز","فعلی","سابقه","قلیان"]));
   const f=document.createElement("div"); f.className="field";
   f.innerHTML='<label>فعالیتِ بدنی <span class="hint">(دقیقه در هفته — کلیدی)</span></label>';
   const i=document.createElement("input"); i.type="number"; i.className="num"; i.id="act"; i.dataset.req="1";
   f.append(i); body.append(f);
   const f2=document.createElement("div"); f2.className="field";
   f2.innerHTML='<label>الکل و خواب</label>';
-  f2.append(chipGroup("alcohol",["هرگز","گاه","روزانه"]));
+  f2.append(chipGroup("alcohol",["هرگز","گاه","هفتگی","روزانه"]));
   const f3=document.createElement("div"); f3.className="row"; f3.style.marginTop="8px";
   f3.innerHTML='<span style="font-size:13px">خواب (ساعت/شب)</span>';
   const sl=document.createElement("input"); sl.type="number"; sl.className="num small"; sl.id="sleep";
   f3.append(sl); f2.append(f3); body.append(f2);
-  body.append(txtField("lifeNote","شغل/تغذیه (اختیاری)",false));
+  const f4=document.createElement("div"); f4.className="field";
+  f4.innerHTML='<label>تغذیه <span class="hint">(اختیاری)</span></label>';
+  f4.append(chipGroup("diet",["پُرنمک","پُرچرب","پُرقند","کم‌آبی","کم‌فیبر"]));
+  body.append(f4);
+  body.append(txtField("lifeNote","شغل/استرس (اختیاری)",false));
   body.append(footRow(body.closest(".sec")));
 }
-const SCREEN_ITEMS=["فشارخون","قند","چربی","واکسیناسیون"];
+const SCREEN_ITEMS=["فشارخون","قند/دیابت","چربی","واکسیناسیون","قد/وزن/BMI","پاپ‌اسمیر","ماموگرافی","کلونوسکوپی","PSA","تیروئید","کم‌خونی/آهن","ویتامین D","بینایی‌سنجی","شنوایی","سلامت روان","اعتیاد","خطر قلبی-عروقی","پوست/خال‌ها"];
 function buildScreen(body){
   SCREEN_ITEMS.forEach(it=>{
     const r=document.createElement("div"); r.className="sys";
