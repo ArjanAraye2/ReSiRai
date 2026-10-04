@@ -130,9 +130,49 @@ const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const SYSTEMS = ["قلب","ریه","شکم","عمومی/ظاهر","عصبی","پوست","اسکلت‌عضله","گوش‌حلق‌بینی","چشم","دهان","ادراری/تناسلی","روان‌وضعیت"];
 
 const EXTRAS = [
-  { id:"phq",   title:"سلامتِ روان (غربالگریِ PHQ-2)", build:buildPhq,   key:()=>$$(".phq").every(r=>r.dataset.v), summarize:sumPhq },
-  { id:"pain",  title:"ارزیابیِ درد",                  build:buildPain,  key:()=>$("#painSel") && $("#painSel").dataset.v, summarize:()=>{ const o=$("#painSel"); return o? `شدت ${o.dataset.v}`:""; } }
+  { id:"emerg", title:"اورژانس و شدت", build:buildEmerg,
+    key:()=>{ const a=$('[data-group="alert"]'); return !!(a&&a.dataset.v); },
+    summarize:()=>{ const a=$('[data-group="alert"]'); return (a&&a.dataset.v)?`هوشیاری: ${a.dataset.v}`:""; } },
+  { id:"pain",  title:"ارزیابیِ درد",  build:buildPain,
+    key:()=>!!($("#painSel") && $("#painSel").dataset.v),
+    summarize:()=>{ const o=$("#painSel"); return o? `شدت ${o.dataset.v}`:""; } },
+  { id:"phq",   title:"سلامتِ روان (غربالگریِ PHQ-2)", build:buildPhq, key:()=>$$(".phq").every(r=>r.dataset.v), summarize:sumPhq },
+  { id:"ante",  title:"بارداری (پیگیری)", build:buildAnte, summarize:()=>{ const g=$("#ga"); return (g&&g.value)?`هفتهٔ ${g.value}`:""; } },
+  { id:"peds",  title:"رشد و تکاملِ کودک", build:buildPeds, summarize:()=>{ const w=$("#pwt"); return (w&&w.value)?`${w.value} kg`:""; } },
+  { id:"geri",  title:"سالمندی", build:buildGeri,
+    key:()=>{ const f=$('[data-group="fall"]'); return !!(f&&f.dataset.v); },
+    summarize:()=>{ const f=$('[data-group="fall"]'); return (f&&f.dataset.v)?`سقوط: ${f.dataset.v}`:""; } }
 ];
+function buildEmerg(body){
+  body.append(chipGroup("emergSym",["دردِ سینه","تنگی نفس","خونریزی","تبِ بالا","سردرگیِ شدید","استفراغِ شدید","تشنج","سایر"]));
+  body.append(chipGroup("alert",["هوشیار","گیج","بی‌هوش"]));
+  body.append(footRow(body.closest(".sec")));
+}
+function buildAnte(body){
+  const row=document.createElement("div"); row.className="row";
+  row.append(numField("ga","هفتهٔ بارداری",true,true), numField("sys2","فشار سیستول",true,true), numField("dia2","فشار دیاستول",true,true));
+  body.append(row);
+  body.append(chipGroup("prot",["منفی","Trace","+1","+2","+3"]));
+  body.append(chipGroup("edema",["ندارد","خفیف","متوسط","شدید"]));
+  body.append(chipGroup("fetal",["طبیعی","کم","بدون حرکت"]));
+  body.append(footRow(body.closest(".sec")));
+}
+function buildPeds(body){
+  const row=document.createElement("div"); row.className="row";
+  row.append(numField("pwt","وزن (kg)",true,true), numField("pht","قد (cm)",true,true), numField("hc","دور سر (cm)",false,true));
+  body.append(row);
+  body.append(chipGroup("curve",["طبیعی","کم‌رشد","اضافه‌وزن"]));
+  body.append(chipGroup("dev",["طبیعی","تاخیر حرکتی","تاخیر زبانی"]));
+  body.append(footRow(body.closest(".sec")));
+}
+function buildGeri(body){
+  body.append(chipGroup("fall",["ندارد","گاه","مکرر"]));
+  body.append(chipGroup("balance",["خوب","ضعیف"]));
+  body.append(chipGroup("cog",["طبیعی","شک"]));
+  body.append(chipGroup("meds",["تک‌دارویی","چنددارویی"]));
+  body.append(chipGroup("nut",["خوب","کم‌اشتهایی"]));
+  body.append(footRow(body.closest(".sec")));
+}
 
 const SECTIONS = [
   { id:"anamnesis", title:"شکایت و آنامنز",   build:buildAnamnesis, key:anamnesisOk, summarize:sumAnamnesis },
@@ -142,8 +182,8 @@ const SECTIONS = [
   { id:"sugar",     title:"ارزیابیِ قند",      build:buildSugar,     key:sugarOk,     summarize:sumSugar, repeat:true },
   { id:"life",      title:"سبکِ زندگی",        build:buildLife,      key:lifeOk,      summarize:sumLife },
   { id:"screen",    title:"غربالگری و پیشگیری",build:buildScreen,    key:screenOk,    summarize:sumScreen },
-  { id:"linkLab",   title:"آزمایش ⤵",  link:true, build:buildLink, items:["CBC","قند/چربی","فاکتورهای التهاب","تیروئید","کبدی","کلیوی/اوره-کراتینین","ادرار","آهن/فریتین","ویتامین D","کشت","تومورمارکرها"], key:()=>linkCount("linkLab")>0, summarize:()=>linkSum("linkLab") },
-  { id:"linkImg",   title:"تصویر و رادیولوژی ⤵", link:true, build:buildLink, items:["ECG","رادیوگرافی سینه","رادیوگرافی شکم","سونوگرافی","OPG/CBCT","ماموگرافی","MRI","CT"], key:()=>linkCount("linkImg")>0, summarize:()=>linkSum("linkImg") },
+  { id:"linkLab",   title:"آزمایش ⤵",  link:true, build:buildLink, items:["CBC","قند/چربی","فاکتورهای التهاب","تیروئید","کبدی","کلیوی/اوره-کراتینین","ادرار","آهن/فریتین","ویتامین D","کشت","تومورمارکرها","HbA1c","B12","H. pylori","β-hCG","ادرارِ کامل"], key:()=>linkCount("linkLab")>0, summarize:()=>linkSum("linkLab") },
+  { id:"linkImg",   title:"تصویر و رادیولوژی ⤵", link:true, build:buildLink, items:["ECG","رادیوگرافی سینه","رادیوگرافی شکم","سونوگرافی","OPG/CBCT","ماموگرافی","MRI","CT","DEXA","داپلر"], key:()=>linkCount("linkImg")>0, summarize:()=>linkSum("linkImg") },
   { id:"linkDoc",   title:"اسنادِ بالینی ⤵", link:true, build:buildLink, items:["عکسِ بالینی/زخم","نسخه","کاربرگِ معرفی","برگهٔ بیمارستان","پاسخِ ارجاعِ تخصصی"], key:()=>linkCount("linkDoc")>0, summarize:()=>linkSum("linkDoc") }
 ];
 
@@ -373,7 +413,7 @@ function buildLife(body){
   body.append(txtField("lifeNote","شغل/استرس (اختیاری)",false));
   body.append(footRow(body.closest(".sec")));
 }
-const SCREEN_ITEMS=["فشارخون","قند/دیابت","چربی","واکسیناسیون","قد/وزن/BMI","پاپ‌اسمیر","ماموگرافی","کلونوسکوپی","PSA","تیروئید","کم‌خونی/آهن","ویتامین D","بینایی‌سنجی","شنوایی","سلامت روان","اعتیاد","خطر قلبی-عروقی","پوست/خال‌ها"];
+const SCREEN_ITEMS=["فشارخون","قند/دیابت","چربی","واکسیناسیون","قد/وزن/BMI","پاپ‌اسمیر","ماموگرافی","کلونوسکوپی","PSA","تیروئید","کم‌خونی/آهن","ویتامین D","بینایی‌سنجی","شنوایی","سلامت روان","اعتیاد","خطر قلبی-عروقی","پوست/خال‌ها","هپاتیت B","واکسن فصلی","گلوکوم","تعادل/سقوط","سرطان دهان"];
 function buildScreen(body){
   SCREEN_ITEMS.forEach(it=>{
     const r=document.createElement("div"); r.className="sys";
