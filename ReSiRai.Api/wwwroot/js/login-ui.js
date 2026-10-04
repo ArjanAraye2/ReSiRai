@@ -70,8 +70,22 @@
 
   function ensureLoginStyles(){
     if(document.getElementById('reSiRaiFinalLoginCss'))return;
-    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261004.2';document.head.appendChild(l);
+    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261004.3';document.head.appendChild(l);
   }
+
+  function updateLoginViewport(){
+    const screen=document.getElementById('reSiRaiLoginScreen');
+    if(!screen)return;
+    const viewport=window.visualViewport;
+    // The on-screen keyboard can reduce the visual viewport without changing
+    // vh/dvh. Size the mobile scroll area to that visible space. Preserve
+    // browser zoom instead of resizing the layout to a pinch-zoomed viewport.
+    if(window.matchMedia('(max-width:1050px)').matches&&(!viewport||viewport.scale===1)){
+      screen.style.setProperty('--login-viewport-height',`${viewport?.height||window.innerHeight}px`);
+    }else screen.style.removeProperty('--login-viewport-height');
+  }
+  window.addEventListener('resize',updateLoginViewport);
+  window.visualViewport?.addEventListener('resize',updateLoginViewport);
 
   function createLogin(){
     ensureLoginStyles();
@@ -134,6 +148,7 @@
       </div>`;
 
     document.body.prepend(screen);
+    updateLoginViewport();
     // Always open the authentication screen at its real top; the application may have been scrolled before login.
     window.scrollTo(0,0);
     screen.scrollTop=0;
