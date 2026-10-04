@@ -5,6 +5,9 @@
   const appHeader=()=>document.querySelector('.main-header');
   const appMain=()=>document.querySelector('.page-container');
   const appSidebar=()=>document.querySelector('.app-sidebar');
+  // Normalize before filtering: mobile keyboards may emit Persian/Arabic
+  // digits, and this listener runs before the shared language listener.
+  const identifierDigits=value=>String(value??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g,'');
 
   const toothSvg=(stroke='#159bb6')=>'<svg viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M13.3 4.8C8.2 5.7 4.9 10 5.4 15.1c.4 4.4 3 7.3 4.8 10.8 1.9 3.6 1.9 10.6 2.9 16.5.6 3.7 2 6.2 4.7 6.2 3.3 0 3.9-5.2 4.4-9.6.5-4.2 1.2-7.1 2.8-7.1s2.3 2.9 2.8 7.1c.5 4.4 1.1 9.6 4.4 9.6 2.7 0 4.1-2.5 4.7-6.2 1-5.9 1-12.9 2.9-16.5 1.8-3.5 4.4-6.4 4.8-10.8.5-5.1-2.8-9.4-7.9-10.3-3.5-.6-6.2.8-8.1 2.2-1.4 1-2.5 1-3.9 0-1.9-1.4-4.6-2.8-8.1-2.2Z" fill="#fff" stroke="'+stroke+'" stroke-width="2.2"/></svg>';
 
@@ -177,7 +180,7 @@
       setFeedback(); userName.focus();
     }
     document.querySelectorAll('.login-id-tab').forEach(b=>b.onclick=()=>applyMode(b.dataset.mode));
-    userName.addEventListener('input',()=>{userName.value=userName.value.replace(/\D/g,'').slice(0,mode==='mobile'?11:10);setFeedback();});
+    userName.addEventListener('input',()=>{userName.value=identifierDigits(userName.value).slice(0,mode==='mobile'?11:10);setFeedback();});
     // Clear the previous reaction as the user starts correcting the password;
     // the authoritative attempt count remains on the server.
     password.addEventListener('input',()=>setFeedback());
@@ -224,7 +227,7 @@
       <button id="backToLogin" type="button" class="login-recovery-link">بازگشت به ورود</button>
       <p class="login-footer"><span class="login-shield">${iconSvg('shield')}</span>ورود شما به معنای پذیرش قوانین و مقررات ReSiRai است.</p>`;
     const input=document.getElementById('recoveryNationalCode');
-    input.addEventListener('input',()=>input.value=input.value.replace(/\D/g,'').slice(0,10));
+    input.addEventListener('input',()=>input.value=identifierDigits(input.value).slice(0,10));
     document.getElementById('backToLogin').onclick=()=>{screen.remove();createLogin();};
     document.getElementById('recoveryRequestForm').onsubmit=async e=>{
       e.preventDefault();
@@ -250,7 +253,7 @@
         <div id="recoveryVerifyStatus" class="login-status"></div>
         <button class="login-submit" type="submit">تغییر رمز عبور</button>
       </form>`;
-    document.getElementById('recoveryCode').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,6));
+    document.getElementById('recoveryCode').addEventListener('input',e=>e.target.value=identifierDigits(e.target.value).slice(0,6));
     document.getElementById('verifyRecoveryForm').onsubmit=async e=>{
       e.preventDefault();
       const status=document.getElementById('recoveryVerifyStatus');
