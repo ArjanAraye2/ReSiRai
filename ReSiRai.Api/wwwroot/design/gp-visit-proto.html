@@ -92,13 +92,22 @@
   /* دیکتهٔ صوتی + پاک‌کننده — هر فیلدِ متنی */
   .txt{padding-right:76px}
   .micbox{position:relative;display:block}
-  .mic{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;
-       border:1px solid var(--line);background:#fff;color:#66788c;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .field.hastools .txt{padding-right:12px}
+  .field>label.lblrow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+  .tools{display:inline-flex;align-items:center;gap:6px;flex:0 0 auto}
+  .tools .mic{position:static;transform:none}
+  .tools .clr{position:static;transform:none}
+  .mic{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;
+       border:1px solid var(--line);background:#fff;color:#66788c}
+  .mic svg{display:block}
   .mic:hover{border-color:#1b9bd7;color:#1b9bd7}
   .mic.on{background:#c0392b;border-color:#c0392b;color:#fff}
-  .clr{position:absolute;right:40px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;
-       border:1px solid transparent;background:transparent;color:#9aa8b5;font-size:13px;display:none;align-items:center;justify-content:center}
+  .clr{display:none;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;
+       border:1px solid transparent;background:transparent;color:#9aa8b5;font-size:13px}
   .clr:hover{background:#fdecea;color:#c0392b;border-color:#f3c6c2}
+  /* حالتِ جعبه‌ای (فیلد بدونِ عنوان — یافتهٔ معاینه): رویِ خودِ فیلد */
+  .micbox .mic{position:absolute;right:6px;top:50%;transform:translateY(-50%)}
+  .micbox .clr{position:absolute;right:40px;top:50%;transform:translateY(-50%)}
 </style>
 </head>
 <body>
@@ -237,39 +246,47 @@ function numField(id,label,req,small){
   f.append(i); return f;
 }
 function txtField(id,label,req){
-  const f = document.createElement("div"); f.className="field";
-  f.innerHTML = `<label>${label}${req?' <span class="hint">(کلیدی)</span>':''}</label>`;
+  const f = document.createElement("div"); f.className="field hastools";
+  const lab=document.createElement("label");
+  lab.innerHTML = `<span>${label}${req?' <span class="hint">(کلیدی)</span>':''}</span>`;
   const i = document.createElement("input");
   i.type="text"; i.className="txt"; i.id=id; i.placeholder="در صورتِ نیاز…";
   if(req) i.dataset.required="1";
-  f.append(i); attachMic(i); return f;
+  f.append(lab,i); attachMic(i, lab); return f;
 }
 /* دیکتهٔ صوتی: هر فیلدِ متنی یک میکروفون. مرورگری که پشتیبانی نکند، فقط ⌘ می‌بیند. */
 let __rec=null, __recBtn=null;
 function stopDictation(){ if(__rec){ try{__rec.stop();}catch(e){} } if(__recBtn) __recBtn.classList.remove("on"); __rec=null; __recBtn=null; }
-function attachMic(input){
-  const box=document.createElement("span"); box.className="micbox";
-  input.parentNode.insertBefore(box, input); box.append(input);
-  const b=document.createElement("button"); b.type="button"; b.className="mic"; b.textContent="🎙"; b.title="دیکتهٔ صوتی";
+const MIC_SVG='<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 1 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2z"/></svg>';
+function attachMic(input, host){
+  let holder;
+  if(host){ // دکمه‌ها در ردیفِ عنوانِ فیلد (کنارِ نوشتهٔ عنوان)
+    holder=document.createElement("span"); holder.className="tools";
+    host.classList.add("lblrow");
+    host.append(holder);
+  }else{    // دکمه‌ها رویِ خودِ فیلد (فیلدِ بی‌عنوان مثلِ «یافته…»)
+    const box=document.createElement("span"); box.className="micbox";
+    input.parentNode.insertBefore(box, input); box.append(input);
+    holder=box;
+  }
+  const b=document.createElement("button"); b.type="button"; b.className="mic"; b.title="دیکتهٔ صوتی"; b.innerHTML=MIC_SVG;
   b.onclick=()=>{
     const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
     if(!SR){ b.textContent="⚠"; b.title="دیکته در این مرورگر پشتیبانی نمی‌شود"; return; }
     if(b.classList.contains("on")){ stopDictation(); return; }
     stopDictation();
     const rec=new SR(); rec.lang="fa-IR"; rec.interimResults=false; rec.continuous=false;
-    rec.onresult=(e)=>{ const t=e.results[0][0].transcript; input.value=(input.value?input.value+" ":"")+t; };
+    rec.onresult=(e)=>{ const tx=e.results[0][0].transcript; input.value=(input.value?input.value+" ":"")+tx; sync(); };
     rec.onerror=()=>stopDictation();
     rec.onend=()=>stopDictation();
     b.classList.add("on"); __rec=rec; __recBtn=b;
     try{ rec.start(); }catch(e){ stopDictation(); }
   };
-  box.append(b);
-  // ✕ پاک‌کننده: همهٔ متنِ فیلد را یک‌جا پاک می‌کند؛ فقط وقتی متنی هست دیده می‌شود
   const c=document.createElement("button"); c.type="button"; c.className="clr"; c.textContent="✕"; c.title="پاک‌کردنِ همه";
   const sync=()=>{ c.style.display = input.value ? "flex" : "none"; };
   c.onclick=()=>{ input.value=""; sync(); input.focus(); };
   input.addEventListener("input", sync);
-  box.insertBefore(c, b); sync();
+  holder.append(b,c); sync();
 }
 function footRow(sec){
   const f = document.createElement("div"); f.className="foot";
@@ -290,7 +307,7 @@ function buildAnamnesis(body){
   const g = chipGroup("chief",["پیگیری","فشارخون","دیابت/قند","سرماخوردگی","درد","تب","سرفه","خستگی","سرگیجه","اسهال","حساسیت","خواب/عصبی","پوستی","ادراری","سایر"]);
   const t = document.createElement("input"); t.className="txt"; t.id="chiefTxt"; t.style.marginTop="8px";
   t.placeholder="یا بنویسید…";
-  f.append(g,t); attachMic(t); body.append(f);
+  f.append(g,t); attachMic(t, f.querySelector("label")); f.classList.add("hastools"); body.append(f);
 
   body.append(txtField("anamOther","متنِ تکمیلی (اختیاری)",false));
 
