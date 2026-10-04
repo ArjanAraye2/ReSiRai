@@ -36,6 +36,7 @@ async function measure(page) {
         fullyInViewport: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 && r.right <= innerWidth,
         centerHit: !!hit && (hit === e || e.contains(hit)),
         fontSize: c.fontSize, lineHeight: c.lineHeight, overflowY: c.overflowY,
+        inputMode: e.inputMode, lang: e.lang, direction: c.direction,
         flexShrink: c.flexShrink, scrollHeight: e.scrollHeight, clientHeight: e.clientHeight,
         scrollTop: e.scrollTop, text: selector.includes('Status') || selector.includes('Emoji') ? e.textContent : undefined,
       };
@@ -73,6 +74,13 @@ async function capture(page, name) {
     await page.waitForTimeout(300);
     const name = width + 'x' + height;
     const initial = await capture(page, name + '-initial');
+    const digits = {};
+    await page.locator('#loginUserName').fill('۱۲۳۴۵۶۷۸۹۰');
+    digits.nationalPersian = await page.locator('#loginUserName').inputValue();
+    await page.evaluate(() => document.querySelector('[data-mode="mobile"]').click());
+    await page.locator('#loginUserName').fill('۰۹۱۲۳۴۵۶۷۸۹');
+    digits.mobilePersian = await page.locator('#loginUserName').inputValue();
+    await page.evaluate(() => document.querySelector('[data-mode="national"]').click());
     await page.evaluate(() => {
       document.getElementById('loginUserName').value = '1234567890';
       document.getElementById('loginPassword').value = 'wrong';
@@ -80,6 +88,15 @@ async function capture(page, name) {
     });
     await page.waitForFunction(() => document.getElementById('loginFeedbackEmoji').textContent === '😕');
     const wrong = await capture(page, name + '-wrong');
+    const reactions = ['😕'];
+    for (const count of [2, 3, 4]) {
+      await page.unroute('**/api/auth/login');
+      await page.route('**/api/auth/login', route => route.fulfill({ status: 401, contentType: 'application/json', body: JSON.stringify({ success: false, failedAttempts: count }) }));
+      await page.evaluate(() => { document.getElementById('loginPassword').value = 'wrong'; document.getElementById('reSiRaiLoginForm').requestSubmit(); });
+      await page.waitForFunction(emoji => document.getElementById('loginFeedbackEmoji').textContent === emoji, ['😟','😣','😫'][count - 2]);
+      reactions.push(await page.locator('#loginFeedbackEmoji').textContent());
+    }
+    await page.unroute('**/api/auth/login');
     scenario = 429;
     await page.evaluate(() => {
       document.getElementById('loginPassword').value = 'wrong';
@@ -97,7 +114,7 @@ async function capture(page, name) {
     await page.waitForSelector('#recoveryCode');
     await page.evaluate(() => document.fonts.ready);
     const verify = await capture(page, name + '-verify');
-    results.push({ viewport: { width, height }, initial, wrong, blocked, afterWheel, recovery, verify, errors });
+    results.push({ viewport: { width, height }, initial, digits, reactions, wrong, blocked, afterWheel, recovery, verify, errors });
     await context.close();
   }
   fs.writeFileSync(path.join(output, 'results.json'), JSON.stringify(results, null, 2));
