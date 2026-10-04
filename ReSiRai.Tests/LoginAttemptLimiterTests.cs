@@ -6,6 +6,18 @@ namespace ReSiRai.Tests;
 public sealed class LoginAttemptLimiterTests
 {
     [Fact]
+    public void ReactionCountSurvivesAccountBlockButResetsAfterExpiry()
+    {
+        var clock = new TestClock();
+        var limiter = new LoginAttemptLimiter(clock);
+        for (int i = 1; i <= 5; i++) Assert.Equal(i, limiter.RecordFailure("account").FailedAttempts);
+        Assert.Equal(5, limiter.CheckAccount("account").FailedAttempts);
+        clock.Advance(TimeSpan.FromMinutes(15));
+        Assert.Equal(0, limiter.CheckAccount("account").FailedAttempts);
+        Assert.Equal(1, limiter.RecordFailure("account").FailedAttempts);
+    }
+
+    [Fact]
     public void IpAllowsThirtyAttemptsThenBlocksForFifteenMinutesWithoutExtension()
     {
         var clock = new TestClock();

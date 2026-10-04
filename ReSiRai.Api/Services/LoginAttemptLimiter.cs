@@ -71,7 +71,7 @@ public sealed class LoginAttemptLimiter(TimeProvider clock)
             Prepare(state, now);
             if (state.BlockedUntil > now) return Blocked(state, now);
             state.Times.Enqueue(now);
-            return state.Times.Count >= 5 ? StartBlock(state, now) : default;
+            return state.Times.Count >= 5 ? StartBlock(state, now, state.Times.Count) : new(false, 0, false, state.Times.Count);
         }
     }
 
@@ -91,20 +91,22 @@ public sealed class LoginAttemptLimiter(TimeProvider clock)
         if (state.BlockedUntil != default && state.BlockedUntil <= now)
         {
             state.BlockedUntil = default;
+            state.BlockedAttempts = 0;
             state.Times.Clear();
         }
         while (state.Times.TryPeek(out var time) && time <= now - Window) state.Times.Dequeue();
     }
 
-    private static LimitResult StartBlock(Attempts state, DateTimeOffset now)
+    private static LimitResult StartBlock(Attempts state, DateTimeOffset now, int failedAttempts = 0)
     {
         state.BlockedUntil = now + BlockDuration;
+        state.BlockedAttempts = failedAttempts;
         state.Times.Clear();
         return Blocked(state, now) with { IsNewBlock = true };
     }
 
     private static LimitResult Blocked(Attempts state, DateTimeOffset now) =>
-        new(true, Math.Max(1, (int)Math.Ceiling((state.BlockedUntil - now).TotalSeconds)), false);
+        new(true, Math.Max(1, (int)Math.Ceiling((state.BlockedUntil - now).TotalSeconds)), false, state.BlockedAttempts);
 
     private void Cleanup(DateTimeOffset now)
     {
@@ -121,11 +123,12 @@ public sealed class LoginAttemptLimiter(TimeProvider clock)
         }
     }
 
-    public readonly record struct LimitResult(bool IsBlocked, int RetryAfterSeconds, bool IsNewBlock);
+    public readonly record struct LimitResult(bool IsBlocked, int RetryAfterSeconds, bool IsNewBlock, int FailedAttempts = 0);
     private sealed class Attempts
     {
         public Queue<DateTimeOffset> Times { get; } = new();
         public DateTimeOffset BlockedUntil { get; set; }
+        public int BlockedAttempts { get; set; }
     }
     private sealed class AccountLease(SemaphoreSlim semaphore) : IDisposable
     {

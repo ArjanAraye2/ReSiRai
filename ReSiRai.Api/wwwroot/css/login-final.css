@@ -459,3 +459,10 @@ url('/images/login-hero-final.svg?v=1') center 56%/100% auto no-repeat,#e6f6fc}
   #reSiRaiLoginScreen .login-field input{height:40px!important}
   #reSiRaiLoginScreen .login-submit{min-height:42px!important}
 }
+
+/* واکنشِ ورود کنار پیام قرار می‌گیرد؛ ایموجی تزئینی است و متن برای
+   صفحه‌خوان‌ها با aria-live اعلام می‌شود. */
+#reSiRaiLoginScreen .login-feedback{display:flex;align-items:flex-start;gap:6px}
+#reSiRaiLoginScreen .login-feedback-text{min-width:0;flex:1}
+#reSiRaiLoginScreen .login-feedback-emoji{flex:0 0 auto;font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;font-size:20px;line-height:1;margin-top:1px}
+#reSiRaiLoginScreen .login-feedback-emoji[hidden]{display:none}

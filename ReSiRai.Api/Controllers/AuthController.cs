@@ -102,7 +102,7 @@ namespace ReSiRai.Api.Controllers
         {
             var limit = _loginLimiter.RecordFailure(key);
             if (limit.IsBlocked) return await LoginLimitedAsync(limit, userName, userID);
-            return Unauthorized(new { success = false, message = "Invalid username or password." });
+            return Unauthorized(new { success = false, message = "Invalid username or password.", failedAttempts = limit.FailedAttempts });
         }
 
         private async Task<IActionResult> LoginLimitedAsync(LoginAttemptLimiter.LimitResult limit, string userName, int? userID = null)
@@ -110,7 +110,7 @@ namespace ReSiRai.Api.Controllers
             if (limit.IsNewBlock)
                 await _events.LogAsync("LoginRateLimitExceeded", outcome: "fail", detail: "توقف ۱۵ دقیقه‌ای ورود — ۵ ورود ناموفق برای حساب در ۱۰ دقیقه", userID: userID, userName: userName);
             Response.Headers.RetryAfter = limit.RetryAfterSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            return StatusCode(StatusCodes.Status429TooManyRequests, new { success = false, message = LoginAttemptLimiter.Message, retryAfterSeconds = limit.RetryAfterSeconds });
+            return StatusCode(StatusCodes.Status429TooManyRequests, new { success = false, message = LoginAttemptLimiter.Message, retryAfterSeconds = limit.RetryAfterSeconds, failedAttempts = limit.FailedAttempts });
         }
 
         public sealed class ForgotPasswordRequest { public string NationalCode { get; set; } = string.Empty; }
