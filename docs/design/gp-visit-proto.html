@@ -1,0 +1,533 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نمونه کاغذی — مراجعه پزشک عمومی</title>
+<style>
+  :root{--bg:#eef4f9;--card:#fff;--line:#dbe4ec;--ink:#123;--muted:#66788c;--blue:#0b7ad6;--ok:#14934b;--warn:#c0392b;--chip:#eef4fa;--chip-on:#0b7ad6}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);font-family:Vazirmatn,Tahoma,Arial,sans-serif;color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:16px}
+  .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .top h1{font-size:19px;margin:0}
+  .top .sub{color:var(--muted);font-size:12px}
+  .spacer{flex:1}
+  button{font:inherit;cursor:pointer}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px}
+  .btn.primary{background:var(--chip-on);border-color:var(--chip-on);color:#fff}
+  .btn.small{padding:5px 10px;font-size:13px}
+  .banner{background:#fff7e6;border:1px solid #f0d9a8;color:#8a5a00;border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:10px;display:none}
+
+  .sec{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden}
+  .sec-head{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;padding:11px 13px;text-align:right}
+  .sec-head:hover{background:#f6fafd}
+  .sec-name{font-weight:700;font-size:15px}
+  .sec-badge{font-size:12px;color:var(--muted)}
+  .sec-badge.done{color:var(--ok);font-weight:700}
+  .sec-arrow{color:var(--muted);font-size:12px;transition:.15s}
+  .sec.is-open .sec-arrow{transform:rotate(180deg)}
+  .sec-body{border-top:1px dashed var(--line);padding:12px 13px}
+  .sec-body.hidden{display:none}
+  .sec.recorded .sec-badge{color:var(--ok)}
+
+  .field{margin-bottom:12px}
+  .field > label{display:block;font-size:13px;font-weight:700;color:#214b75;margin-bottom:6px}
+  .field .hint{font-weight:400;color:var(--muted);font-size:11px}
+  .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .chip{border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:6px 12px;font-size:13px}
+  .chip.on{background:var(--chip-on);border-color:var(--chip-on);color:#fff}
+  .num{width:110px;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;background:#fbfdff}
+  .num.small{width:78px}
+  .txt{width:100%;border:1px solid var(--line);border-radius:9px;padding:8px 10px;font:inherit;background:#fbfdff}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .calc{background:#eafaf0;color:#0f7a3d;border-radius:8px;padding:6px 10px;font-size:13px}
+
+  table.rt{width:100%;border-collapse:collapse;font-size:13px}
+  table.rt th{background:#f4f8fb;color:#55677c;font-weight:600;font-size:12px;padding:6px}
+  table.rt td{border-top:1px solid var(--line);padding:6px}
+  .src{font-size:11px;color:var(--muted)}
+
+  .sys{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px solid #eef2f6}
+  .sys:first-child{border-top:0}
+  .sys .nm{flex:1;font-size:14px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{border:0;background:#f4f7fa;padding:6px 12px;font-size:13px;color:#55677c}
+  .seg button.on-ok{background:#14934b;color:#fff}
+  .seg button.on-no{background:#c0392b;color:#fff}
+  .sys .txt{flex:2;min-width:150px;padding:5px 8px}
+
+  .foot{display:flex;gap:8px;justify-content:flex-start;margin-top:6px}
+  .err{color:var(--warn);font-size:12px;margin-right:8px}
+  .linkrow{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:14px}
+  .linkrow input{width:17px;height:17px;accent-color:var(--chip-on)}
+  .pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .pill{background:#eaf2fb;color:#0b5fa5;border-radius:999px;padding:4px 10px;font-size:12px}
+
+  .addbar{margin-top:10px}
+  .addbar .btn{width:100%;border-style:dashed;color:var(--muted)}
+  .dialog{position:fixed;inset:0;background:rgba(10,30,50,.45);display:none;align-items:center;justify-content:center;z-index:9}
+  .dialog.open{display:flex}
+  .dialog .\boxed{background:#fff;border-radius:14px;width:min(420px,92vw);padding:16px}
+  .dialog h3{margin:0 0 10px;font-size:16px}
+  .opt{display:flex;justify-content:space-between;align-items:center;padding:9px 4px;border-top:1px solid var(--line);font-size:14px}
+  .opt:first-of-type{border-top:0}
+  .visitClosed .sec:not(.recorded){display:none}
+  .visitClosed .addbar{display:none}
+  .closedNote{background:#eaf2fb;border:1px solid #cfe1f5;color:#0b5fa5;border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:10px;display:none}
+  .visitClosed .closedNote{display:block}
+  .visitClosed .sec-head{cursor:default}
+  .visitClosed .foot{display:none}
+  .visitClosed .sec-body{display:none}
+  .visitClosed .sec.openSummary .sec-body{display:block;border-top:1px dashed var(--line)}
+  .visitClosed .seg button{pointer-events:none}
+  .phq{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 0;border-top:1px solid #eef2f6}
+  .phq:first-child{border-top:0}
+  .phq .q{flex:1;font-size:14px;min-width:180px}
+  .opts{display:flex;gap:5px}
+  .opts button{border:1px solid var(--line);background:#f4f7fa;border-radius:8px;padding:4px 9px;font-size:12px}
+  .opts button.on{background:var(--chip-on);border-color:var(--chip-on);color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>مراجعه — پزشکِ عمومی</h1>
+      <div class="sub">نمونهٔ کاغذیِ تیک‌محور · قدمِ ۲ · بدونِ دست‌زدنِ به برنامه</div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn" id="reopen" style="display:none">بازگشت به حالتِ ویرایش</button>
+    <button class="btn primary" id="closeVisit">بستنِ مراجعه</button>
+  </div>
+
+  <div class="banner" id="banner"></div>
+  <div class="closedNote">مراجعه بسته شد — فقط بخش‌هایِ دارایِ ثبت نمایش داده می‌شوند. روی هر بخش کلیک کنید تا جزئیاتش باز شود.</div>
+
+  <div id="sections"></div>
+
+  <div class="addbar">
+    <button class="btn" id="addBtn">+ بخشِ دیگر</button>
+  </div>
+</div>
+
+<div class="dialog" id="dlg">
+  <div class="box">
+    <h3>افزودنِ بخش</h3>
+    <div id="dlgList"></div>
+    <div class="foot" style="margin-top:12px">
+      <button class="btn" id="dlgClose">بستن</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+
+/* ---------- تعریفِ بخش‌ها (الگوی پیش‌فرضِ پزشک عمومی) ---------- */
+const SYSTEMS = ["قلب","ریه","شکم","عصبی","پوست","گوش‌حلق‌بینی","چشم","اسکلت‌عضله"];
+
+const EXTRAS = [
+  { id:"phq",   title:"سلامتِ روان (غربالگریِ PHQ-2)", build:buildPhq,   key:()=>$$(".phq").every(r=>r.dataset.v), summarize:sumPhq },
+  { id:"pain",  title:"ارزیابیِ درد",                  build:buildPain,  key:()=>$("#painSel") && $("#painSel").dataset.v, summarize:()=>{ const o=$("#painSel"); return o? `شدت ${o.dataset.v}`:""; } }
+];
+
+const SECTIONS = [
+  { id:"anamnesis", title:"شکایت و آنامنز",   build:buildAnamnesis, key:anamnesisOk, summarize:sumAnamnesis },
+  { id:"vitals",    title:"علائمِ حیاتی",      build:buildVitals,    key:vitalsOk,    summarize:sumVitals },
+  { id:"exam",      title:"معاینهٔ عمومی",     build:buildExam,      key:examOk,      summarize:sumExam },
+  { id:"bp",        title:"ارزیابیِ فشارخون",  build:buildBp,        key:bpOk,        summarize:sumBp, repeat:true },
+  { id:"sugar",     title:"ارزیابیِ قند",      build:buildSugar,     key:sugarOk,     summarize:sumSugar, repeat:true },
+  { id:"life",      title:"سبکِ زندگی",        build:buildLife,      key:lifeOk,      summarize:sumLife },
+  { id:"screen",    title:"غربالگری و پیشگیری",build:buildScreen,    key:screenOk,    summarize:sumScreen },
+  { id:"linkLab",   title:"آزمایش ⤵",  link:true, build:buildLink, items:["CBC","کم‌خونی/فریتین","قند/چربی","اوره-کراتینین","تیروئید","کشت ادرار"], key:()=>linkCount("linkLab")>0, summarize:()=>linkSum("linkLab") },
+  { id:"linkImg",   title:"تصویر و رادیولوژی ⤵", link:true, build:buildLink, items:["عکس سینه","رادیوگرافی شکم","سونوگرافی","ECG"], key:()=>linkCount("linkImg")>0, summarize:()=>linkSum("linkImg") },
+  { id:"linkDoc",   title:"اسنادِ بالینی ⤵", link:true, build:buildLink, items:["عکس زخم","نسخهٔ بیمارستان","کاربرگِ معرفی"], key:()=>linkCount("linkDoc")>0, summarize:()=>linkSum("linkDoc") }
+];
+
+const state = {};           // id -> { recorded:bool, summary:string }
+let visitClosed = false;
+const host = $("#sections");
+
+/* ---------- کمکی‌ها ---------- */
+function chipGroup(name, options, opts={}){
+  const wrap = document.createElement("div");
+  wrap.className = "chips"; wrap.dataset.group = name;
+  options.forEach(o=>{
+    const b = document.createElement("button");
+    b.type="button"; b.className="chip"; b.textContent=o; b.dataset.v=o;
+    b.onclick = () => { $$(".chip",wrap).forEach(c=>c.classList.remove("on")); b.classList.add("on"); wrap.dataset.v=o; };
+    wrap.append(b);
+  });
+  if(opts.required) wrap.dataset.required="1";
+  return wrap;
+}
+function numField(id,label,req,small){
+  const f = document.createElement("div"); f.className="field";
+  f.innerHTML = `<label>${label}${req?' <span class="hint">(کلیدی)</span>':''}</label>`;
+  const i = document.createElement("input");
+  i.type="number"; i.inputMode="decimal"; i.className="num"+(small?" small":""); i.id=id;
+  if(req) i.dataset.required="1";
+  f.append(i); return f;
+}
+function txtField(id,label,req){
+  const f = document.createElement("div"); f.className="field";
+  f.innerHTML = `<label>${label}${req?' <span class="hint">(کلیدی)</span>':''}</label>`;
+  const i = document.createElement("input");
+  i.type="text"; i.className="txt"; i.id=id; i.placeholder="در صورتِ نیاز…";
+  if(req) i.dataset.required="1";
+  f.append(i); return f;
+}
+function footRow(sec){
+  const f = document.createElement("div"); f.className="foot";
+  const err = document.createElement("span"); err.className="err"; err.dataset.err="";
+  const b = document.createElement("button"); b.className="btn primary"; b.textContent="تأیید و ثبت";
+  b.onclick = ()=>confirmSection(sec);
+  f.append(err,b); return f;
+}
+function nowLocal(){
+  const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}/${p(d.getMonth()+1)}/${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/* ---------- سازندهٔ بخش‌ها ---------- */
+function buildAnamnesis(body){
+  const f=document.createElement("div"); f.className="field";
+  f.innerHTML='<label>شکایتِ اصلی <span class="hint">(کلیدی — تیک یا متن)</span></label>';
+  const g = chipGroup("chief",["پیگیری","سرماخوردگی","درد","فشارخون","قند","سایر"]);
+  const t = document.createElement("input"); t.className="txt"; t.id="chiefTxt"; t.style.marginTop="8px";
+  t.placeholder="یا بنویسید…";
+  f.append(g,t); body.append(f);
+
+  body.append(txtField("anamOther","متنِ تکمیلی (اختیاری)",false));
+
+  const f2=document.createElement("div"); f2.className="field";
+  f2.innerHTML='<label>مدت و شدت</label>';
+  const row=document.createElement("div"); row.className="row";
+  row.append(chipGroup("dur",["امروز","چند روز","چند هفته","مزمن"]));
+  const sev=document.createElement("div");
+  sev.className="row"; sev.style.marginTop="8px";
+  sev.innerHTML='<span style="font-size:13px">شدت</span>';
+  const rng=document.createElement("input"); rng.type="range"; rng.min="0"; rng.max="10"; rng.value="0"; rng.id="sev";
+  rng.style.width="160px";
+  const lbl=document.createElement("span"); lbl.style.fontSize="13px"; lbl.id="sevLbl"; lbl.textContent="۰"; lbl.style.width="24px";
+  rng.oninput=()=>lbl.textContent=Number(rng.value).toLocaleString("fa-IR");
+  sev.append(rng,lbl);
+  f2.append(row,sev); body.append(f2);
+
+  const f3=document.createElement("div"); f3.className="field";
+  f3.innerHTML='<label>بیماری‌های زمینه‌ای <span class="hint">(چک‌لیست)</span></label>';
+  const base=document.createElement("div"); base.className="chips"; base.id="base";
+  ["فشارخون","دیابت","بیماری قلبی","تیروئید","آسم","هیچکدام"].forEach(o=>{
+    const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=o; b.dataset.v=o;
+    b.onclick=()=>{ $$(".chip",base).forEach(c=>c.classList.remove("on")); b.classList.add("on"); };
+    base.append(b);
+  });
+  f3.append(base); body.append(f3);
+
+  body.append(txtField("allergy","حساسیت‌ها (اختیاری)",false));
+  body.append(txtField("surgery","سابقهٔ بستری/عمل (اختیاری)",false));
+  body.append(footRow(body.closest(".sec")));
+}
+function buildVitals(body){
+  const grid=document.createElement("div");
+  grid.className="row"; grid.style.gap="12px";
+  grid.append(numField("sys","فشارِ سیستول (mmHg)",true), numField("dia","فشارِ دیاستول (mmHg)",true));
+  body.append(grid);
+  const grid2=document.createElement("div");
+  grid2.className="row"; grid2.style.gap="12px"; grid2.style.marginTop="4px";
+  grid2.append(numField("wt","وزن (kg)",true), numField("ht","قد (cm)",true));
+  body.append(grid2);
+  const grid3=document.createElement("div");
+  grid3.className="row"; grid3.style.gap="12px"; grid3.style.marginTop="4px";
+  grid3.append(numField("pulse","نبض (bpm)",false), numField("temp","دما (°C)",false,false), numField("spo2","SpO₂ (٪)",false));
+  body.append(grid3);
+  const bmi=document.createElement("div"); bmi.className="calc"; bmi.id="bmiLbl"; bmi.textContent="BMI: —";
+  body.append(bmi);
+  const upd=()=>{
+    const w=parseFloat($("#wt")?.value), h=parseFloat($("#ht")?.value);
+    $("#bmiLbl").textContent = (w>0&&h>0) ? `BMI: ${(w/Math.pow(h/100,2)).toFixed(1)} (محاسبه‌شده — خودکار)` : "BMI: —";
+  };
+  ["wt","ht"].forEach(id=>$("#"+id)?.addEventListener("input",upd));
+  body.append(footRow(body.closest(".sec")));
+}
+function buildExam(body){
+  const bar=document.createElement("div"); bar.style.marginBottom="6px";
+  const all=document.createElement("button"); all.type="button"; all.className="btn small"; all.id="examAllNormal";
+  all.textContent="✓ همه طبیعی"; all.onclick=()=>{
+    $$(".sys",body).forEach(s=>setSys(s,"normal"));
+    body.querySelector("[data-err]").textContent="";
+  };
+  bar.append(all); body.append(bar);
+  SYSTEMS.forEach(name=>{
+    const r=document.createElement("div"); r.className="sys"; r.dataset.sys=name;
+    const nm=document.createElement("span"); nm.className="nm"; nm.textContent=name;
+    const seg=document.createElement("div"); seg.className="seg";
+    const ok=document.createElement("button"); ok.type="button"; ok.textContent="طبیعی";
+    const no=document.createElement("button"); no.type="button"; no.textContent="غیرطبیعی";
+    ok.onclick=()=>setSys(r,"normal"); no.onclick=()=>setSys(r,"abnormal");
+    seg.append(ok,no);
+    const tx=document.createElement("input"); tx.className="txt hidden"; tx.dataset.detail="1";
+    tx.style.display="none"; tx.placeholder="یافته…";
+    r.append(nm,seg,tx); body.append(r);
+  });
+  body.append(footRow(body.closest(".sec")));
+}
+function setSys(row,mode){
+  const [ok,no]=$$(".seg button",row);
+  ok.classList.toggle("on-ok",mode==="normal");
+  no.classList.toggle("on-no",mode==="abnormal");
+  row.dataset.state=mode;
+  const tx=$("[data-detail]",row);
+  tx.style.display = mode==="abnormal" ? "block" : "none";
+  if(mode==="normal") tx.value="";
+}
+function buildRepeat(sec, buildRow){
+  const list=document.createElement("div"); list.dataset.rows=""; sec.__rows=list;
+  const mk=()=>{ const r=document.createElement("div"); r.style.cssText="border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px"; buildRow(r,list); list.append(r); };
+  sec.__mkRow=mk; mk();
+  const more=document.createElement("button"); more.type="button"; more.className="btn small"; more.textContent="+ نمونهٔ دیگر";
+  more.style.marginBottom="8px"; more.onclick=mk;
+  sec.querySelector(".sec-body").prepend(more);
+  sec.querySelector(".sec-body").prepend(list);
+}
+function buildBp(body, sec){
+  const list=document.createElement("div"); list.dataset.rows="";
+  const mk=()=>{
+    const r=document.createElement("div");
+    r.style.cssText="border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px";
+    const now=document.createElement("div"); now.className="row"; now.style.marginBottom="6px";
+    const t=document.createElement("button"); t.type="button"; t.className="chip on"; t.textContent="⏳ همین حالا"; t.dataset.now="1";
+    t.onclick=()=>{ t.textContent="⏳ "+nowLocal(); t.dataset.v=nowLocal(); };
+    now.append(t); r.append(now);
+    const row=document.createElement("div"); row.className="row";
+    const s=document.createElement("input"); s.type="number"; s.className="num small"; s.dataset.req="1"; s.placeholder="سیستول";
+    const d=document.createElement("input"); d.type="number"; d.className="num small"; d.dataset.req="1"; d.placeholder="دیاستول";
+    const p=document.createElement("input"); p.type="number"; p.className="num small"; p.placeholder="نبض";
+    row.append(s,d,p); r.append(row);
+    const g=chipGroup("when",["صبح","شب","قبل از فشارشکن","بعد از فشارشکن"]); r.append(g);
+    const prev=list.querySelector("[data-row]");
+    if(prev){ // قاعدهٔ ۲: تکرارِ صریح با برچسبِ منبع
+      const rep=document.createElement("button"); rep.type="button"; rep.className="chip"; rep.textContent="🔁 تکرارِ اندازهٔ قبلی";
+      rep.onclick=()=>{
+        const ps=$$("input",prev);
+        if(ps[0]&&ps[0].value){ s.value=ps[0].value; d.value=ps[1].value; if(ps[2]&&ps[2].value)p.value=ps[2].value;
+          r.dataset.source="تکرارشده"; rep.classList.add("on"); }
+      };
+      g.append(rep);
+    }
+    r.dataset.row="1";
+    list.append(r);
+  };
+  mk();
+  const more=document.createElement("button"); more.type="button"; more.className="btn small"; more.textContent="+ نمونهٔ دیگر";
+  more.style.marginBottom="8px"; more.onclick=mk;
+  body.append(list, more, footRow(sec));
+}
+function buildSugar(body, sec){
+  const list=document.createElement("div"); list.dataset.rows="";
+  const mk=()=>{
+    const r=document.createElement("div");
+    r.style.cssText="border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px";
+    const now=document.createElement("div"); now.className="row"; now.style.marginBottom="6px";
+    const t=document.createElement("button"); t.type="button"; t.className="chip on"; t.textContent="⏳ همین حالا"; t.dataset.now="1";
+    t.onclick=()=>{ t.textContent="⏳ "+nowLocal(); t.dataset.v=nowLocal(); };
+    now.append(t); r.append(now);
+    const row=document.createElement("div"); row.className="row";
+    const v=document.createElement("input"); v.type="number"; v.className="num small"; v.dataset.req="1"; v.placeholder="مقدار";
+    const u=document.createElement("span"); u.className="src"; u.textContent="mg/dL";
+    row.append(v,u); r.append(row);
+    r.append(chipGroup("cond",["ناشتا","بعد غذا","تصادفی"]));
+    r.append(chipGroup("src",["خودسنجی","آزمایشگاه ⤵"]));
+    r.dataset.row="1";
+    list.append(r);
+  };
+  mk();
+  const more=document.createElement("button"); more.type="button"; more.className="btn small"; more.textContent="+ نمونهٔ دیگر";
+  more.style.marginBottom="8px"; more.onclick=mk;
+  body.append(list, more, footRow(sec));
+}
+function buildLife(body){
+  body.append(chipGroup("smoke",["هرگز","سابقه","فعلی"]));
+  const f=document.createElement("div"); f.className="field";
+  f.innerHTML='<label>فعالیتِ بدنی <span class="hint">(دقیقه در هفته — کلیدی)</span></label>';
+  const i=document.createElement("input"); i.type="number"; i.className="num"; i.id="act"; i.dataset.req="1";
+  f.append(i); body.append(f);
+  const f2=document.createElement("div"); f2.className="field";
+  f2.innerHTML='<label>الکل و خواب</label>';
+  f2.append(chipGroup("alcohol",["هرگز","گاه","روزانه"]));
+  const f3=document.createElement("div"); f3.className="row"; f3.style.marginTop="8px";
+  f3.innerHTML='<span style="font-size:13px">خواب (ساعت/شب)</span>';
+  const sl=document.createElement("input"); sl.type="number"; sl.className="num small"; sl.id="sleep";
+  f3.append(sl); f2.append(f3); body.append(f2);
+  body.append(txtField("lifeNote","شغل/تغذیه (اختیاری)",false));
+  body.append(footRow(body.closest(".sec")));
+}
+const SCREEN_ITEMS=["فشارخون","قند","چربی","واکسیناسیون"];
+function buildScreen(body){
+  SCREEN_ITEMS.forEach(it=>{
+    const r=document.createElement("div"); r.className="sys";
+    const nm=document.createElement("span"); nm.className="nm"; nm.textContent=it;
+    const seg=document.createElement("div"); seg.className="seg";
+    ["انجام شده","نیاز دارد","انجام نشده"].forEach(t=>{
+      const b=document.createElement("button"); b.type="button"; b.textContent=t;
+      b.onclick=()=>{ $$("button",seg).forEach(x=>x.className=""); b.classList.add(t==="انجام شده"?"on-ok":(t==="نیاز دارد"?"on-no":"")); seg.dataset.state=t; };
+      seg.append(b);
+    });
+    r.append(nm,seg); body.append(r);
+  });
+  body.append(footRow(body.closest(".sec")));
+}
+function buildLink(body, sec){
+  const sel = sec.def.__sel = sec.def.__sel || new Set();
+  const p=document.createElement("div");
+  (sec.def.items||[]).forEach(it=>{
+    const l=document.createElement("label"); l.className="linkrow";
+    const cb=document.createElement("input"); cb.type="checkbox";
+    cb.checked=sel.has(it);
+    cb.onchange=()=>cb.checked?sel.add(it):sel.delete(it);
+    l.append(cb, document.createTextNode(it)); p.append(l);
+  });
+  body.append(p);
+  body.append(footRow(sec));
+}
+function buildPhq(body){
+  const qs=["علایمِ کم‌خوابی یا بی‌اشتهایی","احساسِ غمگینی یا بی‌حوصلگی"];
+  qs.forEach((q,i)=>{
+    const r=document.createElement("div"); r.className="phq"; r.dataset.phq=i; r.dataset.v="";
+    const s=document.createElement("span"); s.className="q"; s.textContent=q;
+    const o=document.createElement("div"); o.className="opts";
+    ["اصلاً","چند روز","بیشتر از نصف","تقریباً هر روز"].forEach((t,j)=>{
+      const b=document.createElement("button"); b.type="button"; b.textContent=t;
+      b.onclick=()=>{ $$("button",o).forEach(x=>x.classList.remove("on")); b.classList.add("on"); r.dataset.v=String(j); };
+      o.append(b);
+    });
+    r.append(s,o); body.append(r);
+  });
+  body.append(footRow(body.closest(".sec")));
+}
+function sumPhq(){ const v=$$(".phq").map(r=>+r.dataset.v); return `PHQ-2 = ${v.reduce((a,b)=>a+b,0)}`; }
+function buildPain(body){
+  const r=document.createElement("div"); r.className="field";
+  r.innerHTML='<label>شدتِ درد (تیک روی مقیاس)</label>';
+  const g=chipGroup("painScale",["۰","۲","۴","۶","۸","۱۰"]); g.id="painSel";
+  r.append(g); body.append(r);
+  r.append(chipGroup("painWhere",["سر","سینه","شکم","استخوان‌ماهیچه","سایر"]));
+  body.append(footRow(body.closest(".sec")));
+}
+
+/* ---------- ساختِ اولیه ---------- */
+function makeSection(def){
+  const sec=document.createElement("article");
+  sec.className="sec"; sec.dataset.id=def.id; sec.def=def;
+  const head=document.createElement("button"); head.type="button"; head.className="sec-head";
+  head.innerHTML=`<span class="sec-arrow">▾</span><span class="sec-name">${def.title}</span><span class="sec-badge">—</span>`;
+  const body=document.createElement("div"); body.className="sec-body hidden";
+  sec.append(head,body);
+  head.onclick=()=>{
+    if(visitClosed){ sec.classList.toggle("openSummary"); return; }
+    const open=sec.classList.contains("is-open");
+    $$(".sec").forEach(s=>{ s.classList.remove("is-open"); const b=s.querySelector(".sec-body"); if(b)b.classList.add("hidden"); });
+    if(!open){ sec.classList.add("is-open"); body.classList.remove("hidden"); }
+  };
+  host.append(sec); // پیش از ساختِ فرم، به سند وصل شود تا جست‌وجوی سند کار کند
+  def.build(body, sec);
+  return sec;
+}
+function render(){
+  host.replaceChildren();
+  SECTIONS.forEach(d=>{ if(state[d.id]!==undefined || d.__on!==false) makeSection(d); });
+  $$(".sec",host).forEach(s=>{ if(state[s.dataset.id]?.recorded) markRecorded(s, state[s.dataset.id].summary, true); });
+  $$(".sec",host).forEach(s=>{ const b=s.querySelector(".sec-body"); b.classList.add("hidden"); s.classList.remove("is-open"); });
+}
+function ensureOn(def){ SECTIONS.push(def); render(); }
+
+function confirmSection(sec){
+  const def=sec.def, body=sec.querySelector(".sec-body");
+  const miss=[];
+  if(def.key && !def.key(sec)){ miss.push("بخشِ کلیدی ناقص است"); }
+  $$('[data-req="1"],[data-required="1"]',body).forEach(el=>{
+    if(el.tagName==="INPUT" && !String(el.value||"").trim()) miss.push(el.placeholder||el.id||"موردِ کلیدی");
+  });
+  const err=body.querySelector("[data-err]");
+  if(miss.length){ if(err)err.textContent="لطفاً تکمیل کنید: "+[...new Set(miss)].slice(0,3).join("، "); return; }
+  if(err)err.textContent="";
+  const summary = def.summarize ? def.summarize(sec) : "";
+  state[def.id]={recorded:true,summary};
+  markRecorded(sec,summary);
+  sec.classList.remove("is-open"); body.classList.add("hidden");
+}
+function markRecorded(sec,summary,restore){
+  sec.classList.add("recorded");
+  const badge=sec.querySelector(".sec-badge");
+  badge.classList.add("done"); badge.textContent="✓ ثبت شد"+(summary?` — ${summary}`:"");
+  if(!restore){ /* فقط تأییدِ صریح کاربر ذخیره کرده است */ }
+}
+function refreshBadge(sec){
+  if(!sec.classList.contains("recorded")) return;
+  const def=sec.def;
+  const s=def.summarize?def.summarize(sec):"";
+  const badge=sec.querySelector(".sec-badge");
+  badge.textContent="✓ ثبت شد"+(s?` — ${s}`:"");
+  state[def.id].summary=s;
+}
+
+/* خلاصه‌سازها */
+function anamnesisOk(){ const g=$('[data-group="chief"]'); return !!(g&&g.dataset.v) || !!($("#chiefTxt")&&$("#chiefTxt").value.trim()); }
+function sumAnamnesis(){
+  const g=$('[data-group="chief"]');
+  return (g&&g.dataset.v)||($("#chiefTxt")?.value||"—");
+}
+function vitalsOk(){ return ["sys","dia","wt","ht"].every(id=>$("#"+id)&&$("#"+id).value); }
+function sumVitals(){ const w=$("#wt").value,h=$("#ht").value; const b=(w&&h)?(w/Math.pow(h/100,2)).toFixed(1):"—"; return `BMI ${b}`; }
+function examOk(){ return $$(".sys[data-sys]").every(r=>r.dataset.state); }
+function sumExam(){ const ab=$$(".sys[data-sys]").filter(r=>r.dataset.state==="abnormal"); return ab.length? `غیرطبیعی: ${ab.map(r=>r.dataset.sys).join("، ")}`:"طبیعی (همه سیستم‌ها)"; }
+function rowsOk(sec){ return $$("[data-row]",sec).every(r=>$$('[data-req="1"]',r).every(i=>String(i.value||"").trim())); }
+function bpOk(sec){ return rowsOk(sec); }
+function sumBp(sec){ return $$("[data-row]",sec).map(r=>{ const i=$$("input",r); return `${i[0].value}/${i[1].value}`; }).join(" ، "); }
+function sugarOk(sec){ return rowsOk(sec); }
+function sumSugar(sec){ return $$("[data-row]",sec).map(r=>$("input",r).value).join(" ، "); }
+function lifeOk(){ const g=$('[data-group="smoke"]'); return !!(g&&g.dataset.v) && !!$("#act")?.value; }
+function sumLife(){ const g=$('[data-group="smoke"]'); return `${g&&g.dataset.v?g.dataset.v:"—"} · فعالیت ${$("#act")?.value||"—"}′`; }
+function screenOk(sec){ return !!sec && $$(".sys .seg",sec).length>0 && $$(".sys .seg",sec).every(s=>s.dataset.state); }
+function sumScreen(sec){ const done=$$(".sys .seg",sec).filter(s=>s.dataset.state==="انجام شده").length; return `${done} انجام‌شده`; }
+function linkCount(id){ const s=SECTIONS.find(x=>x.id===id); return s&&s.__sel?s.__sel.size:0; }
+function linkSum(id){ const s=SECTIONS.find(x=>x.id===id); return (s&&s.__sel&&s.__sel.size)?[...s.__sel].join("، "):""; }
+
+/* افزودنِ بخشِ اضافی */
+const dlg=$("#dlg");
+$("#addBtn").onclick=()=>{
+  const list=$("#dlgList"); list.replaceChildren();
+  EXTRAS.forEach(x=>{
+    if(SECTIONS.some(s=>s.id===x.id)) return;
+    const o=document.createElement("div"); o.className="opt";
+    const t=document.createElement("span"); t.textContent=x.title;
+    const b=document.createElement("button"); b.className="btn small"; b.textContent="افزودن";
+    b.onclick=()=>{ SECTIONS.push({id:x.id,title:x.title,build:x.build,key:x.key,summarize:x.summarize}); render(); dlg.classList.remove("open"); };
+    o.append(t,b); list.append(o);
+  });
+  if(!list.children.length) list.innerHTML='<div class="opt"><span>همهٔ بخش‌ها افزوده شده‌اند.</span></div>';
+  dlg.classList.add("open");
+};
+$("#dlgClose").onclick=()=>dlg.classList.remove("open");
+dlg.onclick=e=>{ if(e.target===dlg) dlg.classList.remove("open"); };
+
+/* بستن/بازکردنِ مراجعه */
+$("#closeVisit").onclick=()=>{
+  visitClosed=true; document.body.classList.add("visitClosed");
+  $$(".sec").forEach(s=>{ s.classList.remove("is-open"); s.querySelector(".sec-body").classList.add("hidden"); });
+  $("#closeVisit").style.display="none"; $("#reopen").style.display="";
+};
+$("#reopen").onclick=()=>{
+  visitClosed=false; document.body.classList.remove("visitClosed");
+  $$(".sec").forEach(s=>s.classList.remove("openSummary"));
+  $("#closeVisit").style.display=""; $("#reopen").style.display="none";
+};
+
+render();
+window.__proto = { state, confirmSection, refreshBadge, visitClosed:()=>visitClosed, SECTIONS, markRecorded };
+</script>
+</body>
+</html>
