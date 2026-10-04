@@ -162,7 +162,13 @@
       status.className='login-status info';status.textContent='در حال ورود...';submit.disabled=true;
       try{
         const r=await fetch('/api/auth/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({userName:identifier,password:password.value,rememberMe:remember.checked})});
-        const d=await r.json(); if(!r.ok||!d.success)throw new Error('شماره موبایل/کد ملی یا رمز عبور صحیح نیست.');
+        const d=await r.json();
+        if(r.status===429){
+          const seconds=Number(r.headers.get('Retry-After')||d.retryAfterSeconds);
+          const wait=Number.isFinite(seconds)&&seconds>0?` حدود ${Math.ceil(seconds/60).toLocaleString('fa-IR')} دقیقه بعد دوباره تلاش کنید.`:'';
+          throw new Error((d.message||'تعداد تلاش‌های ورود بیش از حد مجاز است.')+wait);
+        }
+        if(!r.ok||!d.success)throw new Error('شماره موبایل/کد ملی یا رمز عبور صحیح نیست.');
         password.value='';showApplication(d.user);
       }catch(err){password.value='';password.focus();status.textContent=err.message||'ورود انجام نشد.';status.className='login-status error';}
       finally{submit.disabled=false;}

@@ -21,13 +21,15 @@ namespace ReSiRai.Api.Controllers
         private readonly IConfiguration _configuration;
         private readonly ICommunicationService _communication;
         private readonly AppEventLogger _events;
+        private readonly LoginAttemptLimiter _loginLimiter;
         private static readonly ConcurrentDictionary<string, ResetCode> ResetCodes = new(StringComparer.OrdinalIgnoreCase);
-        public AuthController(ReSiRaiDbContext context, IPasswordHasher<User> passwordHasher, IConfiguration configuration, ICommunicationService communication, AppEventLogger events) { _context = context; _passwordHasher = passwordHasher; _configuration = configuration; _communication = communication; _events = events; }
+        public AuthController(ReSiRaiDbContext context, IPasswordHasher<User> passwordHasher, IConfiguration configuration, ICommunicationService communication, AppEventLogger events, LoginAttemptLimiter loginLimiter) { _context = context; _passwordHasher = passwordHasher; _configuration = configuration; _communication = communication; _events = events; _loginLimiter = loginLimiter; }
 
         public sealed class LoginRequest { public string UserName { get; set; } = string.Empty; public string Password { get; set; } = string.Empty; public bool RememberMe { get; set; } }
 
         [AllowAnonymous]
         [HttpPost("login")]
+        [LoginRateLimited]
         public async Task<IActionResult> Login(LoginRequest request)
         {
             string userName = (request.UserName ?? string.Empty).Trim();
@@ -35,6 +37,10 @@ namespace ReSiRai.Api.Controllers
 
             if (string.Equals(userName, _configuration["SuperAdmin:UserName"], StringComparison.OrdinalIgnoreCase))
             {
+                var key = LoginAttemptLimiter.AccountKey(null, userName, superAdmin: true);
+                using var lease = await _loginLimiter.AcquireAccountAsync(key, HttpContext.RequestAborted);
+                var limit = _loginLimiter.CheckAccount(key);
+                if (limit.IsBlocked) return await LoginLimitedAsync(limit, userName);
                 string? superHash = _configuration["SuperAdmin:PasswordHash"];
                 if (!string.IsNullOrWhiteSpace(superHash))
                 {
@@ -44,12 +50,13 @@ namespace ReSiRai.Api.Controllers
                     {
                         var identity = new LoginIdentity(0, userName, 0, "مدیر", "سیستم", 0, true, true);
                         await SignInAsync(identity, request.RememberMe);
+                        _loginLimiter.RecordSuccess(key);
                         await _events.LogAsync("login", detail: "ورود موفق — مدیر سیستم", userName: userName);
                         return Ok(new { success = true, user = identity });
                     }
                 }
                 await _events.LogAsync("login", outcome: "fail", detail: "ورود ناموفق — مدیر سیستم", userName: userName);
-                return Unauthorized(new { success = false, message = "Invalid username or password." });
+                return await LoginFailedAsync(key, userName);
             }
 
             // For every normal account, the login name is the staff member's Iranian National Code.
@@ -62,27 +69,48 @@ namespace ReSiRai.Api.Controllers
                 .Where(x => x.Staff.NationalCode == userName || x.Staff.Mobile == userName)
                 .Select(x => x.Account)
                 .FirstOrDefaultAsync();
+            // Mobile and national-code login resolve to the same account ID.
+            var accountKey = LoginAttemptLimiter.AccountKey(user?.UserID, userName);
+            using var accountLease = await _loginLimiter.AcquireAccountAsync(accountKey, HttpContext.RequestAborted);
+            var accountLimit = _loginLimiter.CheckAccount(accountKey);
+            if (accountLimit.IsBlocked) return await LoginLimitedAsync(accountLimit, userName, user?.UserID);
             if (user == null || !user.IsActive || (user.StartDate.HasValue && user.StartDate.Value.Date > DateTime.Today) || (user.EndDate.HasValue && user.EndDate.Value.Date < DateTime.Today) || string.IsNullOrWhiteSpace(user.PasswordHash))
             {
                 await _events.LogAsync("login", outcome: "fail", detail: "ورود ناموفق — حساب یافت نشد یا غیرفعال است", userID: user?.UserID, userName: userName);
-                return Unauthorized(new { success = false, message = "Invalid username or password." });
+                return await LoginFailedAsync(accountKey, userName, user?.UserID);
             }
             var verification = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if (verification == PasswordVerificationResult.Failed)
             {
                 await _events.LogAsync("login", outcome: "fail", detail: "ورود ناموفق — رمز عبور اشتباه است", userID: user.UserID, userName: userName);
-                return Unauthorized(new { success = false, message = "Invalid username or password." });
+                return await LoginFailedAsync(accountKey, userName, user.UserID);
             }
             var staff = await _context.Staff.AsNoTracking().FirstOrDefaultAsync(x => x.StaffID == user.StaffID);
             if (staff == null)
             {
                 await _events.LogAsync("login", outcome: "fail", detail: "ورود ناموفق — پرسنل مرتبط با حساب نیست", userID: user.UserID, userName: userName);
-                return Unauthorized(new { success = false, message = "Invalid username or password." });
+                return await LoginFailedAsync(accountKey, userName, user.UserID);
             }
             var normalIdentity = new LoginIdentity(user.UserID, staff.NationalCode, staff.StaffID, staff.FirstName, staff.LastName, staff.StaffType, false, user.ViewReports);
             await SignInAsync(normalIdentity, request.RememberMe);
+            _loginLimiter.RecordSuccess(accountKey);
             await _events.LogAsync("login", detail: "ورود موفق", userID: user.UserID, userName: staff.NationalCode);
             return Ok(new { success = true, user = normalIdentity });
+        }
+
+        private async Task<IActionResult> LoginFailedAsync(string key, string userName, int? userID = null)
+        {
+            var limit = _loginLimiter.RecordFailure(key);
+            if (limit.IsBlocked) return await LoginLimitedAsync(limit, userName, userID);
+            return Unauthorized(new { success = false, message = "Invalid username or password." });
+        }
+
+        private async Task<IActionResult> LoginLimitedAsync(LoginAttemptLimiter.LimitResult limit, string userName, int? userID = null)
+        {
+            if (limit.IsNewBlock)
+                await _events.LogAsync("LoginRateLimitExceeded", outcome: "fail", detail: "توقف ۱۵ دقیقه‌ای ورود — ۵ ورود ناموفق برای حساب در ۱۰ دقیقه", userID: userID, userName: userName);
+            Response.Headers.RetryAfter = limit.RetryAfterSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return StatusCode(StatusCodes.Status429TooManyRequests, new { success = false, message = LoginAttemptLimiter.Message, retryAfterSeconds = limit.RetryAfterSeconds });
         }
 
         public sealed class ForgotPasswordRequest { public string NationalCode { get; set; } = string.Empty; }

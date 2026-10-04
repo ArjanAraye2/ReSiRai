@@ -1,0 +1,20 @@
+name: Verify login attempt limits
+
+on:
+  push:
+    branches: [ 'codex/login-attempt-limits' ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Build API and run unit and integration tests
+        run: dotnet test ReSiRai.Tests/ReSiRai.Tests.csproj -c Release --nologo
+      - name: Test login rate-limit message
+        run: node --test tests/login-rate-limit.test.cjs
