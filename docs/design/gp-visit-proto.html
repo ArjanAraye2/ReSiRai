@@ -115,7 +115,7 @@
   <div class="top">
     <div>
       <h1>مراجعه — پزشکِ عمومی</h1>
-      <div class="sub">نمونهٔ کاغذیِ تیک‌محور · قدمِ ۲ · بدونِ دست‌زدنِ به برنامه</div>
+      <div class="sub">نمونهٔ کاغذیِ تیک‌محور · قدمِ ۲ · بدونِ دست‌زدنِ به برنامه · <b>نسخهٔ 20261005.1</b></div>
     </div>
     <div class="spacer"></div>
     <button class="btn" id="reopen" style="display:none">بازگشت به حالتِ ویرایش</button>
@@ -246,13 +246,12 @@ function numField(id,label,req,small){
   f.append(i); return f;
 }
 function txtField(id,label,req){
-  const f = document.createElement("div"); f.className="field hastools";
-  const lab=document.createElement("label");
-  lab.innerHTML = `<span>${label}${req?' <span class="hint">(کلیدی)</span>':''}</span>`;
+  const f = document.createElement("div"); f.className="field";
+  f.innerHTML = `<label>${label}${req?' <span class="hint">(کلیدی)</span>':''}</label>`;
   const i = document.createElement("input");
   i.type="text"; i.className="txt"; i.id=id; i.placeholder="در صورتِ نیاز…";
   if(req) i.dataset.required="1";
-  f.append(lab,i); attachMic(i, lab); return f;
+  f.append(i); attachMic(i); return f;
 }
 /* دیکتهٔ صوتی: هر فیلدِ متنی یک میکروفون. مرورگری که پشتیبانی نکند، فقط ⌘ می‌بیند. */
 let __rec=null, __recBtn=null;
@@ -307,7 +306,7 @@ function buildAnamnesis(body){
   const g = chipGroup("chief",["پیگیری","فشارخون","دیابت/قند","سرماخوردگی","درد","تب","سرفه","خستگی","سرگیجه","اسهال","حساسیت","خواب/عصبی","پوستی","ادراری","سایر"]);
   const t = document.createElement("input"); t.className="txt"; t.id="chiefTxt"; t.style.marginTop="8px";
   t.placeholder="یا بنویسید…";
-  f.append(g,t); attachMic(t, f.querySelector("label")); f.classList.add("hastools"); body.append(f);
+  f.append(g,t); attachMic(t); body.append(f);
 
   body.append(txtField("anamOther","متنِ تکمیلی (اختیاری)",false));
 
