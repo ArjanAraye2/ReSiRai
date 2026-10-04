@@ -9,11 +9,9 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.12" />
   </ItemGroup>
   <ItemGroup>
-    <!-- The parser is linked, not referenced: no web host needed to test it. -->
-    <Compile Include="..\ReSiRai.Api\Services\LabSheetParser.cs" Link="LabSheetParser.cs" />
-    <Compile Include="..\ReSiRai.Api\Services\LabConsistencyChecker.cs" Link="LabConsistencyChecker.cs" />
-    <Compile Include="..\ReSiRai.Api\Services\LabRowAnalyzer.cs" Link="LabRowAnalyzer.cs" />
+    <ProjectReference Include="..\ReSiRai.Api\ReSiRai.Api.csproj" />
   </ItemGroup>
 </Project>

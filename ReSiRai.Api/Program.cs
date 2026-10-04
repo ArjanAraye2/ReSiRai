@@ -21,6 +21,8 @@ builder.Services.AddScoped<RadiologyStorageService>();
 builder.Services.AddScoped<StudyAccessService>();
 builder.Services.AddScoped<AiClient>();
 builder.Services.AddScoped<AppEventLogger>();
+builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+builder.Services.AddSingleton<LoginAttemptLimiter>();
 builder.Services.AddScoped<BackupService>();
 builder.Services.AddHostedService<BackupScheduler>();
 // تبدیلِ PDF فقط روی ویندوز ممکن است (و برنامه هم ویندوزی است)؛ روی سیستمِ
@@ -326,6 +328,8 @@ app.Use(async (context, next) =>
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseMiddleware<LoginRateLimitMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
