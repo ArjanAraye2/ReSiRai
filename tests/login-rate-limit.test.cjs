@@ -6,7 +6,7 @@ const source = fs.readFileSync(require('node:path').join(__dirname, '../ReSiRai.
 
 async function createLogin() {
   const elements = new Map();
-  const element = () => ({ value: '', checked: false, disabled: false, events: {}, classList: { toggle() {}, add() {}, remove() {} }, addEventListener(name, handler) { this.events[name] = handler; }, focus() {}, setAttribute() {}, appendChild() {}, remove() {} });
+  const element = () => ({ value: '', checked: false, disabled: false, events: {}, style: { setProperty() {}, removeProperty() {} }, classList: { toggle() {}, add() {}, remove() {} }, addEventListener(name, handler) { this.events[name] = handler; }, focus() {}, setAttribute() {}, appendChild() {}, remove() {} });
   const document = {
     readyState: 'complete',
     body: { ...element(), prepend(screen) { elements.set(screen.id, screen); } },
@@ -20,7 +20,7 @@ async function createLogin() {
     createElement: element
   };
   let response;
-  const context = { document, window: { scrollTo() {}, dispatchEvent() {} },
+  const context = { document, window: { scrollTo() {}, dispatchEvent() {}, addEventListener() {}, matchMedia: () => ({ matches: false }) },
     fetch: async url => {
       if (url === '/api/auth/me') return { ok: true, json: async () => ({ success: false }) };
       if (response instanceof Error) throw response;
