@@ -29,7 +29,7 @@ async function createLogin() {
     CustomEvent: class {}, setTimeout, console };
   vm.runInNewContext(source, context);
   await new Promise(resolve => setImmediate(resolve));
-  document.getElementById('loginUserName').value = '09123456789';
+  document.getElementById('loginUserName').value = '1234567890';
   const state = () => ({ status: document.getElementById('loginFeedbackText').textContent,
     emoji: document.getElementById('loginFeedbackEmoji').textContent,
     emojiHidden: document.getElementById('loginFeedbackEmoji').hidden,
@@ -108,5 +108,5 @@ test('invalid identifier has no wrong-password emoji', async () => {
   ui.document.getElementById('loginUserName').value = '123';
   const result = await ui.submit({ ok: false, status: 401, json: async () => ({ failedAttempts: 4 }) });
   assert.equal(result.emojiHidden, true);
-  assert.match(result.status, /شماره موبایل معتبر/);
+  assert.match(result.status, /کد ملی ۱۰ رقمی/);
 });

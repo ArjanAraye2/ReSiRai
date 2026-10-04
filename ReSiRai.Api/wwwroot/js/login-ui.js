@@ -88,14 +88,14 @@
           <div class="login-form-logo"><img class="login-logo-img" src="/images/resirai-logo.svg?v=20261001.19" alt="ReSiRai - Medical Intelligence Platform" /></div>
           <div class="login-form-heading"><h2>به ReSiRai خوش آمدید</h2><p>ورود به پلتفرم یکپارچه اطلاعات و هوش پزشکی</p></div>
           <div class="login-id-tabs" role="tablist" aria-label="روش ورود">
-            <button type="button" class="login-id-tab active" data-mode="mobile" role="tab">با شماره موبایل</button>
-            <button type="button" class="login-id-tab" data-mode="national" role="tab">با کد ملی</button>
+            <button type="button" class="login-id-tab active" data-mode="national" role="tab">با کد ملی</button>
+            <button type="button" class="login-id-tab" data-mode="mobile" role="tab">با شماره موبایل</button>
           </div>
           <form id="reSiRaiLoginForm" autocomplete="on">
             <div class="login-field">
-              <label id="loginIdentifierLabel" for="loginUserName">شماره موبایل</label>
-              <span id="loginIdentifierIcon" class="login-field-icon">${iconSvg('mobile')}</span>
-              <input id="loginUserName" name="username" type="text" inputmode="tel" autocomplete="username" maxlength="11" required placeholder="مثال: 09123456789" />
+              <label id="loginIdentifierLabel" for="loginUserName">کد ملی</label>
+              <span id="loginIdentifierIcon" class="login-field-icon">${iconSvg('id')}</span>
+              <input id="loginUserName" name="username" type="text" inputmode="numeric" autocomplete="username" maxlength="10" required placeholder="کد ملی خود را وارد کنید" />
             </div>
             <div class="login-field">
               <label for="loginPassword">رمز عبور</label>
@@ -153,7 +153,7 @@
       const attempt=Number(count);
       return Number.isInteger(attempt)&&attempt>0?['😕','😟','😣','😫'][Math.min(attempt,4)-1]:'😕';
     }
-    let mode='mobile';
+    let mode='national';
     function applyMode(next){
       mode=next; document.querySelectorAll('.login-id-tab').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
       userName.value='';
