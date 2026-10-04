@@ -89,13 +89,16 @@
   .opts button{border:1px solid var(--line);background:#f4f7fa;border-radius:8px;padding:4px 9px;font-size:12px}
   .opts button.on{background:var(--chip-on);border-color:var(--chip-on);color:#fff}
 
-  /* دیکتهٔ صوتی — هر فیلدِ متنی یک میکروفون دارد */
-  .txt{padding-right:44px}
+  /* دیکتهٔ صوتی + پاک‌کننده — هر فیلدِ متنی */
+  .txt{padding-right:76px}
   .micbox{position:relative;display:block}
   .mic{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;
        border:1px solid var(--line);background:#fff;color:#66788c;font-size:14px;display:flex;align-items:center;justify-content:center}
   .mic:hover{border-color:#1b9bd7;color:#1b9bd7}
   .mic.on{background:#c0392b;border-color:#c0392b;color:#fff}
+  .clr{position:absolute;right:40px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;
+       border:1px solid transparent;background:transparent;color:#9aa8b5;font-size:13px;display:none;align-items:center;justify-content:center}
+  .clr:hover{background:#fdecea;color:#c0392b;border-color:#f3c6c2}
 </style>
 </head>
 <body>
@@ -261,6 +264,12 @@ function attachMic(input){
     try{ rec.start(); }catch(e){ stopDictation(); }
   };
   box.append(b);
+  // ✕ پاک‌کننده: همهٔ متنِ فیلد را یک‌جا پاک می‌کند؛ فقط وقتی متنی هست دیده می‌شود
+  const c=document.createElement("button"); c.type="button"; c.className="clr"; c.textContent="✕"; c.title="پاک‌کردنِ همه";
+  const sync=()=>{ c.style.display = input.value ? "flex" : "none"; };
+  c.onclick=()=>{ input.value=""; sync(); input.focus(); };
+  input.addEventListener("input", sync);
+  box.insertBefore(c, b); sync();
 }
 function footRow(sec){
   const f = document.createElement("div"); f.className="foot";
