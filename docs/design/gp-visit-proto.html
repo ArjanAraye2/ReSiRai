@@ -55,6 +55,7 @@
   .seg button{border:0;background:#f4f7fa;padding:6px 12px;font-size:13px;color:#55677c}
   .seg button.on-ok{background:#14934b;color:#fff}
   .seg button.on-no{background:#c0392b;color:#fff}
+  .seg button.on-none{background:#dfe7ef;color:#123;font-weight:700}
   .sys .txt{flex:2;min-width:150px;padding:5px 8px}
 
   .foot{display:flex;gap:8px;justify-content:flex-start;margin-top:6px}
@@ -87,6 +88,14 @@
   .opts{display:flex;gap:5px}
   .opts button{border:1px solid var(--line);background:#f4f7fa;border-radius:8px;padding:4px 9px;font-size:12px}
   .opts button.on{background:var(--chip-on);border-color:var(--chip-on);color:#fff}
+
+  /* دیکتهٔ صوتی — هر فیلدِ متنی یک میکروفون دارد */
+  .txt{padding-right:44px}
+  .micbox{position:relative;display:block}
+  .mic{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;
+       border:1px solid var(--line);background:#fff;color:#66788c;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .mic:hover{border-color:#1b9bd7;color:#1b9bd7}
+  .mic.on{background:#c0392b;border-color:#c0392b;color:#fff}
 </style>
 </head>
 <body>
@@ -144,7 +153,7 @@ const EXTRAS = [
     summarize:()=>{ const f=$('[data-group="fall"]'); return (f&&f.dataset.v)?`سقوط: ${f.dataset.v}`:""; } }
 ];
 function buildEmerg(body){
-  body.append(chipGroup("emergSym",["دردِ سینه","تنگی نفس","خونریزی","تبِ بالا","سردرگیِ شدید","استفراغِ شدید","تشنج","سایر"]));
+  body.append(chipGroup("emergSym",["دردِ سینه","تنگی نفس","خونریزی","تبِ بالا","سردرگیِ شدید","استفراغِ شدید","تشنج","سایر"],{multi:true}));
   body.append(chipGroup("alert",["هوشیار","گیج","بی‌هوش"]));
   body.append(footRow(body.closest(".sec")));
 }
@@ -198,7 +207,19 @@ function chipGroup(name, options, opts={}){
   options.forEach(o=>{
     const b = document.createElement("button");
     b.type="button"; b.className="chip"; b.textContent=o; b.dataset.v=o;
-    b.onclick = () => { $$(".chip",wrap).forEach(c=>c.classList.remove("on")); b.classList.add("on"); wrap.dataset.v=o; };
+    b.onclick = () => {
+      if(opts.multi){ // چک‌لیستِ چندانتخابی: هر مورد جداگانه روشن/خاموش می‌شود
+        b.classList.toggle("on");
+        const sel=$$(".chip.on",wrap).map(c=>c.dataset.v);
+        if(sel.length) wrap.dataset.v=sel.join("، "); else delete wrap.dataset.v;
+        return;
+      }
+      if(b.classList.contains("on")){ // کلیکِ دوباره = لغوِ انتخاب (بدونِ نیاز به گزینهٔ دیگر)
+        b.classList.remove("on"); delete wrap.dataset.v; return;
+      }
+      $$(".chip",wrap).forEach(c=>c.classList.remove("on"));
+      b.classList.add("on"); wrap.dataset.v=o;
+    };
     wrap.append(b);
   });
   if(opts.required) wrap.dataset.required="1";
@@ -218,7 +239,28 @@ function txtField(id,label,req){
   const i = document.createElement("input");
   i.type="text"; i.className="txt"; i.id=id; i.placeholder="در صورتِ نیاز…";
   if(req) i.dataset.required="1";
-  f.append(i); return f;
+  f.append(i); attachMic(i); return f;
+}
+/* دیکتهٔ صوتی: هر فیلدِ متنی یک میکروفون. مرورگری که پشتیبانی نکند، فقط ⌘ می‌بیند. */
+let __rec=null, __recBtn=null;
+function stopDictation(){ if(__rec){ try{__rec.stop();}catch(e){} } if(__recBtn) __recBtn.classList.remove("on"); __rec=null; __recBtn=null; }
+function attachMic(input){
+  const box=document.createElement("span"); box.className="micbox";
+  input.parentNode.insertBefore(box, input); box.append(input);
+  const b=document.createElement("button"); b.type="button"; b.className="mic"; b.textContent="🎙"; b.title="دیکتهٔ صوتی";
+  b.onclick=()=>{
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ b.textContent="⚠"; b.title="دیکته در این مرورگر پشتیبانی نمی‌شود"; return; }
+    if(b.classList.contains("on")){ stopDictation(); return; }
+    stopDictation();
+    const rec=new SR(); rec.lang="fa-IR"; rec.interimResults=false; rec.continuous=false;
+    rec.onresult=(e)=>{ const t=e.results[0][0].transcript; input.value=(input.value?input.value+" ":"")+t; };
+    rec.onerror=()=>stopDictation();
+    rec.onend=()=>stopDictation();
+    b.classList.add("on"); __rec=rec; __recBtn=b;
+    try{ rec.start(); }catch(e){ stopDictation(); }
+  };
+  box.append(b);
 }
 function footRow(sec){
   const f = document.createElement("div"); f.className="foot";
@@ -239,7 +281,7 @@ function buildAnamnesis(body){
   const g = chipGroup("chief",["پیگیری","فشارخون","دیابت/قند","سرماخوردگی","درد","تب","سرفه","خستگی","سرگیجه","اسهال","حساسیت","خواب/عصبی","پوستی","ادراری","سایر"]);
   const t = document.createElement("input"); t.className="txt"; t.id="chiefTxt"; t.style.marginTop="8px";
   t.placeholder="یا بنویسید…";
-  f.append(g,t); body.append(f);
+  f.append(g,t); attachMic(t); body.append(f);
 
   body.append(txtField("anamOther","متنِ تکمیلی (اختیاری)",false));
 
@@ -260,16 +302,25 @@ function buildAnamnesis(body){
   const f3=document.createElement("div"); f3.className="field";
   f3.innerHTML='<label>بیماری‌های زمینه‌ای <span class="hint">(چک‌لیست)</span></label>';
   const base=document.createElement("div"); base.className="chips"; base.id="base";
-  ["فشارخون","دیابت","چربی","تیروئید","بیماری قلبی","هیچکدام","آسم/ریوی","کلیوی","سرطان","سکته","روماتیسمی","صرع","گوارشی","کم‌خونی","اختلال روان","سایر"].forEach(o=>{
+  // گزینهٔ «هیچکدام» عمداً حذف شد: خالی‌گذاشتن = هیچکدام (و اگر روزی لازم شود، آخرِ لیست می‌آید).
+  ["فشارخون","دیابت","چربی","تیروئید","بیماری قلبی","آسم/ریوی","کلیوی","سرطان","سکته","روماتیسمی","صرع","گوارشی","کم‌خونی","اختلال روان","سایر"].forEach(o=>{
     const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=o; b.dataset.v=o;
-    b.onclick=()=>{ $$(".chip",base).forEach(c=>c.classList.remove("on")); b.classList.add("on"); };
+    b.onclick=()=>b.classList.toggle("on"); // چندانتخابی + کلیکِ دوباره = لغو
     base.append(b);
   });
-  f3.append(base); body.append(f3);
+  const emptyHint=document.createElement("div");
+  emptyHint.style.cssText="font-size:11px;color:#66788c;margin-top:5px";
+  emptyHint.textContent="خالی گذاشتن = هیچکدام";
+  f3.append(base, emptyHint); body.append(f3);
 
   const f4=document.createElement("div"); f4.className="field";
   f4.innerHTML='<label>حساسیت‌ها <span class="hint">(اختیاری)</span></label>';
-  f4.append(chipGroup("allergy",["پنی‌سیلین","سولفا","ید","غذا","گردو","لاتکس","سایر"]));
+  f4.append(chipGroup("allergy",[
+    // روتین‌های پُرتکرار در ایران در صدر، «سایر» همیشه آخر
+    "پنی‌سیلین/آموکسی‌سیلین","سولفا","مسکن (آسپرین/ایبوبروفن)","آنتی‌بیوتیک‌های دیگر",
+    "باقلا (G6PD)","آجیل/مغزها","لبنیات","تخم‌مرغ","گندم","میوه‌ها",
+    "ید/رنگِ کنتراست","لاتکس","حنا/رنگِ مو","داروی بیهوشی","سایر"
+  ],{multi:true}));
   body.append(f4);
   body.append(txtField("allergyTxt","توضیحِ حساسیت (اختیاری)",false));
   body.append(txtField("surgery","سابقهٔ بستری/عمل (اختیاری)",false));
@@ -311,11 +362,13 @@ function buildExam(body){
     const seg=document.createElement("div"); seg.className="seg";
     const ok=document.createElement("button"); ok.type="button"; ok.textContent="طبیعی";
     const no=document.createElement("button"); no.type="button"; no.textContent="غیرطبیعی";
-    ok.onclick=()=>setSys(r,"normal"); no.onclick=()=>setSys(r,"abnormal");
+    ok.onclick=()=>setSys(r, r.dataset.state==="normal"?null:"normal");
+    no.onclick=()=>setSys(r, r.dataset.state==="abnormal"?null:"abnormal");
     seg.append(ok,no);
-    const tx=document.createElement("input"); tx.className="txt hidden"; tx.dataset.detail="1";
-    tx.style.display="none"; tx.placeholder="یافته…";
+    const tx=document.createElement("input"); tx.className="txt"; tx.dataset.detail="1";
+    tx.placeholder="یافته…";
     r.append(nm,seg,tx); body.append(r);
+    attachMic(tx); tx.parentElement.style.display="none"; // تا «غیرطبیعی» تیک نشود پنهان بماند
   });
   body.append(footRow(body.closest(".sec")));
 }
@@ -323,10 +376,11 @@ function setSys(row,mode){
   const [ok,no]=$$(".seg button",row);
   ok.classList.toggle("on-ok",mode==="normal");
   no.classList.toggle("on-no",mode==="abnormal");
-  row.dataset.state=mode;
+  if(mode==null) delete row.dataset.state; else row.dataset.state=mode;
   const tx=$("[data-detail]",row);
-  tx.style.display = mode==="abnormal" ? "block" : "none";
-  if(mode==="normal") tx.value="";
+  const holder=tx.parentElement; holder.style.display = mode==="abnormal" ? "block" : "none";
+  tx.style.display="block";
+  if(mode!=="abnormal") tx.value="";
 }
 function buildRepeat(sec, buildRow){
   const list=document.createElement("div"); list.dataset.rows=""; sec.__rows=list;
@@ -408,7 +462,7 @@ function buildLife(body){
   f3.append(sl); f2.append(f3); body.append(f2);
   const f4=document.createElement("div"); f4.className="field";
   f4.innerHTML='<label>تغذیه <span class="hint">(اختیاری)</span></label>';
-  f4.append(chipGroup("diet",["پُرنمک","پُرچرب","پُرقند","کم‌آبی","کم‌فیبر"]));
+  f4.append(chipGroup("diet",["پُرنمک","پُرچرب","پُرقند","کم‌آبی","کم‌فیبر"],{multi:true}));
   body.append(f4);
   body.append(txtField("lifeNote","شغل/استرس (اختیاری)",false));
   body.append(footRow(body.closest(".sec")));
@@ -421,7 +475,7 @@ function buildScreen(body){
     const seg=document.createElement("div"); seg.className="seg";
     ["انجام شده","نیاز دارد","انجام نشده"].forEach(t=>{
       const b=document.createElement("button"); b.type="button"; b.textContent=t;
-      b.onclick=()=>{ $$("button",seg).forEach(x=>x.className=""); b.classList.add(t==="انجام شده"?"on-ok":(t==="نیاز دارد"?"on-no":"")); seg.dataset.state=t; };
+      b.onclick=()=>{ const was=seg.dataset.state===t; $$("button",seg).forEach(x=>x.className=""); if(was){ delete seg.dataset.state; } else { b.classList.add(t==="انجام شده"?"on-ok":(t==="نیاز دارد"?"on-no":"on-none")); seg.dataset.state=t; } };
       seg.append(b);
     });
     r.append(nm,seg); body.append(r);
@@ -442,14 +496,18 @@ function buildLink(body, sec){
   body.append(footRow(sec));
 }
 function buildPhq(body){
+  const hint=document.createElement("div");
+  hint.style.cssText="font-size:11px;color:#66788c;margin-bottom:6px";
+  hint.textContent="در دو هفتهٔ گذشته، برای هر پرسش یک گزینه · کلیکِ دوباره = لغو";
+  body.append(hint);
   const qs=["علایمِ کم‌خوابی یا بی‌اشتهایی","احساسِ غمگینی یا بی‌حوصلگی"];
   qs.forEach((q,i)=>{
     const r=document.createElement("div"); r.className="phq"; r.dataset.phq=i; r.dataset.v="";
     const s=document.createElement("span"); s.className="q"; s.textContent=q;
     const o=document.createElement("div"); o.className="opts";
-    ["اصلاً","چند روز","بیشتر از نصف","تقریباً هر روز"].forEach((t,j)=>{
+    ["اصلاً","چند روز","بیشتر از روزها","تقریباً هر روز"].forEach((t,j)=>{
       const b=document.createElement("button"); b.type="button"; b.textContent=t;
-      b.onclick=()=>{ $$("button",o).forEach(x=>x.classList.remove("on")); b.classList.add("on"); r.dataset.v=String(j); };
+      b.onclick=()=>{ const was=b.classList.contains("on"); $$("button",o).forEach(x=>x.classList.remove("on")); if(was){ delete r.dataset.v; } else { b.classList.add("on"); r.dataset.v=String(j); } };
       o.append(b);
     });
     r.append(s,o); body.append(r);
