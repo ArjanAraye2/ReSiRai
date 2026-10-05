@@ -174,18 +174,38 @@
         question.className = "factors-testbar-question";
         question.textContent = "برای کدام تخصص تست می‌کنید؟";
 
-        const select = document.createElement("select");
-        select.disabled = !checkbox.checked;
-        select.appendChild(new Option("— انتخاب تخصص —", ""));
+        // ۱۳۰ ردیفِ تخصص: سلکت با «متن + datalist» عوض می‌شود تا تایپ فیلتر کند؛
+        // SpecialtyID از همان fetch خوانده می‌شود و متنِ خالی یعنی «انتخاب نشده».
+        const list = document.createElement("datalist");
+        list.id = "factorsTestSpecialtyList";
+        const input = document.createElement("input");
+        input.type = "text";
+        input.list = list.id;
+        input.autocomplete = "off";
+        input.placeholder = "— انتخاب تخصص —";
+        input.disabled = !checkbox.checked;
+        const entries = [];
+        let chosen = Number(testState.specialtyID) || 0;
+        const normSpec = s => String(s || "").replace(/\u200c/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+        const resolveSpecialty = () => {
+            const want = normSpec(input.value);
+            if (!want) return 0;
+            const hit = entries.find(e => normSpec(e.name) === want)
+                || entries.find(e => normSpec(e.name).includes(want) || want.includes(normSpec(e.name)));
+            return hit ? hit.id : 0;
+        };
 
         fetch("/api/admin/specialties", { cache: "no-store" }).then(readJson).then(x => {
             const rows = x.specialties || x.items || x.data || [];
             for (const s of rows) {
                 const name = s.specialtyName || s.name || "";
                 const id = s.specialtyID ?? s.id;
-                if (id !== undefined) select.appendChild(new Option(name, String(id)));
+                if (id === undefined || !name) continue;
+                entries.push({ id: Number(id) || 0, name: String(name) });
+                list.appendChild(new Option(name));
             }
-            if (testState.specialtyID) select.value = String(testState.specialtyID);
+            const hit = entries.find(e => e.id === chosen);
+            input.value = hit ? hit.name : "";
         }).catch(() => { });
 
         const hint = document.createElement("small");
@@ -195,18 +215,24 @@
         const reload = () => { if (currentStudy) render(currentStudy, lastHost); };
         checkbox.addEventListener("change", () => {
             testState.enabled = checkbox.checked;
-            if (!checkbox.checked) testState.specialtyID = 0;
+            if (!checkbox.checked) { testState.specialtyID = 0; chosen = 0; input.value = ""; }
             saveTestState();
-            select.disabled = !checkbox.checked;
+            input.disabled = !checkbox.checked;
             reload();
         });
-        select.addEventListener("change", () => {
-            testState.specialtyID = Number(select.value) || 0;
+        // تایپ فقط فهرست را فیلتر می‌کند؛ انتخاب هنگامِ خروج از فیلد (یا Enter)
+        // قطعی می‌شود تا هر حرف باعث رندرِ دوبارهٔ پنل نشود.
+        input.addEventListener("change", () => {
+            const id = resolveSpecialty();
+            if (id === chosen) return;
+            chosen = id;
+            testState.specialtyID = id;
             saveTestState();
             reload();
         });
+        input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); input.blur(); } });
 
-        bar.append(label, question, select, hint);
+        bar.append(label, question, input, list, hint);
         return bar;
     }
 
@@ -677,7 +703,7 @@
     function addPending(items) {
         const incoming = items || [];
         pendingItems = incoming.concat(pendingItems.filter(p => !incoming.some(i => i.factorID === p.factorID)));
-        const host = document.getElementById("newStudyFactorsPanel");
+        const host = document.getElementById("studyFactorsPanel");
         if (!host) return;
         for (const it of incoming) {
             const row = host.querySelector(`.factor-row[data-factor-id="${it.factorID}"]`);
@@ -690,6 +716,11 @@
             else if (it.valueDate) input.value = String(it.valueDate).slice(0, 10);
             input.dispatchEvent(new Event("input"));
         }
+    }
+
+    // شروعِ یک مراجعهٔ جدید: پیش‌نویسِ مراجعهٔ انصرافی نباید به مراجعهٔ بعدی سرایز کند.
+    function resetDraft() {
+        pendingItems = [];
     }
 
     // Called by app.js the moment a new visit is created.
@@ -719,7 +750,8 @@
     function ensurePanelExists() {
         let host = document.getElementById("studyFactorsPanel");
         if (host) return host;
-        const form = document.getElementById("studyDetailsForm");
+        // فرمِ واحدِ مراجعه (ثبتِ جدید و ویرایش، هر دو) با این شناسه ساخته شده است.
+        const form = document.getElementById("newStudyForm");
         if (!form) return null;
         const section = document.createElement("section");
         section.className = "study-form-card";
@@ -740,27 +772,19 @@
         ensurePanelExists();
         const section = document.getElementById("studyDetailsSection");
         if (section) {
+            // یک پنل برای هر دو حالتِ فرمِ ادغام‌شده: اگر StudyID باشد همان مراجعه
+            // است، وگرنه (مراجعهٔ جدید) پیش‌نویسی که با ثبتِ مراجعه تسویه می‌شود.
             const tryRender = () => {
                 if (section.classList.contains("hidden")) return;
-                const study = window.selectedStudy;
-                if (!study) return;
                 const host = ensurePanelExists();
-                if (host && host.dataset.renderedFor !== String(study.studyID)) render(study, host);
+                if (!host) return;
+                const study = window.selectedStudy;
+                const id = study && Number(study.studyID) > 0 ? Number(study.studyID) : 0;
+                if (host.dataset.renderedFor === String(id)) return; // همین حالا رندر شده
+                render(id ? study : { studyID: 0 }, host);
             };
             new MutationObserver(tryRender).observe(section, { attributes: true, attributeFilter: ["class"] });
             tryRender();
-        }
-        // The new-visit form gets the draft panel: values are collected here and
-        // saved the moment the visit row is created.
-        const newSection = document.getElementById("newStudySection");
-        const draftHost = document.getElementById("newStudyFactorsPanel");
-        if (newSection && draftHost) {
-            const tryDraft = () => {
-                if (newSection.classList.contains("hidden")) return;
-                if (draftHost.dataset.renderedFor !== "0") render({ studyID: 0 }, draftHost);
-            };
-            new MutationObserver(tryDraft).observe(newSection, { attributes: true, attributeFilter: ["class"] });
-            tryDraft();
         }
     }
 
@@ -786,5 +810,5 @@
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", selfMount);
     else selfMount();
 
-    window.ReSiRaiFactors = { render, renderCard, addPending, commitPending };
+    window.ReSiRaiFactors = { render, renderCard, addPending, commitPending, resetDraft };
 })();

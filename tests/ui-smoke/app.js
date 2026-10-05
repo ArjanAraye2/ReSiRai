@@ -14,8 +14,13 @@ let pendingCameraFile=null, cameraPreviewUrl=null;
 // needed to suggest a waiting stage from the doctor's specialty.
 let doctorsCache=null, waitStagesCache=null;
 let studyDetailsSaveInProgress=false;
+// فرمِ واحدِ مراجعه دو حالت دارد: «new» (ثبتِ مراجعهٔ تازه، بدون StudyID) و
+// «view»/«edit» (مراجعهٔ موجود). کلاسِ study-mode-new رویِ بخش، حالت را برای CSS
+// (دکمه‌های تصویر، فیلدِ اسکنِ کارت) هم اعلام می‌کند.
+let studyFormMode="view";
+function setStudyFormMode(mode){studyFormMode=mode;E.studyDetailsSection?.classList.toggle("study-mode-new",mode==="new");}
 
-const ids=["newStatus","newFollowUpDate","newFollowUpNote","newFollowUpBox","openStudiesOnly","dueFollowUpOnly","statPatientsWithOpenStudies","studyDetailsStatus2","studyDetailsWaitBox","studyDetailsWaitStage","studyDetailsFollowUpBox","studyDetailsFollowUpDate","studyDetailsFollowUpNote","studyDetailsDoctor","studyDetailsStatusBadge","patientsSection","patientStatistics","statTotalPatients","statActivePatients","statInactivePatients","statPatientsWithStudies","patientSearch","searchButton","clearSearchButton","includeInactivePatients","newPatientButton","patientsTableBody","statusMessage","patientDetailsSection","studyDetailsSection","studyImagesSection","backToPatientDetailsButton","backToStudyDetailsButton","studyDetailsTitle","studyDetailsDate","studyDetailsForm","studyDetailsType","studyDetailsBodyPart","studyDetailsStudyDate","studyDetailsDescription","studyDetailsReport","studyDetailsTeethChart","studyDetailsUploadButton","studyDetailsEditButton","studyDetailsImagesButton","studyDetailsSaveButton","studyDetailsCancelButton","studyImagesTitle","studyDetailsImagesStatus","studyDetailsImagesGrid","backToPatientsButton","editPatientButton","newStudyButton","printPatientButton","mergePatientButton","deactivatePatientButton","patientFullName","patientDisplayCode","patientNationalCode","patientStatusBadge","patientProfilePhoto","patientPhotoInput","patientPhotoButton","detailPatientCode","detailFirstName","detailLastName","detailNationalCode","detailMobile","detailBirthDate","detailGender","detailIsActive","detailAddress","detailDescription","studyCount","totalImageCount","studiesContainer","newPatientSection","newPatientForm","cancelNewPatientButton","cancelNewPatientButtonBottom","newFirstName","newLastName","newNationalCode","newMobile","newBirthDate","newGender","newAddress","newDescription","newPatientStatus","editPatientSection","editPatientForm","cancelEditPatientButton","cancelEditPatientButtonBottom","editFirstName","editLastName","editNationalCode","editMobile","editBirthDate","editGender","editAddress","editDescription","editPatientStatus","newStudySection","newStudyForm","cancelNewStudyButton","cancelNewStudyButtonBottom","newStudyType","newBodyPart","newStudyDate","newStudyDescription","newStudyReport","newStudyStatus","uploadImageSection","uploadImageForm","cancelUploadImageButton","cancelUploadImageButtonBottom","uploadImageStudyInfo","uploadImageType","imageFileInput","cameraFileInput","cameraPreviewPanel","cameraPreviewImage","confirmCameraButton","retakeCameraButton","uploadImageStatus","mergePatientSection","mergePatientForm","cancelMergePatientButton","cancelMergePatientButtonBottom","mergeTargetNationalCode","mergePatientStatus","imageModal","closeImageModalButton","zoomOutImageButton","zoomInImageButton","rotateLeftImageButton","rotateRightImageButton","flipHorizontalImageButton","resetImageViewButton","largeImage","largeImageCaption","confirmModal","confirmTitle","confirmMessage","confirmYesButton","confirmNoButton","toastContainer"];
+const ids=["openStudiesOnly","dueFollowUpOnly","statPatientsWithOpenStudies","studyDetailsStatus2","studyDetailsWaitBox","studyDetailsWaitStage","studyDetailsFollowUpBox","studyDetailsFollowUpDate","studyDetailsFollowUpNote","studyDetailsDoctor","studyDetailsStatusBadge","patientsSection","patientStatistics","statTotalPatients","statActivePatients","statInactivePatients","statPatientsWithStudies","patientSearch","searchButton","clearSearchButton","includeInactivePatients","newPatientButton","patientsTableBody","statusMessage","patientDetailsSection","studyDetailsSection","studyImagesSection","backToPatientDetailsButton","backToStudyDetailsButton","studyDetailsTitle","studyDetailsDate","studyCreateActions","newStudySubmitButton","studyDetailsTeethChart","studyDetailsUploadButton","studyDetailsEditButton","studyDetailsImagesButton","studyDetailsSaveButton","studyDetailsCancelButton","studyImagesTitle","studyDetailsImagesStatus","studyDetailsImagesGrid","backToPatientsButton","editPatientButton","newStudyButton","printPatientButton","mergePatientButton","deactivatePatientButton","patientFullName","patientDisplayCode","patientNationalCode","patientStatusBadge","patientProfilePhoto","patientPhotoInput","patientPhotoButton","detailPatientCode","detailFirstName","detailLastName","detailNationalCode","detailMobile","detailBirthDate","detailGender","detailIsActive","detailAddress","detailDescription","studyCount","totalImageCount","studiesContainer","newPatientSection","newPatientForm","cancelNewPatientButton","cancelNewPatientButtonBottom","newFirstName","newLastName","newNationalCode","newMobile","newBirthDate","newGender","newAddress","newDescription","newPatientStatus","editPatientSection","editPatientForm","cancelEditPatientButton","cancelEditPatientButtonBottom","editFirstName","editLastName","editNationalCode","editMobile","editBirthDate","editGender","editAddress","editDescription","editPatientStatus","newStudyForm","cancelNewStudyButtonBottom","newStudyType","newBodyPart","newStudyDate","newStudyDescription","newStudyReport","uploadImageSection","uploadImageForm","cancelUploadImageButton","cancelUploadImageButtonBottom","uploadImageStudyInfo","uploadImageType","imageFileInput","cameraFileInput","cameraPreviewPanel","cameraPreviewImage","confirmCameraButton","retakeCameraButton","uploadImageStatus","mergePatientSection","mergePatientForm","cancelMergePatientButton","cancelMergePatientButtonBottom","mergeTargetNationalCode","mergePatientStatus","imageModal","closeImageModalButton","zoomOutImageButton","zoomInImageButton","rotateLeftImageButton","rotateRightImageButton","flipHorizontalImageButton","resetImageViewButton","largeImage","largeImageCaption","confirmModal","confirmTitle","confirmMessage","confirmYesButton","confirmNoButton","toastContainer"];
 const E={}; ids.forEach(id=>E[id]=byId(id));
 E.lastStudyDateSummary=byId("lastStudyDateSummary");
 E.recentStudiesSummary=byId("recentStudiesSummary");
@@ -23,7 +28,7 @@ E.recentStudiesSummary=byId("recentStudiesSummary");
 // چون فهرست ids فقط شناسه‌های موجود در نسخه‌های قدیمی را پوشش می‌دهد.
 ["newPatientExtraDetails","editPatientExtraDetails","newBloodType","editBloodType","newMobile2","editMobile2","newFileNumber","editFileNumber","newContactPreference","editContactPreference","newEmergencyContactName","editEmergencyContactName","newEmergencyContactRelation","editEmergencyContactRelation","newEmergencyContactPhone","editEmergencyContactPhone","newBaseInsuranceType","editBaseInsuranceType","newBaseInsuranceNo","editBaseInsuranceNo","newSupp1InsuranceType","editSupp1InsuranceType","newSupp1InsuranceNo","editSupp1InsuranceNo","newSupp2InsuranceType","editSupp2InsuranceType","newSupp2InsuranceNo","editSupp2InsuranceNo","detailBloodType","detailMobile2","detailBaseInsurance","detailSuppInsurance","detailEmergencyContact","detailFileNumber","detailContactPreference","detailPregnancyStatus","detailAge","deletePatientButton"].forEach(id=>E[id]=byId(id));
 
-function hideMainSections(){[E.patientsSection,E.patientDetailsSection,E.studyDetailsSection,E.studyImagesSection,E.newPatientSection,E.editPatientSection,E.newStudySection,E.uploadImageSection,E.mergePatientSection].forEach(x=>x?.classList.add("hidden"));}
+function hideMainSections(){[E.patientsSection,E.patientDetailsSection,E.studyDetailsSection,E.studyImagesSection,E.newPatientSection,E.editPatientSection,E.uploadImageSection,E.mergePatientSection].forEach(x=>x?.classList.add("hidden"));}
 function showPatientsScreen(){hideMainSections();E.patientsSection.classList.remove("hidden");window.scrollTo(0,0);}
 function showToast(message,type="success",title=""){const t=document.createElement("div");t.className=`toast ${type}`;t.innerHTML=`<div class="toast-title"></div><div class="toast-message"></div>`;t.children[0].textContent=title||(type==="success"?"انجام شد":type==="error"?"خطا":"توجه");t.children[1].textContent=message;E.toastContainer.appendChild(t);setTimeout(()=>t.remove(),4300);}
 function askConfirmation({title="تأیید عملیات",message,confirmText="تأیید",danger=true}){return new Promise(resolve=>{E.confirmTitle.textContent=title;E.confirmMessage.textContent=message;E.confirmYesButton.textContent=confirmText;E.confirmYesButton.classList.toggle("danger-button",danger);E.confirmModal.classList.remove("hidden");const done=v=>{E.confirmModal.classList.add("hidden");E.confirmYesButton.onclick=E.confirmNoButton.onclick=null;resolve(v);};E.confirmYesButton.onclick=()=>done(true);E.confirmNoButton.onclick=()=>done(false);});}
@@ -220,7 +225,11 @@ function publishSelectedPatient(p){window.selectedPatient=p||null;window.selecte
 function renderPatientDetails(x){const p=x.patient,patientCode=formatPatientCode(p.patientID),studies=x.studies||[];E.patientFullName.textContent=`${p.firstName} ${p.lastName}`;E.patientDisplayCode.textContent=`شناسه پرونده: ${patientCode}`;E.patientNationalCode.textContent=`کد ملی: ${p.nationalCode}`;E.detailPatientCode.textContent=patientCode;E.detailFirstName.textContent=p.firstName||"-";E.detailLastName.textContent=p.lastName||"-";E.detailNationalCode.textContent=p.nationalCode||"-";E.detailMobile.textContent=p.mobile||"-";E.detailBirthDate.textContent=formatPersianDate(p.birthDate);if(E.detailAge)E.detailAge.textContent=patientAgeText(p.birthDate);E.detailGender.textContent=formatPatientGender(p.gender);E.detailIsActive.textContent=p.isActive?"فعال":"غیرفعال";E.detailAddress.textContent=p.address||"-";E.detailDescription.textContent=p.description||"-";if(E.detailBloodType)E.detailBloodType.textContent=p.bloodType||"ثبت نشده";if(E.detailMobile2)E.detailMobile2.textContent=p.mobile2||"-";if(E.detailBaseInsurance)E.detailBaseInsurance.textContent=p.baseInsuranceName?(p.baseInsuranceName+(p.baseInsuranceNo?` — ${p.baseInsuranceNo}`:"")):"ثبت نشده";if(E.detailSuppInsurance){const supp=[p.supp1InsuranceName,p.supp2InsuranceName].filter(Boolean);E.detailSuppInsurance.textContent=supp.length?supp.join(" ، "):"ثبت نشده";}if(E.detailEmergencyContact)E.detailEmergencyContact.textContent=(p.emergencyContactName||p.emergencyContactPhone)?`${p.emergencyContactName||""}${p.emergencyContactRelation?` (${p.emergencyContactRelation})`:""}${p.emergencyContactPhone?` — ${p.emergencyContactPhone}`:""}`.trim():"ثبت نشده";if(E.detailFileNumber)E.detailFileNumber.textContent=p.fileNumber||"-";if(E.detailContactPreference)E.detailContactPreference.textContent=contactPreferenceLabel(p.contactPreference);
  // بارداری/شیردهی: نما از آخرین مراجعهٔ قابل‌دیدنِ همین کاربر، با تاریخِ ثبتِ واقعی.
  // فقط وقتی مقدار «باردار» یا «شیرده» است دیده می‌شود؛ «خیر» و نبودِ داده، خلوت می‌ماند.
- if(E.detailPregnancyStatus)E.detailPregnancyStatus.textContent=p.pregnancyStatus?`${p.pregnancyStatus}${p.pregnancyObservedAt?` — ثبت در ${formatPersianDate(p.pregnancyObservedAt)}`:""}`:"—";
+ if(E.detailPregnancyStatus){
+     E.detailPregnancyStatus.textContent=p.pregnancyStatus?`${p.pregnancyStatus}${p.pregnancyObservedAt?` — ثبت در ${formatPersianDate(p.pregnancyObservedAt)}`:""}`:"—";
+     const pregRow=E.detailPregnancyStatus.closest(".info-item");
+     if(pregRow)pregRow.style.display=Number(p.gender)===1?"none":"";
+ }
  // بنر ایمنی: گروه خونیِ ثبت‌شده در بالای پرونده؛ نامعلوم بودن هم صادقانه گفته می‌شود.
  const safetyBanner=byId("patientSafetyBanner"),safetyBlood=byId("patientSafetyBloodType"),safetyHint=byId("patientSafetyHint");
  if(safetyBanner&&safetyBlood&&safetyHint){
@@ -308,7 +317,7 @@ function syncStudyDetailsStatusFields(){
  E.studyDetailsFollowUpBox?.classList.toggle("hidden",!waiting);
 }
 async function ensureStudyDetailsTypes(selectedID){
- try{const r=await fetch("/api/studytypes",{cache:"no-store"}),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error();E.studyDetailsType.replaceChildren();(x.studyTypes||[]).forEach(t=>{const o=document.createElement("option");o.value=String(t.studyTypeID);o.textContent=t.studyTypeName;E.studyDetailsType.appendChild(o);});if(selectedID&&!Array.from(E.studyDetailsType.options).some(o=>Number(o.value)===Number(selectedID))){const current=document.createElement("option");current.value=String(selectedID);current.textContent=`${selectedStudy?.studyTypeName||"نوع فعلی"} (غیرفعال)`;E.studyDetailsType.prepend(current);}E.studyDetailsType.value=String(selectedID||"");}catch{E.studyDetailsType.replaceChildren();const o=document.createElement("option");o.value=String(selectedID||"");o.textContent=selectedStudy?.studyTypeName||"تعیین نشده";E.studyDetailsType.appendChild(o);}
+ try{const r=await fetch("/api/studytypes",{cache:"no-store"}),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error();E.newStudyType.replaceChildren();(x.studyTypes||[]).forEach(t=>{const o=document.createElement("option");o.value=String(t.studyTypeID);o.textContent=t.studyTypeName;E.newStudyType.appendChild(o);});if(selectedID&&!Array.from(E.newStudyType.options).some(o=>Number(o.value)===Number(selectedID))){const current=document.createElement("option");current.value=String(selectedID);current.textContent=`${selectedStudy?.studyTypeName||"نوع فعلی"} (غیرفعال)`;E.newStudyType.prepend(current);}E.newStudyType.value=String(selectedID||"");}catch{E.newStudyType.replaceChildren();const o=document.createElement("option");o.value=String(selectedID||"");o.textContent=selectedStudy?.studyTypeName||"تعیین نشده";E.newStudyType.appendChild(o);}
 }
 // Marks a study complete straight from its card, without opening the panel.
 //
@@ -356,14 +365,14 @@ async function completeStudyFromCard(study,button){
  }
 }
 async function openStudyDetails(study){
- selectedStudyID=study.studyID;selectedStudy=study;window.selectedStudy=study;hideMainSections();E.studyDetailsSection.classList.remove("hidden");
+ selectedStudyID=study.studyID;selectedStudy=study;window.selectedStudy=study;setStudyFormMode("view");hideMainSections();E.studyDetailsSection.classList.remove("hidden");
  E.studyDetailsTitle.textContent=study.studyTypeName||("مراجعهٔ "+study.studyID);E.studyDetailsDate.textContent=formatPersianDateTime(study.studyDate);
  // Status badge so the state is visible without entering edit mode.
  const badge=createStudyStatusBadge(study);
  if(E.studyDetailsStatusBadge){E.studyDetailsStatusBadge.replaceChildren();if(badge)E.studyDetailsStatusBadge.appendChild(badge);}
  await ensureStudyDetailsTypes(study.studyTypeID);
- E.studyDetailsBodyPart.value=study.bodyPart||"";E.studyDetailsStudyDate.value=formatPersianDateTimeForInput(study.studyDate);
- E.studyDetailsDescription.value=study.description||"";E.studyDetailsReport.value=study.report||"";
+ E.newBodyPart.value=study.bodyPart||"";E.newStudyDate.value=formatPersianDateTimeForInput(study.studyDate);
+ E.newStudyDescription.value=study.description||"";E.newStudyReport.value=study.report||"";
  // Doctor and status, then the waiting stage narrowed to that doctor's specialty.
  await loadDoctors();
  fillDoctorSelect(study.doctorStaffID);
@@ -373,21 +382,34 @@ async function openStudyDetails(study){
  E.studyDetailsFollowUpNote.value=study.followUpNote||"";
  syncStudyDetailsStatusFields();
  setStudyDetailsEditing(false);setFormStatus(E.studyDetailsStatus,"",false);
-window.ReSiRaiFactors?.render(study);
+ // پنلِ فاکتورها: اگر observer آن را برای همین مراجعه رندر کرده باشد دوباره ساخته نمی‌شود.
+ const factorsHost=document.getElementById("studyFactorsPanel");
+ if(!factorsHost||factorsHost.dataset.renderedFor!==String(Number(study.studyID)||0))window.ReSiRaiFactors?.render(study);
+ // بخش‌هایِ مراجعه (تیک‌محور) هم باید برایِ همین مراجعه از سرور خوانده شوند؛
+ // هم برایِ مراجعهٔ بازشده و هم برایِ مراجعهٔ تازه ثبت‌شده (بعد از openStudyDetails).
+ window.ReSiRaiStudySections?.render(study);
  try{const r=await fetch(`/api/radiologystudies/${study.studyID}`,{cache:"no-store"}),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"اطلاعات Study دریافت نشد."));const teeth=x.toothNumbers||x.study?.toothNumbers||[];if(window.ReSiRaiTeethChart)window.ReSiRaiTeethChart.render(E.studyDetailsTeethChart,teeth);}catch{if(window.ReSiRaiTeethChart)window.ReSiRaiTeethChart.render(E.studyDetailsTeethChart,[]);}finally{E.studyDetailsTeethChart?.classList.add("study-chart-readonly");}
  window.scrollTo(0,0);
 }
 function setStudyDetailsEditing(editing){
- [E.studyDetailsBodyPart,E.studyDetailsStudyDate,E.studyDetailsDescription,E.studyDetailsReport,
-  E.studyDetailsFollowUpDate,E.studyDetailsFollowUpNote].forEach(x=>{if(x)x.readOnly=!editing;});
- E.studyDetailsType.disabled=!editing;
+ // «new» یعنی ثبتِ مراجعهٔ تازه: همهٔ فیلدها بازند و دکمهٔ ثبت دیده می‌شود.
+ const creating=studyFormMode==="new",on=editing||creating;
+ [E.newBodyPart,E.newStudyDate,E.newStudyDescription,E.newStudyReport,
+  E.studyDetailsFollowUpDate,E.studyDetailsFollowUpNote].forEach(x=>{if(x)x.readOnly=!on;});
+ E.newStudyType.disabled=!on;
  // The doctor and the status are part of the record, so they unlock with the rest.
- if(E.studyDetailsDoctor)E.studyDetailsDoctor.disabled=!editing;
- if(E.studyDetailsStatus2)E.studyDetailsStatus2.disabled=!editing;
- if(E.studyDetailsWaitStage)E.studyDetailsWaitStage.disabled=!editing;
- E.studyDetailsTeethChart?.classList.toggle("study-chart-readonly",!editing);
- E.studyDetailsEditButton.classList.toggle("hidden",editing);E.studyDetailsImagesButton.classList.toggle("hidden",editing);
- E.studyDetailsSaveButton.classList.toggle("hidden",!editing);E.studyDetailsCancelButton.classList.toggle("hidden",!editing);
+ if(E.studyDetailsDoctor)E.studyDetailsDoctor.disabled=!on;
+ if(E.studyDetailsStatus2)E.studyDetailsStatus2.disabled=!on;
+ if(E.studyDetailsWaitStage)E.studyDetailsWaitStage.disabled=!on;
+ E.studyDetailsTeethChart?.classList.toggle("study-chart-readonly",!on);
+ E.studyDetailsEditButton.classList.toggle("hidden",editing||creating);
+ E.studyDetailsImagesButton.classList.toggle("hidden",editing||creating);
+ E.studyDetailsSaveButton.classList.toggle("hidden",!editing||creating);
+ E.studyDetailsCancelButton.classList.toggle("hidden",!editing&&!creating);
+ // در حالتِ جدید هنوز مراجعه‌ای نیست: «بازگشت» جای خود را به «انصراف» می‌دهد
+ // و دکمه‌های تصویر (که به StudyID نیاز دارند) پنهان می‌مانند.
+ E.backToPatientDetailsButton?.classList.toggle("hidden",creating);
+ E.studyCreateActions?.classList.toggle("hidden",!creating);
 }
 async function saveStudyDetails(){
  if(studyDetailsSaveInProgress)return;
@@ -395,18 +417,22 @@ async function saveStudyDetails(){
  if(!Number.isInteger(studyID)||studyID<=0){setFormStatus(E.studyDetailsStatus,"مطالعه معتبر انتخاب نشده است.",true);return;}
  try{
   studyDetailsSaveInProgress=true;E.studyDetailsSaveButton.disabled=true;E.studyDetailsSaveButton.textContent="در حال ذخیره...";setFormStatus(E.studyDetailsStatus,"در حال ذخیره تغییرات...",false);
-  const studyTypeID=Number(E.studyDetailsType.value);if(!Number.isInteger(studyTypeID)||studyTypeID<=0)throw new Error("دلیل مراجعه را انتخاب کنید.");
-  const studyDate=parsePersianDateForBackend(E.studyDetailsStudyDate.value,true);if(!studyDate)throw new Error("تاریخ مطالعه را وارد کنید.");
+  const studyTypeID=Number(E.newStudyType.value);if(!Number.isInteger(studyTypeID)||studyTypeID<=0)throw new Error("دلیل مراجعه را انتخاب کنید.");
+  const studyDate=parsePersianDateForBackend(E.newStudyDate.value,true);if(!studyDate)throw new Error("تاریخ مطالعه را وارد کنید.");
   const status=Number(E.studyDetailsStatus2?.value)||2;
-  const body={studyDate,studyTypeID,bodyPart:emptyToNull(E.studyDetailsBodyPart.value),description:emptyToNull(E.studyDetailsDescription.value),report:emptyToNull(E.studyDetailsReport.value),toothNumbers:window.ReSiRaiTeethChart?.getSelected(E.studyDetailsTeethChart)||[],
+  // شمای دندان مخفی است؛ اگر از خودِ چارت چیزی خوانده نشود، دندان‌های ثبت‌شدهٔ
+  // همین مراجعه نگه داشته می‌شوند تا ذخیره، آن‌ها را پاک نکند.
+  const chartTeeth=window.ReSiRaiTeethChart?.getSelected(E.studyDetailsTeethChart)||[];
+  const body={studyDate,studyTypeID,bodyPart:emptyToNull(E.newBodyPart.value),description:emptyToNull(E.newStudyDescription.value),report:emptyToNull(E.newStudyReport.value),
+   toothNumbers:chartTeeth.length?chartTeeth:(Array.isArray(selectedStudy?.toothNumbers)?selectedStudy.toothNumbers:[]),
    status,
    waitStageID:status===3?(Number(E.studyDetailsWaitStage?.value)||null):null,
    followUpDate:status===3?parsePersianDateForBackend(E.studyDetailsFollowUpDate.value,false):null,
    followUpNote:status===3?emptyToNull(E.studyDetailsFollowUpNote.value):null,
    doctorStaffID:Number(E.studyDetailsDoctor?.value)||null};
   const r=await fetch(`/api/radiologystudies/${studyID}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});let x={};try{x=await r.json();}catch{}if(!r.ok||!x.success)throw new Error(getApiError(x,`ویرایش Study انجام نشد. (HTTP ${r.status})`));
-  const updated={...selectedStudy,...(x.study||{}),studyID,studyTypeID,studyTypeName:E.studyDetailsType.options[E.studyDetailsType.selectedIndex]?.text||selectedStudy?.studyTypeName,studyDate,bodyPart:body.bodyPart,description:body.description,report:body.report,status:body.status,waitStageID:body.waitStageID,followUpDate:body.followUpDate,followUpNote:body.followUpNote,doctorStaffID:body.doctorStaffID,doctorName:E.studyDetailsDoctor?.options[E.studyDetailsDoctor.selectedIndex]?.text||selectedStudy?.doctorName,waitStageName:E.studyDetailsWaitStage?.options[E.studyDetailsWaitStage.selectedIndex]?.text||selectedStudy?.waitStageName};selectedStudy=updated;
-  setStudyDetailsEditing(false);E.studyDetailsTitle.textContent=updated.studyTypeName||`مراجعهٔ ${studyID}`;E.studyDetailsDate.textContent=formatPersianDateTime(studyDate);setFormStatus(E.studyDetailsStatus,"تغییرات مطالعه با موفقیت ذخیره شد.",false);showToast("مطالعه با موفقیت ویرایش شد.");
+  const updated={...selectedStudy,...(x.study||{}),studyID,studyTypeID,studyTypeName:E.newStudyType.options[E.newStudyType.selectedIndex]?.text||selectedStudy?.studyTypeName,studyDate,bodyPart:body.bodyPart,description:body.description,report:body.report,status:body.status,waitStageID:body.waitStageID,followUpDate:body.followUpDate,followUpNote:body.followUpNote,doctorStaffID:body.doctorStaffID,doctorName:E.studyDetailsDoctor?.options[E.studyDetailsDoctor.selectedIndex]?.text||selectedStudy?.doctorName,waitStageName:E.studyDetailsWaitStage?.options[E.studyDetailsWaitStage.selectedIndex]?.text||selectedStudy?.waitStageName};selectedStudy=updated;
+  setStudyFormMode("view");setStudyDetailsEditing(false);E.studyDetailsTitle.textContent=updated.studyTypeName||`مراجعهٔ ${studyID}`;E.studyDetailsDate.textContent=formatPersianDateTime(studyDate);setFormStatus(E.studyDetailsStatus,"تغییرات مطالعه با موفقیت ذخیره شد.",false);showToast("مطالعه با موفقیت ویرایش شد.");
   try{const pr=await fetch(`/api/patients/${selectedPatientID}/details`,{cache:"no-store"}),pd=await pr.json();if(pr.ok&&pd.success){const fresh=(pd.studies||[]).find(s=>s.studyID===studyID);if(fresh)selectedStudy=fresh;}}catch(refreshError){console.warn("Study saved, but patient workspace refresh failed:",refreshError);}
  }catch(e){setFormStatus(E.studyDetailsStatus,e.message||"ویرایش Study انجام نشد.",true);
  }finally{studyDetailsSaveInProgress=false;E.studyDetailsSaveButton.disabled=false;E.studyDetailsSaveButton.textContent="ذخیره تغییرات";}
@@ -848,7 +874,7 @@ function printPatientInformation(){
    ["بیمهٔ تکمیلی",[p.supp1InsuranceName,p.supp2InsuranceName].filter(Boolean).join(" ، ")||"ثبت نشده"],
    ["تماس اضطراری",(p.emergencyContactName||p.emergencyContactPhone)?`${p.emergencyContactName||""}${p.emergencyContactRelation?` (${p.emergencyContactRelation})`:""}${p.emergencyContactPhone?` — ${p.emergencyContactPhone}`:""}`.trim():"ثبت نشده"],
    ["شماره پروندهٔ مطب",p.fileNumber||"-"],["ترجیح اطلاع‌رسانی",contactPreferenceLabel(p.contactPreference)],
-   ["بارداری/شیردهی",p.pregnancyStatus?`${p.pregnancyStatus}${p.pregnancyObservedAt?` — ثبت در ${formatPersianDate(p.pregnancyObservedAt)}`:""}`:"—"],
+    ...(Number(p.gender)===1?[]:[["بارداری/شیردهی",p.pregnancyStatus?`${p.pregnancyStatus}${p.pregnancyObservedAt?` — ثبت در ${formatPersianDate(p.pregnancyObservedAt)}`:""}`:"—"]]),
    ["وضعیت",p.isActive?"فعال":"غیرفعال"],["آدرس",p.address||"-"],
   ["توضیحات",p.description||"-"],["تعداد مطالعات",E.studyCount.textContent||"0"],["تعداد تصاویر",E.totalImageCount.textContent||"0"]
  ];
@@ -867,16 +893,35 @@ async function openNewStudyForm(){
   showToast("ابتدا یک بیمار را انتخاب کنید.","error");
   return;
  }
+ // فرمِ واحدِ مراجعه: همان #studyDetailsSection، این‌بار در حالتِ «جدید» (بدون StudyID).
+ selectedStudyID=null;selectedStudy=null;window.selectedStudy=null;
+ setStudyFormMode("new");
+ hideMainSections();
+ E.studyDetailsSection.classList.remove("hidden");
+ E.studyDetailsSection.scrollIntoView({behavior:"smooth",block:"start"});
+ E.studyDetailsTitle.textContent="ثبت مراجعهٔ جدید";
+ E.studyDetailsDate.textContent="تاریخ و زمان پیش‌فرض، زمان فعلی است.";
+ if(E.studyDetailsStatusBadge)E.studyDetailsStatusBadge.replaceChildren();
+ setFormStatus(E.studyDetailsStatus,"",false);
  E.newStudyForm.reset();
- setFormStatus(E.newStudyStatus,"",false);
+ // تاریخِ پیش‌فرض همین حالاست و مراجعهٔ تازه «باز» است (کار هنوز انجام نشده).
  E.newStudyDate.value=toEnglishJalaliInput(new Date(),true);
+ E.studyDetailsStatus2.value="1";
+ E.studyDetailsFollowUpDate.value="";E.studyDetailsFollowUpNote.value="";
+ syncStudyDetailsStatusFields();
  // فیلدِ اسکنِ کارتِ سابقه (ماژولِ study-card-scan) به همین فرم اضافه می‌شود.
  window.ReSiRaiStudyCardScan?.mount();
- // A brand-new Study starts open: the work is by definition not finished yet.
- setStudyStatusFields("new",1,null,null);
- hideMainSections();
- E.newStudySection.classList.remove("hidden");
- E.newStudySection.scrollIntoView({behavior:"smooth",block:"start"});
+ // دندان‌هایِ انتخاب‌شده در اسکنِ قبل نباید به مراجعهٔ تازه سرایز کنند.
+ const draftChart=byId("newStudyTeethChart");
+ if(draftChart&&window.ReSiRaiTeethChart)window.ReSiRaiTeethChart.render(draftChart,[]);
+ setStudyDetailsEditing(true);
+ // فاکتورها در همین حالت «پیش‌نویس» رندر می‌شوند (بدون StudyID) و بخش‌هایِ مراجعه
+ // تا لحظهٔ ثبت فقط در حافظه بافر می‌شوند. پیش‌نویسِ مراجعهٔ انصرافی هم پاک می‌شود.
+ const factorsHost=document.getElementById("studyFactorsPanel");
+ window.ReSiRaiFactors?.resetDraft?.();
+ window.ReSiRaiFactors?.render({studyID:0},factorsHost||undefined);
+ window.ReSiRaiStudySections?.resetDraft();
+ await window.ReSiRaiStudySections?.render(0);
  E.newStudyType.innerHTML='<option value="">در حال دریافت دلایل مراجعه...</option>';
  E.newStudyType.disabled=true;
  try{
@@ -885,7 +930,7 @@ async function openNewStudyForm(){
   E.newStudyType.innerHTML='<option value="">انتخاب دلیل مراجعه</option>';
   (x.studyTypes||[]).forEach(t=>{const o=document.createElement("option");o.value=String(t.studyTypeID);o.textContent=t.studyTypeName;E.newStudyType.appendChild(o);});
   E.newStudyType.disabled=false;E.newStudyType.focus();
- }catch(e){E.newStudyType.innerHTML='<option value="">دریافت دلایل مراجعه ناموفق بود</option>';setFormStatus(E.newStudyStatus,e.message||"دلایل مراجعه دریافت نشد.",true);}
+ }catch(e){E.newStudyType.innerHTML='<option value="">دریافت دلایل مراجعه ناموفق بود</option>';setFormStatus(E.studyDetailsStatus,e.message||"دلایل مراجعه دریافت نشد.",true);}
 }
 // Public entry point keeps this primary action independent from later optional bindings.
 window.ReSiRaiOpenNewStudy=event=>{event?.preventDefault?.();return openNewStudyForm();};
@@ -923,20 +968,25 @@ function setStudyStatusFields(prefix,status,followUpDate,followUpNote){
 }
 function attachStatusToggle(prefix){E[`${prefix}Status`]?.addEventListener("change",()=>syncFollowUpVisibility(prefix));}
 
-function studyPayload(prefix){
- const studyTypeID=Number(E[`${prefix}StudyType`].value);
+// payloadِ مراجعه از فرمِ واحد خوانده می‌شود — هم برایِ ثبتِ مراجعهٔ جدید و هم
+// (با شناسه) برایِ ویرایش. فیلدها یکی‌اند؛ فقط حالتِ فرم فرق دارد.
+function studyPayload(){
+ const studyTypeID=Number(E.newStudyType.value);
  if(!Number.isInteger(studyTypeID)||studyTypeID<=0)throw new Error("دلیل مراجعه را انتخاب کنید.");
- const chart=byId(prefix==="new"?"newStudyTeethChart":"editStudyTeethChart");
+ const chart=byId("newStudyTeethChart");
+ const status=Number(E.studyDetailsStatus2?.value)||2;
  return{
-  studyDate:parsePersianDateForBackend(E[`${prefix}StudyDate`].value,true),
+  studyDate:parsePersianDateForBackend(E.newStudyDate.value,true),
   studyTypeID,
-  bodyPart:emptyToNull(E[`${prefix}BodyPart`].value),
-  description:emptyToNull(E[`${prefix}StudyDescription`].value),
-  report:emptyToNull(E[`${prefix}StudyReport`].value),
+  bodyPart:emptyToNull(E.newBodyPart.value),
+  description:emptyToNull(E.newStudyDescription.value),
+  report:emptyToNull(E.newStudyReport.value),
   toothNumbers:window.ReSiRaiTeethChart?.getSelected(chart)||[],
-  status:Number(E[`${prefix}Status`]?.value)||2,
-  followUpDate:E[`${prefix}Status`]?.value==="3"?parsePersianDateForBackend(E[`${prefix}FollowUpDate`].value,false):null,
-  followUpNote:E[`${prefix}Status`]?.value==="3"?emptyToNull(E[`${prefix}FollowUpNote`].value):null
+  status,
+  waitStageID:status===3?(Number(E.studyDetailsWaitStage?.value)||null):null,
+  followUpDate:status===3?parsePersianDateForBackend(E.studyDetailsFollowUpDate.value,false):null,
+  followUpNote:status===3?emptyToNull(E.studyDetailsFollowUpNote.value):null,
+  doctorStaffID:Number(E.studyDetailsDoctor?.value)||null
  };
 }
 // Offers to message the patient after something worth telling them about.
@@ -972,19 +1022,65 @@ function offerPatientMessage(patientID,reason,preferredTemplate){
   window.dispatchEvent(new CustomEvent("resirai-offer-message",{detail:{patientID,templateKey:preferredTemplate}}));
  };
 }
-async function createStudy(){try{const body={...studyPayload("new"),patientID:selectedPatientID};const r=await fetch("/api/radiologystudies",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)}),x=await readApiJson(r);if(!r.ok||x.success===false)throw new Error(apiErrorMessage(r,x,"ثبت مراجعه انجام نشد."));const savedStudyID=(x.study&&x.study.studyID)||0;await window.ReSiRaiStudyCardScan?.uploadPending(savedStudyID);if(savedStudyID&&window.ReSiRaiFactors?.commitPending){try{await window.ReSiRaiFactors.commitPending(savedStudyID);}catch(fe){showToast(fe.message||"ثبت مقادیر شرایط فعلی ناموفق بود.","error");}}const savedPatientID=selectedPatientID;await openPatient(savedPatientID);showToast("مراجعه ثبت شد.");
- // A study recorded for a future date is a booked visit, so a reminder makes sense.
- const saved=x.study||x;
- if(Number(saved.status)===3&&saved.followUpDate){
-  offerPatientMessage(savedPatientID,"برای نوبت پیگیری این مطالعه، به بیمار یادآوری بفرستیم؟","appointment-reminder");
- } else if(Number(saved.status)===1){
-  offerPatientMessage(savedPatientID,"برای این مطالعه جدید به بیمار اطلاع بفرستیم؟","images-ready");
- }
-}catch(e){setFormStatus(E.newStudyStatus,getApiError({message:e.message},"ثبت مراجعه انجام نشد."),true);}}
+// ثبتِ مراجعهٔ جدید: POST و سپس همان فرم درجا به حالتِ «مشاهده» می‌رود — پرشی به
+// فهرستِ بیمار نیست. پیش‌نویس‌ها (اسکنِ کارت، فاکتورها، بخش‌هایِ مراجعه) پیش از
+// بازخوانیِ فرم تسویه می‌شوند تا همان‌جا دیده شوند.
+let createStudyInProgress=false;
+async function createStudy(){
+ if(studyFormMode!=="new"||createStudyInProgress)return;
+ const submit=E.newStudySubmitButton;
+ createStudyInProgress=true;
+ if(submit){submit.disabled=true;submit.textContent="در حال ثبت...";}
+ try{
+  const body={...studyPayload(),patientID:selectedPatientID};
+  const r=await fetch("/api/radiologystudies",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const x=await readApiJson(r);
+  if(!r.ok||x.success===false)throw new Error(apiErrorMessage(r,x,"ثبت مراجعه انجام نشد."));
+  const savedStudyID=(x.study&&x.study.studyID)||0;
+  if(!savedStudyID)throw new Error("مراجعه ثبت شد، ولی شناسهٔ آن برنگشت.");
+  await window.ReSiRaiStudyCardScan?.uploadPending(savedStudyID);
+  if(window.ReSiRaiFactors?.commitPending){
+   try{await window.ReSiRaiFactors.commitPending(savedStudyID);}catch(fe){showToast(fe.message||"ثبت مقادیر شرایط فعلی ناموفق بود.","error");}
+  }
+  // بخش‌هایِ مراجعه که پیش از ثبت در حافظه بافر شده بودند همین‌جا ذخیره می‌شوند.
+  if(window.ReSiRaiStudySections?.flushPending){
+   try{await window.ReSiRaiStudySections.flushPending(savedStudyID);}catch(se){showToast(se.message||"بخش‌های مراجعه ذخیره نشدند.","error");}
+  }
+  // اگر لیستِ پرونده تازه نشد، همانِ دادهٔ پاسخِ ثبت پایهٔ نمایش است.
+  const saved={
+   ...(x.study||{}),studyID:savedStudyID,
+   studyTypeName:E.newStudyType.options[E.newStudyType.selectedIndex]?.text||x.study?.studyTypeName,
+   studyDate:body.studyDate,status:body.status,followUpDate:body.followUpDate,followUpNote:body.followUpNote,
+   bodyPart:body.bodyPart,description:body.description,report:body.report,
+   doctorStaffID:body.doctorStaffID,waitStageID:body.waitStageID,toothNumbers:body.toothNumbers,
+   imageCount:x.study?.imageCount||0,documentCount:x.study?.documentCount||0
+  };
+  const fresh=await fetchStudyFromWorkspace(savedStudyID);
+  // همان فرم، همان صفحه: حالا دکمهٔ «ویرایش» و «ذخیره تغییرات» دارد.
+  await openStudyDetails(fresh||saved);
+  showToast("مراجعه ثبت شد.");
+  // A study recorded for a future date is a booked visit, so a reminder makes sense.
+  const shown=fresh||saved;
+  if(Number(shown.status)===3&&shown.followUpDate){
+   offerPatientMessage(selectedPatientID,"برای نوبت پیگیری این مطالعه، به بیمار یادآوری بفرستیم؟","appointment-reminder");
+  }else if(Number(shown.status)===1){
+   offerPatientMessage(selectedPatientID,"برای این مطالعه جدید به بیمار اطلاع بفرستیم؟","images-ready");
+  }
+ }catch(e){setFormStatus(E.studyDetailsStatus,getApiError({message:e.message},"ثبت مراجعه انجام نشد."),true);
+ }finally{createStudyInProgress=false;if(submit){submit.disabled=false;submit.textContent="ثبت مراجعه";}}
+}
+// مراجعهٔ تازه از سرور خوانده می‌شود تا فرم همان داده‌ای را نشان دهد که لیستِ پرونده نشان می‌دهد.
+async function fetchStudyFromWorkspace(studyID){
+ try{
+  const pr=await fetch(`/api/patients/${selectedPatientID}/details`,{cache:"no-store"}),pd=await pr.json();
+  if(pr.ok&&pd.success){const fresh=(pd.studies||[]).find(s=>s.studyID===studyID);if(fresh)return fresh;}
+ }catch{/* تازه‌سازیِ لیستِ پرونده اختیاری است */}
+ return null;
+}
 function openMergePatientForm(){E.mergePatientForm.reset();setFormStatus(E.mergePatientStatus,`مبدأ: ${selectedPatient.firstName} ${selectedPatient.lastName} — ${selectedPatient.nationalCode}`,false);hideMainSections();E.mergePatientSection.classList.remove("hidden");}
 async function mergePatient(){try{const code=normalizeDigits(E.mergeTargetNationalCode.value.trim());const tr=await fetch(`/api/patients/${encodeURIComponent(code)}`),target=await readApiJson(tr);if(!tr.ok)throw new Error(apiErrorMessage(tr,target,"بیمار مقصد پیدا نشد."));if(!await askConfirmation({title:"تأیید ادغام بیمار",message:`مبدأ: ${selectedPatient.nationalCode}\nمقصد: ${target.nationalCode}\nتمام مراجعه‌ها و تصاویر منتقل می‌شوند.`,confirmText:"انجام ادغام"}))return;const r=await fetch("/api/patients/merge",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sourcePatientID:selectedPatientID,targetPatientID:target.patientID})}),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"ادغام انجام نشد."));await loadPatients();await openPatient(target.patientID);showToast("ادغام با موفقیت انجام شد.");}catch(e){setFormStatus(E.mergePatientStatus,e.message,true);}}
 
-enableJalaliDateMask(E.newBirthDate);enableJalaliDateMask(E.editBirthDate);enableJalaliDateTimeMask(E.newStudyDate);enableJalaliDateMask(E.newFollowUpDate);enableJalaliDateMask(E.studyDetailsFollowUpDate);attachStatusToggle("new");attachStatusToggle("edit");window.ReSiRaiJalali?.enhanceAll(document);syncFollowUpVisibility("new");syncFollowUpVisibility("edit");
+enableJalaliDateMask(E.newBirthDate);enableJalaliDateMask(E.editBirthDate);enableJalaliDateTimeMask(E.newStudyDate);enableJalaliDateMask(E.studyDetailsFollowUpDate);window.ReSiRaiJalali?.enhanceAll(document);
 // ---- فهرست بیماران: جستجوی زنده، سورت کلیکی و صفحابندی ---------------------
 // هر تغییر فیلتر/جستجو/سورت، صفحۀ فعلی را صفر می‌کند تا نتیجه‌ها جابه‌جا نشوند.
 function resetPatientList(){patientListState.offset=0;}
@@ -1016,9 +1112,18 @@ E.dueFollowUpOnly.onchange=()=>{E.openStudiesOnly.checked=E.dueFollowUpOnly.chec
 E.backToPatientDetailsButton?.addEventListener("click",()=>openPatient(selectedPatientID));
 E.backToStudyDetailsButton?.addEventListener("click",()=>{if(selectedStudy)openStudyDetails(selectedStudy);});
 E.studyDetailsImagesButton?.addEventListener("click",()=>{if(selectedStudy)openStudyImages(selectedStudy);});
-E.studyDetailsEditButton?.addEventListener("click",()=>setStudyDetailsEditing(true));
-E.studyDetailsCancelButton?.addEventListener("click",()=>{if(selectedStudy)openStudyDetails(selectedStudy);});
-E.studyDetailsForm?.addEventListener("submit",e=>{e.preventDefault();saveStudyDetails();});
+E.studyDetailsEditButton?.addEventListener("click",()=>{setStudyFormMode("edit");setStudyDetailsEditing(true);});
+E.studyDetailsCancelButton?.addEventListener("click",()=>{
+ // در حالتِ جدید «انصراف» یعنی برگشت به پروندهٔ بیمار؛ در حالتِ ویرایش یعنی بازگشت به نمای مراجعه.
+ if(studyFormMode==="new")openPatient(selectedPatientID);
+ else if(selectedStudy)openStudyDetails(selectedStudy);
+});
+// فرمِ واحد: submit فقط در حالتِ جدید «ثبت مراجعه» است و در حالتِ ویرایش «ذخیره»؛
+// در حالتِ نمایش (Enter روی فیلدهای فقط‌خواندنی) هیچ کاری نمی‌کند.
+E.newStudyForm?.addEventListener("submit",e=>{e.preventDefault();
+ if(studyFormMode==="new")createStudy();
+ else if(studyFormMode==="edit")saveStudyDetails();
+});
 E.studyDetailsSaveButton?.addEventListener("click",e=>{e.preventDefault();saveStudyDetails();});
 // The status decides whether the waiting fields apply, and the doctor decides
 // which waiting stages are offered.
@@ -1032,11 +1137,9 @@ E.deactivatePatientButton?.addEventListener("click",togglePatientActiveStatus);
 E.deletePatientButton?.addEventListener("click",()=>{if(selectedPatient)deletePatient(selectedPatient);});
 E.mergePatientButton?.addEventListener("click",openMergePatientForm);
 E.editPatientForm?.addEventListener("submit",e=>{e.preventDefault();updatePatient();});
-E.newStudyForm?.addEventListener("submit",e=>{e.preventDefault();createStudy();});
-
 E.uploadImageForm?.addEventListener("submit",e=>{e.preventDefault();uploadImage();});
 E.mergePatientForm?.addEventListener("submit",e=>{e.preventDefault();mergePatient();});
-[[E.cancelNewPatientButton,E.cancelNewPatientButtonBottom]].flat().forEach(b=>b.onclick=showPatientsScreen);[E.cancelEditPatientButton,E.cancelEditPatientButtonBottom,E.cancelNewStudyButton,E.cancelNewStudyButtonBottom,E.cancelMergePatientButton,E.cancelMergePatientButtonBottom].forEach(b=>b.onclick=()=>openPatient(selectedPatientID));// بازگشت از فرم آپلود به همان‌جایی که فراخوانده شده (برچسب: «بازگشت به مراجعه»).
+[[E.cancelNewPatientButton,E.cancelNewPatientButtonBottom]].flat().forEach(b=>b.onclick=showPatientsScreen);[E.cancelEditPatientButton,E.cancelEditPatientButtonBottom,E.cancelNewStudyButtonBottom,E.cancelMergePatientButton,E.cancelMergePatientButtonBottom].forEach(b=>b&&(b.onclick=()=>openPatient(selectedPatientID)));// بازگشت از فرم آپلود به همان‌جایی که فراخوانده شده (برچسب: «بازگشت به مراجعه»).
 function goBackFromUpload(){
  const r = uploadReturnTo;
  if (r && r.kind === "images" && r.study) return openStudyImages(r.study);

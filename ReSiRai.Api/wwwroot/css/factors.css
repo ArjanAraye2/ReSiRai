@@ -112,7 +112,8 @@
 .factors-testbar label { display: flex; align-items: center; gap: 6px; font-weight: 700; cursor: pointer; }
 .factors-testbar-question { font-weight: 700; }
 
-.factors-testbar select {
+.factors-testbar select,
+.factors-testbar input {
     padding: 4px 8px;
     border: 1px solid #e2b968;
     border-radius: 8px;

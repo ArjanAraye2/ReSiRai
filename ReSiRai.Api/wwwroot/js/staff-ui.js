@@ -29,7 +29,7 @@
                 <div class="form-field"><label for="staffLastName">نام خانوادگی</label><input id="staffLastName" maxlength="100" required></div>
                 <div class="form-field"><label for="staffNationalCode">کد ملی</label><input id="staffNationalCode" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" required><small class="field-hint">کد ملی معتبر ۱۰ رقمی</small></div>
                 <div class="form-field"><label for="staffType">نوع شخص</label><select id="staffType" required><option value="1">کارمند</option><option value="2">دندانپزشک</option></select></div>
-                <div id="staffSpecialtyField" class="form-field hidden"><label for="staffSpecialtyID">تخصص</label><select id="staffSpecialtyID"></select></div>
+                <div id="staffSpecialtyField" class="form-field hidden"><label for="staffSpecialtyInput">تخصص</label><input id="staffSpecialtyInput" type="text" list="staffSpecialtyList" autocomplete="off" placeholder="تایپ کنید؛ فهرست فیلتر می‌شود…" required><datalist id="staffSpecialtyList"></datalist><small id="staffSpecialtyHint" class="field-hint">نام تخصص را بنویسید و از فهرست انتخاب کنید.</small><select id="staffSpecialtyID" class="hidden"></select></div>
             </div>
             <div id="staffFormStatus" class="status-message"></div>
             <div class="form-actions"><button type="submit">ذخیره</button><button id="cancelStaffButton" type="button" class="secondary-button">انصراف</button></div>
@@ -81,25 +81,72 @@
         } catch (e) { $("staffStatus").textContent = e.message; $("staffStatus").classList.add("error"); }
     }
 
+    // --- انتخابِ تخصص با جست‌وجو (۱۳۰ ردیف) ---------------------------------
+    // سلکتِ بلند با «متن + datalist» جایگزین شده تا تایپ، فهرست را فیلتر کند؛
+    // شناسهٔ staffSpecialtyID رویِ همان selectِ پنهان می‌ماند (با کلاس hidden)
+    // چون سریالیزاسیون فعلی `Number($("staffSpecialtyID").value)` است و باید
+    // همچنان SpecialtyID صحیح بدهد.
+    let specialtyEntries = [];
+    const specNorm = v => String(v ?? "").replace(/\u200c/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+
+    function fillSpecialtyOptions() {
+        const select = $("staffSpecialtyID");
+        const list = $("staffSpecialtyList");
+        select.replaceChildren(new Option("انتخاب تخصص", ""));
+        list.replaceChildren();
+        specialtyEntries.forEach(e => {
+            select.appendChild(new Option(e.name, String(e.id)));
+            list.appendChild(new Option(e.name)); // value = نام تخصص تا تایپ با نام فیلتر شود
+        });
+    }
+
+    function setSpecialty(id) {
+        const hit = specialtyEntries.find(e => e.id === Number(id));
+        $("staffSpecialtyID").value = hit ? String(hit.id) : "";
+        $("staffSpecialtyInput").value = hit ? hit.name : "";
+    }
+
+    // هنگامِ خروج از فیلد، متن به نامِ واقعیِ تخصصِ انتخاب‌شده می‌نشیند؛ اگر به
+    // هیچ ردیفی نخورد فیلد پاک می‌شود تا «انتخاب نشده» دروغ نگوید.
+    function commitSpecialty() {
+        const input = $("staffSpecialtyInput");
+        if (!input.value.trim()) { input.value = ""; return 0; }
+        const id = resolveSpecialty();
+        const hit = specialtyEntries.find(e => e.id === id);
+        input.value = hit ? hit.name : "";
+        return id;
+    }
+
+    // متنِ تایپ‌شده ← SpecialtyID: اول تطبیق دقیق، بعد شامل‌شدن؛ انتخاب‌نشده = خالی.
+    function resolveSpecialty() {
+        const input = $("staffSpecialtyInput");
+        const select = $("staffSpecialtyID");
+        const want = specNorm(input.value);
+        if (!want) { select.value = ""; return 0; }
+        const hit = specialtyEntries.find(e => specNorm(e.name) === want)
+            || specialtyEntries.find(e => specNorm(e.name).includes(want) || want.includes(specNorm(e.name)));
+        select.value = hit ? String(hit.id) : "";
+        return hit ? hit.id : 0;
+    }
+
     async function loadSpecialties(selected) {
         const select = $("staffSpecialtyID");
         select.innerHTML = '<option value="">در حال دریافت تخصص‌ها...</option>';
 
         try {
             const x = await apiJson("/api/staff/specialties");
-            select.innerHTML = '<option value="">انتخاب تخصص</option>';
-
-            (x.specialties || []).forEach(s => {
-                const option = document.createElement("option");
-                option.value = String(s.specialtyID);
-                option.textContent = s.specialtyName;
-                select.appendChild(option);
-            });
-
-            if (selected != null)
-                select.value = String(selected);
+            specialtyEntries = (x.specialties || [])
+                .map(s => ({ id: Number(s.specialtyID) || 0, name: String(s.specialtyName || "") }))
+                .filter(e => e.id && e.name);
+            fillSpecialtyOptions();
+            setSpecialty(selected != null ? Number(selected) : 0);
+            $("staffSpecialtyHint").textContent = specialtyEntries.length
+                ? `نام تخصص را بنویسید و از فهرست انتخاب کنید (${specialtyEntries.length.toLocaleString("fa-IR")} تخصص).`
+                : "نام تخصص را بنویسید و از فهرست انتخاب کنید.";
         } catch (e) {
+            specialtyEntries = [];
             select.innerHTML = '<option value="">دریافت تخصص‌ها ناموفق بود</option>';
+            $("staffSpecialtyInput").value = "";
             $("staffFormStatus").textContent = e.message;
             $("staffFormStatus").classList.add("error");
         }
@@ -108,8 +155,10 @@
     function updateSpecialtyVisibility() {
         const doctor = $("staffType").value === "2";
         $("staffSpecialtyField").classList.toggle("hidden", !doctor);
-        $("staffSpecialtyID").required = doctor;
-        if (!doctor) $("staffSpecialtyID").value = "";
+        // الزام رویِ فیلدِ دیده‌شده گذاشته می‌شود، نه رویِ selectِ پنهان؛
+        // وگرنه مرورگر رویِ فیلدِ نامرئی خطای بدونِ پیام می‌دهد و فرم ارسال نمی‌شود.
+        $("staffSpecialtyInput").required = doctor;
+        if (!doctor) { $("staffSpecialtyID").value = ""; $("staffSpecialtyInput").value = ""; }
     }
 
     function openForm(s = null) {
@@ -127,6 +176,13 @@
     }
 
     $("staffType").onchange = updateSpecialtyVisibility;
+    // تایپ، فهرستِ datalist را فیلتر می‌کند و شناسهٔ انتخاب‌شده را همیشه با
+    // متنِ دیده‌شده هم‌گام نگه می‌دارد؛ خروج از فیلد (change) انتخاب را قطعی می‌کند.
+    $("staffSpecialtyInput").addEventListener("input", () => resolveSpecialty());
+    $("staffSpecialtyInput").addEventListener("change", () => commitSpecialty());
+    $("staffSpecialtyInput").addEventListener("keydown", e => {
+        if (e.key === "Enter") { e.preventDefault(); $("staffSpecialtyInput").blur(); }
+    });
     $("newStaffButton").onclick = () => openForm();
     $("cancelStaffButton").onclick = () => $("staffForm").classList.add("hidden");
     $("staffSearchButton").onclick = loadStaff;
@@ -137,6 +193,10 @@
         try {
             const nationalCode = normalize($("staffNationalCode").value.trim());
             if (!/^\d{10}$/.test(nationalCode)) throw new Error("کد ملی باید دقیقاً ۱۰ رقم باشد.");
+            // «required» فقط متنِ پر را می‌سنجد؛ اینجا مطمئن می‌شویم متن واقعاً
+            // به یکی از ردیف‌های فهرست خورده و SpecialtyID درست است.
+            if ($("staffType").value === "2" && !resolveSpecialty())
+                throw new Error("تخصص را از فهرست انتخاب کنید.");
             const id = Number($("staffID").value || 0);
             const body = {
                 staffID: id,

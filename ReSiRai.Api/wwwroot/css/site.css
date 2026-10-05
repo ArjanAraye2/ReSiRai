@@ -1527,7 +1527,9 @@ button {
 
 
 #studyDetailsForm input[readonly],
-#studyDetailsForm textarea[readonly] {
+#studyDetailsForm textarea[readonly],
+#newStudyForm input[readonly],
+#newStudyForm textarea[readonly] {
     background: #f6fafb;
     cursor: default;
 }
@@ -2074,7 +2076,10 @@ button {
 }
 #studyDetailsForm input[readonly],
 #studyDetailsForm textarea[readonly],
-#studyDetailsForm select:disabled {
+#studyDetailsForm select:disabled,
+#newStudyForm input[readonly],
+#newStudyForm textarea[readonly],
+#newStudyForm select:disabled {
     color: var( --muted-strong );
     background: var( --surface-soft );
     border-color: var( --border );
@@ -2125,6 +2130,31 @@ button {
 #studyDetailsUploadButton { background:linear-gradient(135deg,#0e7f95,#0c687e); }
 #studyDetailsSaveButton { background:linear-gradient(135deg,#0e7d55,#0e7d55); }
 #studyDetailsCancelButton { background:#eef4f6; color:#1f2d36; }
+
+/* ==========================================================
+   فرمِ واحدِ مراجعه: ثبتِ جدید و ویرایش در یک بخش (study-mode-new = حالتِ جدید).
+   ========================================================== */
+/* در حالتِ جدید هنوز مراجعه‌ای نیست: کارهایِ تصویر پنهان می‌مانند، ولی نشانگرِ
+   فرمانِ صوتی (voiceStatus) سرِ جایش می‌ماند تا دیکته/صوت در حالتِ جدید هم پاسخ دهد. */
+#studyDetailsSection.study-mode-new #studyReceiveImagesButton,
+#studyDetailsSection.study-mode-new #visitHeaderUploadButton,
+#studyDetailsSection.study-mode-new #pickupHeaderButton,
+#studyDetailsSection.study-mode-new #shareStudyDetailsButton {
+    display: none;
+}
+/* دکمه‌های «ثبت مراجعه / انصراف» فقط در حالتِ جدید دیده می‌شوند. */
+#studyDetailsSection:not(.study-mode-new) #studyCreateActions {
+    display: none;
+}
+/* اسکنِ کارتِ سابقه فقط هنگامِ ثبتِ مراجعهٔ جدید معنا دارد. */
+#studyDetailsSection:not(.study-mode-new) #studyCardScanField {
+    display: none;
+}
+/* شمای دندان‌ها موقتاً پنهان است (کارتِ #studyDetailsTeethChart در HTML هم
+   display:none دارد)؛ نموداری هم که study-delete داخلِ فرم می‌سازد همین‌طور. */
+#studyDetailsSection .study-teeth-panel {
+    display: none;
+}
 
 @media(max-width:1100px){
     #studyDetailsForm .form-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }

@@ -21,6 +21,11 @@
 (() => {
   "use strict";
 
+  /* پرچمِ «فیلدهای اضافه»: پارامترهایی که خارج از نمونهٔ تأییدشده به بخش‌ها
+     اضافه شده‌اند. تا نمونهٔ تأیید نشود هیچ‌کدام رندر نمی‌شود؛ کدشان سرِ جایش
+     می‌ماند و با true شدن همه برمی‌گردند. */
+  const SHOW_EXTRA_FIELDS = false;
+
   /* ================= helpers ================= */
 
   const qsa = (sel, root) => Array.from((root || document).querySelectorAll(sel));
@@ -261,11 +266,14 @@
     f3.append(el("div", "gsec-subhint", "خالی گذاشتن = هیچکدام"));
     body.append(f3);
 
-    const f3b = el("div", "gsec-field");
-    f3b.append(fieldLabel("داروهای مصرفی", " (چک‌لیست)"));
-    f3b.append(chipGroup("meds", ["فشارشکن", "دیابت", "چربی", "تیروئید", "مسکن", "خواب", "روان", "ضدتشنج", "اسپری", "قرصِ ضدبارداری", "آنتی‌بیوتیک", "ویتامین/مکمل", "سایر"], { multi: true }));
-    body.append(f3b);
-    body.append(txtField("medsTxt", "توضیحِ دارو (اختیاری)", false, "نام یا دوزِ دارو…"));
+    // «داروهای مصرفی» + متنِ همراهش (توضیحِ دارو) خارج از نمونهٔ تأییدشده است.
+    if (SHOW_EXTRA_FIELDS) {
+      const f3b = el("div", "gsec-field");
+      f3b.append(fieldLabel("داروهای مصرفی", " (چک‌لیست)"));
+      f3b.append(chipGroup("meds", ["فشارشکن", "دیابت", "چربی", "تیروئید", "مسکن", "خواب", "روان", "ضدتشنج", "اسپری", "قرصِ ضدبارداری", "آنتی‌بیوتیک", "ویتامین/مکمل", "سایر"], { multi: true }));
+      body.append(f3b);
+      body.append(txtField("medsTxt", "توضیحِ دارو (اختیاری)", false, "نام یا دوزِ دارو…"));
+    }
 
     const f4 = el("div", "gsec-field");
     f4.append(fieldLabel("حساسیت‌ها", " (اختیاری)"));
@@ -277,10 +285,13 @@
     body.append(f4);
     body.append(txtField("allergyTxt", "توضیحِ حساسیت (اختیاری)", false));
 
-    const f5 = el("div", "gsec-field");
-    f5.append(fieldLabel("سابقهٔ خانوادگی", ""));
-    f5.append(chipGroup("famhx", ["فشار", "دیابت", "بیماری قلبی", "سرطان", "سکته", "ژنتیک", "اعتیاد", "سایر"], { multi: true }));
-    body.append(f5);
+    // «سابقهٔ خانوادگی» خارج از نمونهٔ تأییدشده است.
+    if (SHOW_EXTRA_FIELDS) {
+      const f5 = el("div", "gsec-field");
+      f5.append(fieldLabel("سابقهٔ خانوادگی", ""));
+      f5.append(chipGroup("famhx", ["فشار", "دیابت", "بیماری قلبی", "سرطان", "سکته", "ژنتیک", "اعتیاد", "سایر"], { multi: true }));
+      body.append(f5);
+    }
 
     const f6 = el("div", "gsec-field");
     f6.append(fieldLabel("بستری/عملِ قبلی", ""));
@@ -297,16 +308,21 @@
     g2.append(numField("wt", "وزن (kg)", true), numField("ht", "قد (cm)", true));
     body.append(g2);
     const g3 = el("div", "gsec-row gsec-stack");
-    g3.append(numField("pulse", "نبض (bpm)", false), numField("resp", "تنفس (/دقیقه)", false), numField("spo2", "SpO₂ (٪)", false));
+    g3.append(numField("pulse", "نبض (bpm)", false));
+    if (SHOW_EXTRA_FIELDS) g3.append(numField("resp", "تنفس (/دقیقه)", false)); // خارج از نمونه
+    g3.append(numField("spo2", "SpO₂ (٪)", false));
     body.append(g3);
     const g4 = el("div", "gsec-row gsec-stack");
-    g4.append(numField("temp", "دما (°C)", false), numField("waist", "دورِ کمر (cm)", false));
+    g4.append(numField("temp", "دما (°C)", false));
+    if (SHOW_EXTRA_FIELDS) g4.append(numField("waist", "دورِ کمر (cm)", false)); // خارج از نمونه
     body.append(g4);
 
-    const tempPlace = el("div", "gsec-field");
-    tempPlace.append(fieldLabel("محلِ اندازه‌گیریِ دما", ""));
-    tempPlace.append(chipGroup("tempPlace", ["زیربغل", "دهان", "مقعد"]));
-    body.append(tempPlace);
+    if (SHOW_EXTRA_FIELDS) {
+      const tempPlace = el("div", "gsec-field");
+      tempPlace.append(fieldLabel("محلِ اندازه‌گیریِ دما", ""));
+      tempPlace.append(chipGroup("tempPlace", ["زیربغل", "دهان", "مقعد"]));
+      body.append(tempPlace);
+    }
 
     const bmi = el("div", "gsec-calc", "BMI: —");
     bmi.dataset.bmi = "1";
@@ -479,8 +495,11 @@
       const rep = addRepeatChip(r, list);
       if (rep) whens.append(rep);
       r.append(whens);
-      r.append(chipGroup("medState", ["بدونِ فشارشکن", "روزانه", "نامظم"], { label: "وضعیتِ دارو" }));
-      r.append(txtField("note", "توضیح", false));
+      // «وضعیتِ دارو» و «توضیح» خارج از نمونهٔ تأییدشده‌اند.
+      if (SHOW_EXTRA_FIELDS) {
+        r.append(chipGroup("medState", ["بدونِ فشارشکن", "روزانه", "نامظم"], { label: "وضعیتِ دارو" }));
+        r.append(txtField("note", "توضیح", false));
+      }
       list.append(r);
       return r;
     };
@@ -547,7 +566,9 @@
     sl.dataset.k = "sleep";
     sl.dataset.num = "1";
     sl.dataset.label = "خواب";
-    row.append(sl, chipGroup("sleepQ", ["خوب", "ضعیف", "خواب‌آلودگی روز"], { label: "کیفیتِ خواب" }));
+    row.append(sl);
+    // «کیفیتِ خواب» خارج از نمونهٔ تأییدشده است.
+    if (SHOW_EXTRA_FIELDS) row.append(chipGroup("sleepQ", ["خوب", "ضعیف", "خواب‌آلودگی روز"], { label: "کیفیتِ خواب" }));
     f3.append(row);
     body.append(f3);
 
@@ -632,27 +653,34 @@
     body.append(chipGroup("prot", ["منفی", "Trace", "+1", "+2", "+3"], { label: "پروتئینِ ادرار" }));
     body.append(chipGroup("edema", ["ندارد", "خفیف", "متوسط", "شدید"], { label: "ورم" }));
     body.append(chipGroup("fetal", ["طبیعی", "کم", "بدون حرکت"], { label: "حرکاتِ جنین" }));
-    const us = el("div", "gsec-field");
-    us.append(fieldLabel("سونوگرافی ⤵", " (پیوند)"));
-    const l = el("label", "gsec-linkrow");
-    const cb = document.createElement("input");
-    cb.type = "checkbox";
-    cb.dataset.link = "سونوگرافی";
-    l.append(cb, document.createTextNode("سونوگرافی"));
-    us.append(l);
-    body.append(us);
+    // «سونوگرافی ⤵» خارج از نمونهٔ تأییدشده است.
+    if (SHOW_EXTRA_FIELDS) {
+      const us = el("div", "gsec-field");
+      us.append(fieldLabel("سونوگرافی ⤵", " (پیوند)"));
+      const l = el("label", "gsec-linkrow");
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.dataset.link = "سونوگرافی";
+      l.append(cb, document.createTextNode("سونوگرافی"));
+      us.append(l);
+      body.append(us);
+    }
   }
 
   function buildPeds(body) {
     const row = el("div", "gsec-row gsec-stack");
     row.append(numField("pwt", "وزن (kg)", true, true), numField("pht", "قد (cm)", true, true), numField("hc", "دور سر (cm)", false, true));
     body.append(row);
-    const row2 = el("div", "gsec-row gsec-stack");
-    row2.append(numField("curvePct", "درصدِ منحنی", false, true));
-    body.append(row2);
+    // «درصدِ منحنی» خارج از نمونهٔ تأییدشده است.
+    if (SHOW_EXTRA_FIELDS) {
+      const row2 = el("div", "gsec-row gsec-stack");
+      row2.append(numField("curvePct", "درصدِ منحنی", false, true));
+      body.append(row2);
+    }
     body.append(chipGroup("curve", ["طبیعی", "کم‌رشد", "اضافه‌وزن"], { label: "منحنیِ رشد" }));
     body.append(chipGroup("dev", ["طبیعی", "تاخیر حرکتی", "تاخیر زبانی"], { label: "سنِ حرکتی/زبانی" }));
-    body.append(chipGroup("vax", ["انجام شده", "نیاز دارد", "انجام نشده"], { label: "واکسیناسیون" }));
+    // «واکسیناسیون» خارج از نمونهٔ تأییدشده است.
+    if (SHOW_EXTRA_FIELDS) body.append(chipGroup("vax", ["انجام شده", "نیاز دارد", "انجام نشده"], { label: "واکسیناسیون" }));
   }
 
   function buildGeri(body) {
@@ -660,7 +688,8 @@
     body.append(chipGroup("balance", ["خوب", "ضعیف"], { label: "تعادل" }));
     body.append(chipGroup("cog", ["طبیعی", "شک"], { label: "شناخت" }));
     body.append(chipGroup("poly", ["تک‌دارویی", "چنددارویی"], { label: "چنددارویی" }));
-    body.append(numField("medCount", "تعداد دارو در روز", false, true));
+    // «تعدادِ دارو» خارج از نمونهٔ تأییدشده است.
+    if (SHOW_EXTRA_FIELDS) body.append(numField("medCount", "تعداد دارو در روز", false, true));
     body.append(chipGroup("nut", ["خوب", "کم‌اشتهایی"], { label: "تغذیه" }));
   }
 
@@ -1033,6 +1062,18 @@
     const data = collect(sec);
     data.summary = sec.def.summarize ? sec.def.summarize(sec) : "";
 
+    // مراجعه هنوز ثبت نشده ⇒ بافر در حافظه؛ POST پس از ثبتِ مراجعه انجام می‌شود.
+    if (!currentStudyID) {
+      const row = { sectionCode: sec.def.id, title: sec.def.title, data };
+      pendingSections.set(sec.def.id, row);
+      rowsCache.set(sec.def.id, row);
+      markRecorded(sec, data.summary);
+      closeSection(sec);
+      note("بخش‌ها با ثبتِ مراجعه ذخیره می‌شوند — تا آن‌وقت همین‌جا نگه داشته می‌شوند.", false);
+      window.showToast?.(`بخش «${sec.def.title}» آماده شد؛ با ثبتِ مراجعه ذخیره می‌شود.`);
+      return;
+    }
+
     const btn = sec.querySelector("[data-save]");
     const label = btn.textContent;
     btn.disabled = true;
@@ -1058,6 +1099,15 @@
   async function deleteSection(sec) {
     const err = sec.querySelector("[data-err]");
     if (!window.confirm(`ثبتِ بخش «${sec.def.title}» حذف شود؟`)) return;
+    // در حالتِ پیش‌نویس چیزی روی سرور نیست؛ فقط از بافر حذف می‌شود.
+    if (!currentStudyID) {
+      pendingSections.delete(sec.def.id);
+      rowsCache.delete(sec.def.id);
+      unmarkRecorded(sec);
+      err.textContent = "";
+      window.showToast?.(`بخش «${sec.def.title}» از پیش‌نویس حذف شد.`);
+      return;
+    }
     const del = sec.querySelector("[data-del]");
     del.disabled = true;
     try {
@@ -1077,6 +1127,9 @@
 
   let currentStudyID = 0;
   let rowsCache = new Map();      // sectionCode -> ردیفِ دریافتی از سرور
+  // بخش‌هایی که در حالتِ «مراجعهٔ جدید» (بدون StudyID) «تأیید و ثبت» شده‌اند؛
+  // بلافاصله پس از ثبتِ مراجعه با POST ذخیره می‌شوند (flushPending).
+  let pendingSections = new Map();
   let addedCodes = [];            // بخش‌هایِ افزودنیِ انتخاب‌شده در این نشست
   let listEl = null, noteEl = null, dialogEl = null, dialogListEl = null, panelEl = null;
 
@@ -1158,8 +1211,9 @@
     const sid = Number(study && study.studyID != null ? study.studyID : study) || 0;
     currentStudyID = sid;
     if (!sid) {
-      listEl.replaceChildren();
-      note("برای دیدنِ بخش‌ها، ابتدا یک مراجعه را باز کنید.", false);
+      // حالتِ مراجعهٔ جدید: همان الگو ساخته می‌شود و بخش‌هایِ بافرشده پر می‌شوند.
+      note("مراجعه هنوز ثبت نشده است؛ آنچه «تأیید و ثبت» کنید همراه با خودِ مراجعه ذخیره می‌شود.", false);
+      renderList(Array.from(pendingSections.values()));
       return;
     }
     note("در حال دریافتِ بخش‌هایِ مراجعه…", false);
@@ -1175,6 +1229,42 @@
     note(failure ? `بخش‌ها خوانده نشد: ${failure}` : "", !!failure);
     // حتی اگر خواندن ناموفق بود، فرمِ الگو ساخته می‌شود تا صفحه خالی نماند.
     renderList(rows);
+  }
+
+  /* ================= پیش‌نویس (مراجعهٔ ثبت‌نشده) ================= */
+
+  // با شروعِ یک مراجعهٔ جدید، بافرِ مراجعهٔ قبلی دور ریخته می‌شود.
+  function resetDraft() {
+    pendingSections.clear();
+    rowsCache = new Map();
+    currentStudyID = 0;
+  }
+
+  // بلافاصله پس از ثبتِ مراجعه: همهٔ بخش‌هایِ بافرشده یکی‌یکی ذخیره می‌شوند.
+  // شکستِ یک بخش بقیه را متوقف نمی‌کند؛ شمارهٔ ناموفق‌ها در خطا گفته می‌شود.
+  async function flushPending(studyID) {
+    const sid = Number(studyID) || 0;
+    if (!sid || pendingSections.size === 0) return 0;
+    const queue = Array.from(pendingSections.values());
+    currentStudyID = sid;
+    const failed = [];
+    let saved = 0;
+    for (const row of queue) {
+      try {
+        const x = await api(`/api/studies/${sid}/sections`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(row)
+        });
+        pendingSections.delete(row.sectionCode);
+        rowsCache.set(row.sectionCode, x.section || row);
+        saved++;
+      } catch (e) {
+        failed.push(`${row.title}: ${e.message || "ثبت نشد"}`);
+      }
+    }
+    if (failed.length) throw new Error(`ذخیرهٔ ${failed.length} بخش ناموفق بود — ${failed[0]}`);
+    return saved;
   }
 
   /* ================= دیالوگِ «+ بخشِ دیگر» ================= */
@@ -1251,5 +1341,7 @@
     return panelEl;
   }
 
-  window.ReSiRaiStudySections = { render };
+  // flushPending: ذخیرهٔ بخش‌هایِ بافرشده پس از ثبتِ مراجعه (app.js).
+  // resetDraft: شروعِ دوبارهٔ یک مراجعهٔ جدید.
+  window.ReSiRaiStudySections = { render, resetDraft, flushPending };
 })();
