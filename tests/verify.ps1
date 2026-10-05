@@ -21,6 +21,8 @@ Copy-Item (Join-Path $api 'wwwroot\js\study-finance.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\js\study-lab-tests.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\js\login-ui.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\js\app.js') $smoke -Force
+Copy-Item (Join-Path $api 'wwwroot\js\study-sections.js') $smoke -Force
+Copy-Item (Join-Path $api 'wwwroot\css\study-sections.css') $smoke -Force
 
 # The fetch-gate lives inline in index.html; extract the real code so smoke5
 # tests exactly what ships (never a stale copy).
@@ -36,4 +38,4 @@ else {
 Write-Output ''
 Write-Output ('== verify summary: ' + $(if ($fail -eq 0) { 'BUILD + TESTS GREEN' } else { "$fail step(s) FAILED" }) + ' ==')
 Write-Output 'Next: powershell -File tests\ui-smoke\serve.ps1'
-Write-Output 'Then check titles of: smoke2, smoke3, smoke4, smoke5, smoke6, smoke7 (patients list offset)'
+Write-Output 'Then check titles of: smoke2, smoke3, smoke4, smoke5, smoke6, smoke7 (patients list offset), smoke8 (visit sections)'

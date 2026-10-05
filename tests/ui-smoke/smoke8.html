@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>SMOKE-8-RUN</title>
+<link rel="stylesheet" href="study-sections.css">
+<style>
+  body { font-family: Tahoma, Arial, sans-serif; background:#eef4f9; margin:0; padding:16px; color:#123 }
+  .card { background:#fff; border:1px solid #dbe4ec; border-radius:12px; padding:14px; max-width:820px }
+  #log { font-size:12px; direction:ltr; white-space:pre-wrap }
+</style>
+</head>
+<body>
+<div class="card">
+  <div id="studySectionsPanel"></div>
+</div>
+<pre id="log"></pre>
+
+<script>
+/* fetch stub: the real upsert contract, no server */
+"use strict";
+window.__calls = [];
+window.__lastPost = null;
+window.__lastDelete = null;
+var server = { sections: [] };
+window.confirm = function () { return true; };
+window.fetch = async function (url, options) {
+  options = options || {};
+  var method = options.method || "GET";
+  window.__calls.push({ url: url, method: method });
+  var json = function (payload) { return { ok: true, status: 200, json: async function () { return payload; } }; };
+  if (method === "GET") return json({ success: true, sections: server.sections });
+  if (method === "POST") {
+    var body = JSON.parse(options.body);
+    window.__lastPost = body;
+    var idx = -1;
+    for (var i = 0; i < server.sections.length; i++) if (server.sections[i].sectionCode === body.sectionCode) idx = i;
+    var row = {
+      studySectionID: idx >= 0 ? server.sections[idx].studySectionID : server.sections.length + 1,
+      sectionCode: body.sectionCode,
+      title: body.title,
+      data: body.data,
+      recordedAt: new Date().toISOString(),
+      modifiedDate: idx >= 0 ? new Date().toISOString() : null
+    };
+    if (idx >= 0) server.sections[idx] = row; else server.sections.push(row);
+    return json({ success: true, created: idx < 0, section: row });
+  }
+  if (method === "DELETE") {
+    window.__lastDelete = url;
+    var code = new URL("http://x" + url).searchParams.get("sectionCode");
+    server.sections = server.sections.filter(function (s) { return s.sectionCode !== code; });
+    return json({ success: true });
+  }
+  return { ok: false, status: 405, json: async function () { return { success: false }; } };
+};
+</script>
+<script src="study-sections.js"></script>
+<script>
+(async function () {
+  var results = [];
+  var check = function (name, cond, extra) {
+    results.push({ name: name, ok: !!cond, extra: extra == null ? "" : String(extra) });
+  };
+  var sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.from((r || document).querySelectorAll(s)); };
+
+  try {
+    await window.ReSiRaiStudySections.render({ studyID: 5 });
+    await sleep(60);
+
+    /* 1 - default template */
+    check("template-10-sections", $$(".gsec").length === 10, $$(".gsec").length);
+
+    /* 2 - one section open at a time */
+    var anam = $('.gsec[data-id="anamnesis"]');
+    var vit = $('.gsec[data-id="vitals"]');
+    anam.querySelector(".gsec-head").click();
+    check("first-opens", !anam.querySelector(".gsec-body").classList.contains("hidden"));
+    vit.querySelector(".gsec-head").click();
+    check("only-one-open",
+      anam.querySelector(".gsec-body").classList.contains("hidden") &&
+      !vit.querySelector(".gsec-body").classList.contains("hidden"));
+
+    /* 3 - incomplete = the Persian message, no silent save */
+    anam.querySelector(".gsec-head").click();
+    anam.querySelector("[data-save]").click();
+    await sleep(30);
+    check("validation-message",
+      anam.querySelector("[data-err]").textContent.indexOf("\u0644\u0637\u0641\u0627\u064b \u062a\u06a9\u0645\u06cc\u0644 \u06a9\u0646\u06cc\u062f") >= 0,
+      anam.querySelector("[data-err]").textContent);
+
+    /* 4 - chips: click = select, second click = cancel */
+    var chief = anam.querySelector('[data-group="chief"]');
+    var chip0 = chief.querySelector(".gsec-chip");
+    chip0.click();
+    check("chip-selected", chip0.classList.contains("on") && chief.dataset.v === chip0.dataset.v, chief.dataset.v);
+    chip0.click();
+    check("chip-second-click-cancels", !chip0.classList.contains("on") && !chief.dataset.v);
+    check("no-post-before-confirm", window.__lastPost === null);
+
+    /* 5 - confirm & record */
+    chip0.click();
+    anam.querySelector("[data-save]").click();
+    await sleep(60);
+    check("badge-recorded", anam.classList.contains("recorded") &&
+      anam.querySelector(".gsec-badge").textContent.indexOf("\u2713 \u062b\u0628\u062a \u0634\u062f") === 0,
+      anam.querySelector(".gsec-badge").textContent);
+    check("payload-has-chip",
+      window.__lastPost && window.__lastPost.sectionCode === "anamnesis" &&
+      window.__lastPost.data.chips && window.__lastPost.data.chips.chief === chip0.dataset.v,
+      JSON.stringify(window.__lastPost && window.__lastPost.data));
+    check("no-default-severity",
+      !(window.__lastPost && window.__lastPost.data.numbers && "sev" in window.__lastPost.data.numbers),
+      JSON.stringify(window.__lastPost && window.__lastPost.data.numbers));
+
+    /* 6 - vitals + BMI */
+    vit.querySelector(".gsec-head").click();
+    var setNum = function (root, k, v) {
+      var i = root.querySelector('[data-k="' + k + '"]');
+      i.value = v;
+      i.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    setNum(vit, "sys", "120"); setNum(vit, "dia", "80"); setNum(vit, "wt", "70"); setNum(vit, "ht", "175");
+    check("bmi-computed", vit.querySelector("[data-bmi]").textContent.indexOf("22.9") >= 0,
+      vit.querySelector("[data-bmi]").textContent);
+
+    /* 7 - repeatable section: extra sample + repeat previous */
+    var bp = $('.gsec[data-id="bp"]');
+    bp.querySelector(".gsec-head").click();
+    var rows = function () { return $$("[data-row]", bp); };
+    bp.querySelector(".gsec-btn.small").click();
+    check("second-sample", rows().length === 2, rows().length);
+    var r1 = rows()[0], r2 = rows()[1];
+    var inp = function (r, k) { return r.querySelector('[data-k="' + k + '"]'); };
+    inp(r1, "sys").value = "130"; inp(r1, "dia").value = "85";
+    var rep = $$("button", r2).filter(function (b) { return b.textContent.indexOf("\u{1f501}") >= 0; })[0];
+    var rep1 = $$("button", r1).filter(function (b) { return b.textContent.indexOf("\u{1f501}") >= 0; })[0];
+    check("repeat-chip-on-later-row-only", !!rep && !rep1, !!rep);
+    rep.click();
+    check("measurements-copied", inp(r2, "sys").value === "130" && inp(r2, "dia").value === "85",
+      inp(r2, "sys").value + "/" + inp(r2, "dia").value);
+    check("source-label", r2.dataset.source === "\u062a\u06a9\u0631\u0627\u0631\u0634\u062f\u0647" &&
+      !r2.querySelector("[data-srclabel]").classList.contains("hidden"), r2.dataset.source);
+    bp.querySelector("[data-save]").click();
+    await sleep(60);
+    check("bp-recorded", bp.classList.contains("recorded"));
+    check("rows-and-source-stored",
+      window.__lastPost && window.__lastPost.data.rows && window.__lastPost.data.rows.length === 2 &&
+      window.__lastPost.data.rows[1].source === "\u062a\u06a9\u0631\u0627\u0631\u0634\u062f\u0647" &&
+      !!window.__lastPost.data.rows[1].at,
+      JSON.stringify(window.__lastPost && window.__lastPost.data.rows));
+
+    /* 8 - exam: all normal + derived overall result */
+    var ex = $('.gsec[data-id="exam"]');
+    ex.querySelector(".gsec-head").click();
+    ex.querySelector(".gsec-allnormal button").click();
+    check("all-systems-normal", $$("[data-sys]", ex).every(function (r) { return r.dataset.state === "normal"; }));
+    var derived = ex.querySelector('[data-derived] span');
+    check("derived-result", !!derived && derived.textContent === "\u0637\u0628\u06cc\u0639\u06cc", derived && derived.textContent);
+
+    /* 9 - text tools: microphone + clear, clear only with text */
+    var life = $('.gsec[data-id="life"]');
+    life.querySelector(".gsec-head").click();
+    var note = life.querySelector('[data-k="lifeNote"]');
+    var box = note.parentElement;
+    var clr = box.querySelector(".gsec-clr");
+    check("clear-hidden-while-empty", !clr.style.display || clr.style.display === "none", clr.style.display);
+    check("mic-inside-box", !!box.querySelector(".gsec-mic"));
+    note.value = "\u062a\u0648\u0636\u06cc\u062d"; note.dispatchEvent(new Event("input", { bubbles: true }));
+    check("clear-visible-with-text", clr.style.display === "flex", clr.style.display);
+    clr.click();
+    check("clear-empties-field", note.value === "" && clr.style.display === "none");
+
+    /* 10 - re-render: recorded sections stay and their data returns */
+    await window.ReSiRaiStudySections.render({ studyID: 5 });
+    await sleep(60);
+    var anam2 = $('.gsec[data-id="anamnesis"]');
+    check("badge-survives-reload", anam2.classList.contains("recorded") &&
+      anam2.querySelector(".gsec-badge").textContent.indexOf("\u2713") === 0,
+      anam2.querySelector(".gsec-badge").textContent);
+    anam2.querySelector(".gsec-head").click();
+    var chief2 = anam2.querySelector('[data-group="chief"]');
+    check("chip-restored", !!chief2.dataset.v && !!chief2.querySelector(".gsec-chip.on"), chief2.dataset.v);
+    var bp2 = $('.gsec[data-id="bp"]');
+    check("rows-restored", $$("[data-row]", bp2).length === 2 &&
+      inp($$("[data-row]", bp2)[0], "sys").value === "130", $$("[data-row]", bp2).length);
+    check("repeated-source-restored", $$("[data-row]", bp2)[1].dataset.source === "\u062a\u06a9\u0631\u0627\u0631\u0634\u062f\u0647");
+
+    /* 11 - "+ another section" dialog offers the six extras */
+    $(".gs-add").click();
+    var opts = $$(".gs-opt");
+    check("dialog-six-options", $(".gs-dialog").classList.contains("open") && opts.length === 6, opts.length);
+    opts[0].querySelector("button").click();
+    check("extra-appended", !!$('.gsec[data-id="emerg"]') && !$(".gs-dialog").classList.contains("open"));
+
+    /* 12 - record then drop the extra section */
+    var em = $('.gsec[data-id="emerg"]');
+    em.querySelector(".gsec-head").click();
+    em.querySelector('[data-group="alert"] .gsec-chip').click();
+    em.querySelector("[data-save]").click();
+    await sleep(60);
+    check("extra-recorded", em.classList.contains("recorded") &&
+      !em.querySelector("[data-del]").classList.contains("hidden"));
+    em.querySelector("[data-del]").click();
+    await sleep(60);
+    check("recording-dropped", !em.classList.contains("recorded") && !!window.__lastDelete, window.__lastDelete);
+  } catch (e) {
+    results.push({ name: "exception", ok: false, extra: (e && e.message) || String(e) });
+  }
+
+  var failed = results.filter(function (r) { return !r.ok; });
+  document.getElementById("log").textContent = results.map(function (r) {
+    return (r.ok ? "PASS " : "FAIL ") + r.name + (r.extra ? " :: " + r.extra : "");
+  }).join("\n");
+  document.title = failed.length
+    ? "SMOKE-8-FAIL " + failed[0].name + " " + failed[0].extra
+    : "SMOKE-8-PASS (" + results.length + " checks)";
+})();
+</script>
+</body>
+</html>

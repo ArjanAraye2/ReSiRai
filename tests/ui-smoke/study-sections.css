@@ -1,0 +1,492 @@
+/* ==========================================================
+   ReSiRai — بخش‌هایِ مراجعه (بخش‌هایِ تیک‌محور)
+   Ported from docs/design/gp-visit-proto.html and fitted to the
+   ReSiRai design tokens so the card sits inside the visit form.
+   ========================================================== */
+
+.gs-panel {
+    --gs-line: var(--border, #dbe4ec);
+    --gs-chip: var(--surface-soft, #eef4fa);
+    --gs-on: var(--primary, #0b7ad6);
+    --gs-ink: var(--text, #123);
+    --gs-muted: var(--muted, #66788c);
+    --gs-ok: var(--success, #14934b);
+    --gs-bad: var(--danger, #c0392b);
+    position: relative;
+}
+
+.gs-hint {
+    font-size: 12px;
+    color: var(--gs-muted);
+    margin-bottom: 8px;
+    line-height: 1.7;
+}
+
+.gs-note {
+    background: var(--surface-soft, #f6fafb);
+    border: 1px dashed var(--gs-line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--gs-muted);
+    margin-bottom: 8px;
+}
+
+.gs-note.error {
+    background: var(--danger-soft, #fdecea);
+    border-color: #f3c6c2;
+    color: var(--gs-bad);
+}
+
+.gs-note.hidden { display: none; }
+
+/* ---------- accordion ---------- */
+
+.gsec {
+    background: var(--surface, #fff);
+    border: 1px solid var(--gs-line);
+    border-radius: 12px;
+    margin-bottom: 8px;
+    overflow: hidden;
+}
+
+.gsec-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 11px 13px;
+    text-align: right;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+}
+
+.gsec-head:hover { background: var(--surface-soft, #f6fafd); }
+
+.gsec-arrow {
+    color: var(--gs-muted);
+    font-size: 12px;
+    transition: transform 0.15s;
+    flex: 0 0 auto;
+}
+
+.gsec.is-open .gsec-arrow { transform: rotate(180deg); }
+
+.gsec-name {
+    font-weight: 700;
+    font-size: 15px;
+    flex: 1 1 auto;
+}
+
+.gsec-badge {
+    font-size: 12px;
+    color: var(--gs-muted);
+    text-align: left;
+}
+
+.gsec-badge.done {
+    color: var(--gs-ok);
+    font-weight: 700;
+}
+
+.gsec.recorded .gsec-badge { color: var(--gs-ok); }
+
+.gsec-body {
+    border-top: 1px dashed var(--gs-line);
+    padding: 12px 13px;
+}
+
+.gsec-body.hidden { display: none; }
+
+/* ---------- fields ---------- */
+
+.gsec-field { margin-bottom: 12px; }
+
+.gsec-field > label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--heading, #214b75);
+    margin-bottom: 6px;
+}
+
+.gsec-hint {
+    font-weight: 400;
+    color: var(--gs-muted);
+    font-size: 11px;
+}
+
+.gsec-subhint {
+    font-size: 11px;
+    color: var(--gs-muted);
+    margin-top: 5px;
+}
+
+.gsec-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.gsec-chip {
+    border: 1px solid var(--gs-line);
+    background: var(--gs-chip);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 13px;
+    color: inherit;
+    cursor: pointer;
+}
+
+.gsec-chip.on {
+    background: var(--gs-on);
+    border-color: var(--gs-on);
+    color: #fff;
+}
+
+.gsec-num {
+    width: 110px;
+    border: 1px solid var(--gs-line);
+    border-radius: 9px;
+    padding: 8px 10px;
+    font: inherit;
+    background: var(--surface-soft, #fbfdff);
+    color: inherit;
+}
+
+.gsec-num.small { width: 78px; }
+
+.gsec-txt {
+    width: 100%;
+    border: 1px solid var(--gs-line);
+    border-radius: 9px;
+    padding: 8px 10px;
+    font: inherit;
+    background: var(--surface-soft, #fbfdff);
+    color: inherit;
+}
+
+.gsec-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.gsec-row.gsec-stack { gap: 12px; }
+
+.gsec-calc {
+    background: var(--success-soft, #eafaf0);
+    color: var(--gs-ok);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    display: inline-block;
+}
+
+.gsec-result {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 13px;
+    background: var(--surface-soft, #f4f7fa);
+    border: 1px solid var(--gs-line);
+}
+
+.gsec-result.is-ok { background: var(--success-soft, #eafaf0); color: var(--gs-ok); border-color: #bfe6d2; }
+.gsec-result.is-bad { background: var(--danger-soft, #fdecea); color: var(--gs-bad); border-color: #f3c6c2; }
+
+.gsec-range { width: 160px; accent-color: var(--gs-on); }
+
+.gsec-sevvalue { font-size: 13px; min-width: 24px; }
+
+/* ---------- dictation + clear, inside the text box ---------- */
+
+.gsec-micbox { position: relative; display: block; }
+
+.gsec-micbox .gsec-txt { padding-inline-start: 76px; }
+
+.gsec-mic {
+    position: absolute;
+    inset-inline-start: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--gs-line);
+    background: var(--surface, #fff);
+    color: var(--gs-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+}
+
+.gsec-mic:hover { border-color: var(--gs-on); color: var(--gs-on); }
+
+.gsec-mic.on {
+    background: var(--gs-bad);
+    border-color: var(--gs-bad);
+    color: #fff;
+}
+
+.gsec-clr {
+    position: absolute;
+    inset-inline-start: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #9aa8b5;
+    font-size: 13px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+}
+
+.gsec-clr:hover {
+    background: var(--danger-soft, #fdecea);
+    color: var(--gs-bad);
+    border-color: #f3c6c2;
+}
+
+/* ---------- repeatable rows (blood pressure / sugar) ---------- */
+
+.gsec-rows { margin-bottom: 4px; }
+
+.gsec-rowbox {
+    border: 1px solid var(--gs-line);
+    border-radius: 10px;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+.gsec-nowbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.gsec-src {
+    font-size: 11px;
+    color: var(--gs-muted);
+    background: var(--warning-soft, #fff6e6);
+    border: 1px solid #f0d9a8;
+    border-radius: 999px;
+    padding: 3px 9px;
+}
+
+.gsec-src.hidden { display: none; }
+
+/* ---------- segmented rows: systems / screening ---------- */
+
+.gsec-sys {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-top: 1px solid #eef2f6;
+    flex-wrap: wrap;
+}
+
+.gsec-sys:first-child { border-top: 0; }
+
+.gsec-sys .nm {
+    flex: 1 1 140px;
+    font-size: 14px;
+}
+
+.gseg {
+    display: flex;
+    border: 1px solid var(--gs-line);
+    border-radius: 9px;
+    overflow: hidden;
+    flex: 0 0 auto;
+}
+
+.gseg button {
+    border: 0;
+    background: var(--surface-soft, #f4f7fa);
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--muted-strong, #55677c);
+    cursor: pointer;
+}
+
+.gseg button.on-ok { background: var(--gs-ok); color: #fff; }
+.gseg button.on-no { background: var(--gs-bad); color: #fff; }
+.gseg button.on-none { background: var(--border, #dfe7ef); color: var(--gs-ink); font-weight: 700; }
+
+.gsec-sys .gsec-micbox { flex: 2 1 200px; min-width: 150px; }
+.gsec-sys .gsec-micbox .gsec-txt { padding: 5px 8px; padding-inline-start: 66px; }
+
+.gsec-allnormal { margin-bottom: 6px; }
+
+/* ---------- linked sections ---------- */
+
+.gsec-linkrow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.gsec-linkrow input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--gs-on);
+}
+
+/* ---------- PHQ / option buttons ---------- */
+
+.gsec-opts { gap: 5px; }
+
+.gsec-opts .gsec-chip {
+    border-radius: 8px;
+    background: var(--surface-soft, #f4f7fa);
+    padding: 4px 9px;
+    font-size: 12px;
+}
+
+.gsec-phq {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 6px 0;
+    border-top: 1px solid #eef2f6;
+}
+
+.gsec-phq:first-child { border-top: 0; }
+
+.gsec-phq .q {
+    flex: 1 1 180px;
+    font-size: 14px;
+}
+
+/* ---------- footer / buttons ---------- */
+
+.gsec-foot {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.gsec-err {
+    color: var(--gs-bad);
+    font-size: 12px;
+    flex: 1 1 200px;
+}
+
+.gsec-btn {
+    border: 1px solid var(--gs-line);
+    background: var(--surface, #fff);
+    border-radius: 10px;
+    padding: 8px 14px;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    color: inherit;
+}
+
+.gsec-btn.primary {
+    background: var(--gs-on);
+    border-color: var(--gs-on);
+    color: #fff;
+}
+
+.gsec-btn.small { padding: 5px 10px; font-size: 13px; }
+
+.gsec-btn.ghost { color: var(--gs-muted); }
+
+.gsec-btn.danger { color: var(--gs-bad); border-color: #f3c6c2; }
+
+.gsec-btn[disabled] { opacity: 0.6; cursor: default; }
+
+.gsec-btn.hidden { display: none; }
+
+/* ---------- add bar + dialog ---------- */
+
+.gs-addbar { margin-top: 10px; }
+
+.gs-add {
+    width: 100%;
+    border: 1px dashed var(--gs-line);
+    background: var(--surface, #fff);
+    border-radius: 10px;
+    padding: 9px 14px;
+    font: inherit;
+    font-size: 13px;
+    color: var(--gs-muted);
+    cursor: pointer;
+}
+
+.gs-add:hover { border-color: var(--gs-on); color: var(--gs-on); }
+
+.gs-dialog {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 30, 50, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 16px;
+}
+
+.gs-dialog.open { display: flex; }
+
+.gs-dialog-box {
+    background: var(--surface, #fff);
+    border-radius: 14px;
+    width: min(420px, 92vw);
+    max-height: 86vh;
+    overflow: auto;
+    padding: 16px;
+    box-shadow: 0 18px 50px rgba(10, 30, 50, 0.25);
+}
+
+.gs-dialog-box h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.gs-opt {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 4px;
+    border-top: 1px solid var(--gs-line);
+    font-size: 14px;
+}
+
+.gs-opt:first-child { border-top: 0; }
+
+@media (max-width: 640px) {
+    .gsec-sys { flex-direction: column; align-items: stretch; }
+    .gseg { align-self: flex-start; }
+    .gsec-num { width: 100%; }
+    .gsec-row .gsec-num { width: calc(50% - 4px); }
+}

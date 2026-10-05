@@ -39,6 +39,7 @@
     <link rel="stylesheet" href="/css/site.css?v=20261004.4" />
     <link rel="stylesheet" href="/css/study-finance.css?v=20261001.19" />
 <link rel="stylesheet" href="/css/factors.css?v=20261004.2" />
+<link rel="stylesheet" href="/css/study-sections.css?v=20261006.1" />
     <!-- Loaded up-front so Study/Teeth forms never flash unstyled; the JS
          helpers use these ids and therefore skip injecting them again. -->
     <link id="studyTeethStylesheet" rel="stylesheet" href="/css/study-teeth.css?v=20261001.19" />
@@ -222,6 +223,11 @@
     </section>
 
     <section class="study-form-card">
+      <h3 class="study-form-card-title">بخش‌های مراجعه</h3>
+      <div id="studySectionsPanel" class="study-sections-panel"></div>
+    </section>
+
+    <section class="study-form-card">
       <h3 class="study-form-card-title">شرایط فعلی بیمار</h3>
       <div id="studyFactorsPanel" class="factors-panel"></div>
     </section>
@@ -285,10 +291,11 @@ window.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script src="/js/login-ui.js?v=20261004.6"></script>
-<script src="/js/app.js?v=20261004.12"></script>
+<script src="/js/app.js?v=20261006.1"></script>
 <script src="/js/study-delete.js?v=20261001.19"></script>
 <script src="/js/study-finance.js?v=20261001.19"></script>
 <script src="/js/study-lab-tests.js?v=20261001.19"></script>
+<script src="/js/study-sections.js?v=20261006.1"></script>
 <script src="/js/factors-ui.js?v=20261004.2"></script>
 <script src="/js/factors-history.js?v=20261004.2"></script>
 <script src="/js/lab-extract-ui.js?v=20261001.19"></script>

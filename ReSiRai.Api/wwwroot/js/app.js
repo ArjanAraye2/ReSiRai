@@ -378,6 +378,9 @@ async function openStudyDetails(study){
  syncStudyDetailsStatusFields();
  setStudyDetailsEditing(false);setFormStatus(E.studyDetailsStatus,"",false);
 window.ReSiRaiFactors?.render(study);
+ // بخش‌هایِ مراجعه (تیک‌محور) هم باید برایِ همین مراجعه از سرور خوانده شوند؛
+ // هم برایِ مراجعهٔ بازشده و هم برایِ مراجعهٔ تازه ثبت‌شده (بعد از openStudyDetails).
+ window.ReSiRaiStudySections?.render(study);
  try{const r=await fetch(`/api/radiologystudies/${study.studyID}`,{cache:"no-store"}),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"اطلاعات Study دریافت نشد."));const teeth=x.toothNumbers||x.study?.toothNumbers||[];if(window.ReSiRaiTeethChart)window.ReSiRaiTeethChart.render(E.studyDetailsTeethChart,teeth);}catch{if(window.ReSiRaiTeethChart)window.ReSiRaiTeethChart.render(E.studyDetailsTeethChart,[]);}finally{E.studyDetailsTeethChart?.classList.add("study-chart-readonly");}
  window.scrollTo(0,0);
 }

@@ -38,6 +38,7 @@ namespace ReSiRai.Api.Data
         public DbSet<StudyFactorValue> StudyFactorValues { get; set; }
         public DbSet<LabReportExtraction> LabReportExtractions { get; set; }
         public DbSet<InsuranceType> InsuranceTypes { get; set; }
+        public DbSet<StudySection> StudySections { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -105,6 +106,16 @@ namespace ReSiRai.Api.Data
                 .HasForeignKey(x => x.Supp1InsuranceTypeID).OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<Patient>().HasOne<InsuranceType>().WithMany()
                 .HasForeignKey(x => x.Supp2InsuranceTypeID).OnDelete(DeleteBehavior.NoAction);
+
+            // Tick-based visit sections: one row per (visit, section). The delete rule
+            // follows SQL (cascade) - a deleted visit takes its recorded sections with
+            // it - and the unique index is the "recording again replaces" contract of
+            // the upsert in StudySectionsController.
+            modelBuilder.Entity<StudySection>().HasOne<RadiologyStudy>().WithMany()
+                .HasForeignKey(x => x.StudyID).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<StudySection>().HasIndex(x => new { x.StudyID, x.SectionCode }).IsUnique();
+            modelBuilder.Entity<StudySection>().Property(x => x.RecordedAt)
+                .HasDefaultValueSql("SYSDATETIME()");
         }
     }
 }
