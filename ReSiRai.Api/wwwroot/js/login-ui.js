@@ -146,7 +146,7 @@
             <div class="login-feature"><strong>پشتیبانی تصمیم‌گیری</strong><span>گزارش‌های ساخت‌یافته و پیشنهادات هوشمند</span></div>
             <div class="login-feature"><strong>امن و قابل اعتماد</strong><span>حفظ محرمانگی و رعایت استانداردها</span></div>
           </div>
-          <span class="login-version">نسخه 1.0.0</span>
+          <span class="login-version">نسخه 20261005.2</span>
         </section>
       </div>`;
 

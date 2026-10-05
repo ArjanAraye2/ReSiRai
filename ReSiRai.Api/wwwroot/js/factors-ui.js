@@ -292,6 +292,12 @@
             const catOrder = ["Vitals", "Anthropometry", "History", "Exam", "Lab", "Imaging", "Score"];
             const byCategory = [...factors].sort((a, b) =>
                 (catOrder.indexOf(a.category) + 1 || 99) - (catOrder.indexOf(b.category) + 1 || 99));
+            // بیمارِ مرد: فاکتورِ «بارداری/شیردهی» (HIST.PREG) بی‌معنی است — نه
+            // ساخته می‌شود نه در شمارشِ دسته می‌آید؛ مصرف‌کننده‌ها null را رد می‌کنند.
+            if (Number(window.selectedPatient?.gender) === 1) {
+                for (let i = byCategory.length - 1; i >= 0; i--)
+                    if (byCategory[i].factorCode === "HIST.PREG") byCategory.splice(i, 1);
+            }
             const counts = {};
             for (const f of byCategory) counts[f.category] = (counts[f.category] || 0) + 1;
 
