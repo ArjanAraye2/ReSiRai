@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>smoke11</title>
+<style>body{font-family:Tahoma,Arial,sans-serif;background:#eef4f9;margin:0;padding:16px;color:#123}#log{font-size:12px;direction:ltr;white-space:pre-wrap;background:#fff;border:1px solid #dbe4ec;border-radius:12px;padding:12px}</style>
+</head>
+<body>
+<!-- نگهبانِ «بارداری/شیردهی فقط برای زن» (۱۴۰۵/۰۷/۱۵):
+     باگِ گزارش‌شده: کاربرِ مرد هنوز سطرِ «بارداری/شیردهی» را در پرونده می‌دید.
+     سه لایهٔ محافظت اینجا قفل می‌شود:
+       ۱) سطر در index.html مخفی به دنیا می‌آید و فقط با جنسیتِ «زن» (۲) باز می‌شود —
+          پس حتی با JSِ کهنه یا جنسیتِ ناشناخته، مرد آن را نمی‌بیند.
+       ۲) خروجیِ چاپِ اطلاعاتِ بیمار برای مرد/ناشناخته این سطر را ندارد.
+       ۳) پنلِ «شرایط فعلی» فاکتورِ HIST.PREG را برای بیمارِ مرد نمی‌سازد
+          (فیلترِ سرور در ClinicalFactorsControllerTests جداگانه آزموده می‌شود).
+     DOM از خودِ index.html (کپیِ تازه در verify.ps1) ساخته می‌شود و app.js واقعاً اجرا می‌شود. -->
+<script>
+  // استابِ fetch: پاسخِ ساختگیِ پرونده و فاکتورها؛ بقیهٔ درخواست‌ها سرورِ دود.
+  window.__printed = [];
+  window.__defFactors = [];
+  var MALE = 1, FEMALE = 2;
+  // نامِ تابع عمداً با `patientPayload` در app.js فرق دارد تا تعریفِ جهانیِ بعداً
+  // بارگذاری‌شده، این‌جا را بازنویسی نکند (همان باگِ اولین اجرای این نگهبان).
+  function smokePatientPayload(id) {
+    var gender = id === 1 ? MALE : id === 2 ? FEMALE : null;
+    return {
+      patientID: id, nationalCode: '000000000' + id, firstName: 'بیمار', lastName: 'آزمایشی',
+      birthDate: '1990-04-11', gender: gender, mobile: '0912000000' + id, address: '', description: '',
+      isActive: true, bloodType: null, mobile2: null, emergencyContactName: null,
+      emergencyContactRelation: null, emergencyContactPhone: null,
+      baseInsuranceTypeID: null, baseInsuranceNo: null, supp1InsuranceTypeID: null,
+      supp1InsuranceNo: null, supp2InsuranceTypeID: null, supp2InsuranceNo: null,
+      fileNumber: null, contactPreference: null,
+      pregnancyStatus: null, pregnancyObservedAt: null
+    };
+  }
+  var realFetch = window.fetch.bind(window);
+  window.fetch = function (url, opts) {
+    var u = String(url);
+    var json = function (p) {
+      return Promise.resolve(new Response(JSON.stringify(p), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    };
+    var m = u.match(/\/api\/patients\/(\d+)\/details/);
+    if (m) return json({ success: true, patient: smokePatientPayload(Number(m[1])), studies: [], studyCount: 0, totalImageCount: 0 });
+    if (u.indexOf('/api/factors/definitions') >= 0) return json({ success: true, factors: window.__defFactors });
+    if (u.indexOf('/api/factors/values') >= 0) return json({ success: true, values: [], history: [] });
+    if (u.indexOf('/api/admin/specialties') >= 0) return json({ success: true, specialties: [] });
+    if (u.indexOf('/api/auth/me') >= 0) return json({ success: true, user: null });
+    if (u.indexOf('/api/') >= 0) return json({ success: true, patients: [], count: 0, sections: [], factors: [] });
+    return realFetch(url, opts);
+  };
+  // پنجرهٔ چاپ: متنِ نوشته‌شده ضبط می‌شود تا سطرِ بارداری در خروجی چاپ بررسی شود.
+  window.open = function () {
+    return { opener: null, document: { write: function (h) { window.__printed.push(h); }, close: function () {} } };
+  };
+</script>
+<script>
+(async function () {
+  var results = [];
+  var check = function (name, cond, extra) {
+    results.push({ name: name, ok: !!cond, extra: extra == null ? '' : String(extra) });
+  };
+  var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var loadScript = function (src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error('load failed: ' + src)); };
+      document.body.appendChild(s);
+    });
+  };
+  var pregRow = function () {
+    var el = document.getElementById('detailPregnancyStatus');
+    return el ? el.closest('.info-item') : null;
+  };
+
+  try {
+    /* ---------- ۱) DOM از index.htmlِ واقعی (بدونِ اسکریپت) ---------- */
+    var html = '';
+    try {
+      html = await (await fetch('index.html', { cache: 'no-store' })).text();
+    } catch (e) {
+      document.title = 'SMOKE-11-NEEDSSERVER (serve.ps1 را اجرا کن)';
+      return;
+    }
+    var parsed = new DOMParser().parseFromString(html, 'text/html');
+    parsed.querySelectorAll('script').forEach(function (n) { n.remove(); });
+    var nodes = Array.from(parsed.body.childNodes).map(function (n) { return document.importNode(n, true); });
+    document.body.replaceChildren(...nodes);
+
+    await loadScript('app.js');
+    await loadScript('factors-ui.js');
+
+    /* ---------- ۲) سطرِ پرونده: مخفیِ پیش‌فرض، فقط زن بازش می‌کند ---------- */
+    check('row-hidden-by-default',
+      !!pregRow() && pregRow().style.display === 'none',
+      pregRow() ? pregRow().getAttribute('style') : 'row missing');
+
+    await openPatient(1);
+    check('male-row-stays-hidden', pregRow() && pregRow().style.display === 'none',
+      pregRow() && pregRow().style.display);
+    check('male-detail-renders', document.getElementById('detailGender').textContent === 'مرد',
+      document.getElementById('detailGender').textContent);
+
+    await openPatient(2);
+    check('female-row-shown', pregRow() && pregRow().style.display === '',
+      pregRow() && JSON.stringify(pregRow().style.display));
+
+    await openPatient(3);
+    check('unknown-gender-row-hidden', pregRow() && pregRow().style.display === 'none',
+      pregRow() && JSON.stringify(pregRow().style.display));
+
+    /* ---------- ۳) خروجیِ چاپ ---------- */
+    await openPatient(1);
+    window.__printed.length = 0;
+    printPatientInformation();
+    check('print-male-has-no-pregnancy',
+      window.__printed.length === 1 && window.__printed[0].indexOf('بارداری/شیردهی') < 0,
+      window.__printed.length);
+
+    await openPatient(2);
+    window.__printed.length = 0;
+    printPatientInformation();
+    check('print-female-has-pregnancy',
+      window.__printed.length === 1 && window.__printed[0].indexOf('بارداری/شیردهی') >= 0,
+      window.__printed.length);
+
+    /* ---------- ۴) پنلِ «شرایط فعلی»: HIST.PREG فقط برای زن ---------- */
+    window.__defFactors = [
+      { factorID: 901, factorCode: 'HIST.PREG', nameFa: 'بارداری/شیردهی', nameEn: 'Pregnancy / lactation',
+        category: 'History', dataType: 2, optionsJson: '[{"v":0,"t":"خیر"},{"v":1,"t":"باردار"},{"v":2,"t":"شیرده"}]',
+        isRequired: false, shortCode: null, unitUCUM: null },
+      { factorID: 902, factorCode: 'VITAL.SBP', nameFa: 'فشار خون سیستولیک', nameEn: 'Systolic BP',
+        category: 'Vitals', dataType: 1, isRequired: false, shortCode: 'SBP', unitUCUM: 'mmHg' }
+    ];
+    var host = document.createElement('div');
+    document.body.appendChild(host);
+
+    publishSelectedPatient({ patientID: 1, gender: MALE });
+    await window.ReSiRaiFactors.render({ studyID: 0 }, host);
+    check('factors-male-drops-preg',
+      !host.querySelector('[data-factor-id="901"]') && !!host.querySelector('[data-factor-id="902"]'),
+      host.querySelectorAll('.factor-row').length);
+
+    publishSelectedPatient({ patientID: 2, gender: FEMALE });
+    await window.ReSiRaiFactors.render({ studyID: 0 }, host);
+    check('factors-female-keeps-preg', !!host.querySelector('[data-factor-id="901"]'),
+      host.querySelectorAll('.factor-row').length);
+  } catch (e) {
+    results.push({ name: 'exception', ok: false, extra: (e && e.message) || String(e) });
+  }
+
+  var failed = results.filter(function (r) { return !r.ok; });
+  var log = document.createElement('pre');
+  log.id = 'log';
+  log.textContent = results.map(function (r) {
+    return (r.ok ? 'PASS ' : 'FAIL ') + r.name + (r.extra ? ' :: ' + r.extra : '');
+  }).join('\n');
+  document.body.appendChild(log);
+  document.title = failed.length
+    ? 'SMOKE-11-FAIL ' + failed[0].name + ' ' + failed[0].extra
+    : 'SMOKE-11-PASS (' + results.length + ' checks)';
+})();
+</script>
+</body>
+</html>

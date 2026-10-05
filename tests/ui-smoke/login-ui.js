@@ -5,6 +5,9 @@
   const appHeader=()=>document.querySelector('.main-header');
   const appMain=()=>document.querySelector('.page-container');
   const appSidebar=()=>document.querySelector('.app-sidebar');
+  // Normalize before filtering: mobile keyboards may emit Persian/Arabic
+  // digits, and this listener runs before the shared language listener.
+  const identifierDigits=value=>String(value??'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/\D/g,'');
 
   const toothSvg=(stroke='#159bb6')=>'<svg viewBox="0 0 48 56" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M13.3 4.8C8.2 5.7 4.9 10 5.4 15.1c.4 4.4 3 7.3 4.8 10.8 1.9 3.6 1.9 10.6 2.9 16.5.6 3.7 2 6.2 4.7 6.2 3.3 0 3.9-5.2 4.4-9.6.5-4.2 1.2-7.1 2.8-7.1s2.3 2.9 2.8 7.1c.5 4.4 1.1 9.6 4.4 9.6 2.7 0 4.1-2.5 4.7-6.2 1-5.9 1-12.9 2.9-16.5 1.8-3.5 4.4-6.4 4.8-10.8.5-5.1-2.8-9.4-7.9-10.3-3.5-.6-6.2.8-8.1 2.2-1.4 1-2.5 1-3.9 0-1.9-1.4-4.6-2.8-8.1-2.2Z" fill="#fff" stroke="'+stroke+'" stroke-width="2.2"/></svg>';
 
@@ -70,8 +73,22 @@
 
   function ensureLoginStyles(){
     if(document.getElementById('reSiRaiFinalLoginCss'))return;
-    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261003.8';document.head.appendChild(l);
+    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261004.3';document.head.appendChild(l);
   }
+
+  function updateLoginViewport(){
+    const screen=document.getElementById('reSiRaiLoginScreen');
+    if(!screen)return;
+    const viewport=window.visualViewport;
+    // The on-screen keyboard can reduce the visual viewport without changing
+    // vh/dvh. Size the mobile scroll area to that visible space. Preserve
+    // browser zoom instead of resizing the layout to a pinch-zoomed viewport.
+    if(window.matchMedia('(max-width:1050px)').matches&&(!viewport||viewport.scale===1)){
+      screen.style.setProperty('--login-viewport-height',`${viewport?.height||window.innerHeight}px`);
+    }else screen.style.removeProperty('--login-viewport-height');
+  }
+  window.addEventListener('resize',updateLoginViewport);
+  window.visualViewport?.addEventListener('resize',updateLoginViewport);
 
   function createLogin(){
     ensureLoginStyles();
@@ -88,14 +105,14 @@
           <div class="login-form-logo"><img class="login-logo-img" src="/images/resirai-logo.svg?v=20261001.19" alt="ReSiRai - Medical Intelligence Platform" /></div>
           <div class="login-form-heading"><h2>به ReSiRai خوش آمدید</h2><p>ورود به پلتفرم یکپارچه اطلاعات و هوش پزشکی</p></div>
           <div class="login-id-tabs" role="tablist" aria-label="روش ورود">
-            <button type="button" class="login-id-tab active" data-mode="mobile" role="tab">با شماره موبایل</button>
-            <button type="button" class="login-id-tab" data-mode="national" role="tab">با کد ملی</button>
+            <button type="button" class="login-id-tab active" data-mode="national" role="tab">با کد ملی</button>
+            <button type="button" class="login-id-tab" data-mode="mobile" role="tab">با شماره موبایل</button>
           </div>
           <form id="reSiRaiLoginForm" autocomplete="on">
             <div class="login-field">
-              <label id="loginIdentifierLabel" for="loginUserName">شماره موبایل</label>
-              <span id="loginIdentifierIcon" class="login-field-icon">${iconSvg('mobile')}</span>
-              <input id="loginUserName" name="username" type="text" inputmode="tel" autocomplete="username" maxlength="11" required placeholder="مثال: 09123456789" />
+              <label id="loginIdentifierLabel" for="loginUserName">کد ملی</label>
+              <span id="loginIdentifierIcon" class="login-field-icon">${iconSvg('id')}</span>
+              <input id="loginUserName" name="username" type="text" inputmode="numeric" autocomplete="username" maxlength="10" required placeholder="کد ملی خود را وارد کنید" />
             </div>
             <div class="login-field">
               <label for="loginPassword">رمز عبور</label>
@@ -109,7 +126,7 @@
               <label class="login-remember"><input id="loginRememberMe" type="checkbox" /> مرا به خاطر بسپار</label>
               <button id="forgotPasswordButton" type="button" class="login-recovery-link">رمز عبور را فراموش کرده‌ام</button>
             </div>
-            <div id="loginStatus" class="login-status" role="status"></div>
+            <div id="loginStatus" class="login-status login-feedback" role="status" aria-live="polite" aria-atomic="true"><span id="loginFeedbackEmoji" class="login-feedback-emoji" aria-hidden="true" hidden></span><span id="loginFeedbackText" class="login-feedback-text"></span></div>
             <button id="loginSubmit" class="login-submit" type="submit"><span>ورود</span><span class="login-submit-arrow">←</span></button>
           </form>
           <p class="login-footer"><span class="login-shield">${iconSvg('shield')}</span>ورود امن به سامانه ReSiRai</p>
@@ -129,11 +146,12 @@
             <div class="login-feature"><strong>پشتیبانی تصمیم‌گیری</strong><span>گزارش‌های ساخت‌یافته و پیشنهادات هوشمند</span></div>
             <div class="login-feature"><strong>امن و قابل اعتماد</strong><span>حفظ محرمانگی و رعایت استانداردها</span></div>
           </div>
-          <span class="login-version">نسخه 1.0.0</span>
+          <span class="login-version">نسخه 20261005.2</span>
         </section>
       </div>`;
 
     document.body.prepend(screen);
+    updateLoginViewport();
     // Always open the authentication screen at its real top; the application may have been scrolled before login.
     window.scrollTo(0,0);
     screen.scrollTop=0;
@@ -142,29 +160,55 @@
     const form=document.getElementById('reSiRaiLoginForm'),userName=document.getElementById('loginUserName'),password=document.getElementById('loginPassword');
     const toggle=document.getElementById('toggleLoginPassword'),status=document.getElementById('loginStatus'),submit=document.getElementById('loginSubmit');
     const label=document.getElementById('loginIdentifierLabel'),icon=document.getElementById('loginIdentifierIcon'),remember=document.getElementById('loginRememberMe');
-    let mode='mobile';
+    const feedbackEmoji=document.getElementById('loginFeedbackEmoji'),feedbackText=document.getElementById('loginFeedbackText');
+    function setFeedback(message='',tone='',emoji=''){
+      status.className=`login-status login-feedback ${tone}`.trim();
+      feedbackText.textContent=message;
+      feedbackEmoji.textContent=emoji;
+      feedbackEmoji.hidden=!emoji;
+    }
+    function failureEmoji(count){
+      const attempt=Number(count);
+      return Number.isInteger(attempt)&&attempt>0?['😕','😟','😣','😫'][Math.min(attempt,4)-1]:'😕';
+    }
+    let mode='national';
     function applyMode(next){
       mode=next; document.querySelectorAll('.login-id-tab').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
       userName.value='';
       if(mode==='mobile'){label.textContent='شماره موبایل';icon.innerHTML=iconSvg('mobile');userName.inputMode='tel';userName.maxLength=11;userName.placeholder='مثال: 09123456789';}
       else{label.textContent='کد ملی';icon.innerHTML=iconSvg('id');userName.inputMode='numeric';userName.maxLength=10;userName.placeholder='کد ملی خود را وارد کنید';}
-      status.textContent=''; userName.focus();
+      setFeedback(); userName.focus();
     }
     document.querySelectorAll('.login-id-tab').forEach(b=>b.onclick=()=>applyMode(b.dataset.mode));
-    userName.addEventListener('input',()=>{userName.value=userName.value.replace(/\D/g,'').slice(0,mode==='mobile'?11:10);status.textContent='';status.className='login-status';});
+    userName.addEventListener('input',()=>{userName.value=identifierDigits(userName.value).slice(0,mode==='mobile'?11:10);setFeedback();});
+    // Clear the previous reaction as the user starts correcting the password;
+    // the authoritative attempt count remains on the server.
+    password.addEventListener('input',()=>setFeedback());
     toggle.onclick=()=>{const show=password.type==='password';password.type=show?'text':'password';toggle.setAttribute('aria-label',show?'پنهان کردن رمز عبور':'نمایش رمز عبور');};
     form.onsubmit=async e=>{
       e.preventDefault(); if(submit.disabled)return;
       const identifier=userName.value.trim();
       if((mode==='mobile'&&!/^09\d{9}$/.test(identifier))||(mode==='national'&&!/^\d{10}$/.test(identifier))){
-        status.textContent=mode==='mobile'?'شماره موبایل معتبر وارد کنید.':'کد ملی ۱۰ رقمی وارد کنید.';status.className='login-status error';return;
+        setFeedback(mode==='mobile'?'شماره موبایل معتبر وارد کنید.':'کد ملی ۱۰ رقمی وارد کنید.','error');return;
       }
-      status.className='login-status info';status.textContent='در حال ورود...';submit.disabled=true;
+      setFeedback('در حال ورود...','info');submit.disabled=true;
+      let reaction='';
       try{
         const r=await fetch('/api/auth/login',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({userName:identifier,password:password.value,rememberMe:remember.checked})});
-        const d=await r.json(); if(!r.ok||!d.success)throw new Error('شماره موبایل/کد ملی یا رمز عبور صحیح نیست.');
+        const d=await r.json();
+        if(r.status===429){
+          reaction='😔🔒';
+          const seconds=Number(r.headers.get('Retry-After')||d.retryAfterSeconds);
+          const wait=Number.isFinite(seconds)&&seconds>0?` حدود ${Math.ceil(seconds/60).toLocaleString('fa-IR')} دقیقه بعد دوباره تلاش کنید.`:'';
+          throw new Error((d.message||'تعداد تلاش‌های ورود بیش از حد مجاز است.')+wait);
+        }
+        if(r.status===401){
+          reaction=failureEmoji(d.failedAttempts);
+          throw new Error('شماره موبایل/کد ملی یا رمز عبور صحیح نیست.');
+        }
+        if(!r.ok||!d.success)throw new Error('ورود انجام نشد. دوباره تلاش کنید.');
         password.value='';showApplication(d.user);
-      }catch(err){password.value='';password.focus();status.textContent=err.message||'ورود انجام نشد.';status.className='login-status error';}
+      }catch(err){password.value='';password.focus();setFeedback(err.message||'ورود انجام نشد.','error',reaction);}
       finally{submit.disabled=false;}
     };
     document.getElementById('forgotPasswordButton').onclick=()=>showRecovery(screen,mode==='national'?userName.value.trim():'');
@@ -183,7 +227,7 @@
       <button id="backToLogin" type="button" class="login-recovery-link">بازگشت به ورود</button>
       <p class="login-footer"><span class="login-shield">${iconSvg('shield')}</span>ورود شما به معنای پذیرش قوانین و مقررات ReSiRai است.</p>`;
     const input=document.getElementById('recoveryNationalCode');
-    input.addEventListener('input',()=>input.value=input.value.replace(/\D/g,'').slice(0,10));
+    input.addEventListener('input',()=>input.value=identifierDigits(input.value).slice(0,10));
     document.getElementById('backToLogin').onclick=()=>{screen.remove();createLogin();};
     document.getElementById('recoveryRequestForm').onsubmit=async e=>{
       e.preventDefault();
@@ -209,7 +253,7 @@
         <div id="recoveryVerifyStatus" class="login-status"></div>
         <button class="login-submit" type="submit">تغییر رمز عبور</button>
       </form>`;
-    document.getElementById('recoveryCode').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,6));
+    document.getElementById('recoveryCode').addEventListener('input',e=>e.target.value=identifierDigits(e.target.value).slice(0,6));
     document.getElementById('verifyRecoveryForm').onsubmit=async e=>{
       e.preventDefault();
       const status=document.getElementById('recoveryVerifyStatus');

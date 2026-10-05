@@ -74,6 +74,25 @@ namespace ReSiRai.Api.Controllers
                     .Select(x => x.SpecialtyID)
                     .FirstOrDefaultAsync();
             }
+
+            // بیمارِ مرد: فاکتورِ «بارداری/شیردهی» (HIST.PREG) بی‌معنی است و همین‌جا،
+            // رویِ سرور، از فهرست حذف می‌شود. فیلترِ کلاینتی (factors-ui.js) فقط
+            // برایِ حالتِ پیش‌نویسِ بدونِ StudyID می‌ماند؛ این‌جا جنسیتِ واقعیِ همان
+            // بیمار از دیتابیس خوانده می‌شود، پس با کلاینتِ کهنه یا نبودِ
+            // window.selectedPatient هم دیده نخواهد شد. جنسیتِ ناشناخته دست نمی‌خورد.
+            byte? patientGender = null;
+            if (studyID.HasValue)
+            {
+                var patientID = await _db.RadiologyStudies.AsNoTracking()
+                    .Where(x => x.StudyID == studyID.Value)
+                    .Select(x => (int?)x.PatientID)
+                    .FirstOrDefaultAsync();
+                if (patientID.HasValue)
+                    patientGender = await _db.Patients.AsNoTracking()
+                        .Where(x => x.PatientID == patientID.Value)
+                        .Select(x => (byte?)x.Gender)
+                        .FirstOrDefaultAsync();
+            }
             if (!specialtyID.HasValue)
             {
                 // Phase 1 starts from internal medicine; a doctor without a specialty
@@ -105,6 +124,9 @@ namespace ReSiRai.Api.Controllers
                     x.s.IsRequired, x.s.IsCommon, x.s.SortOrder
                 })
                 .ToListAsync();
+
+            if (patientGender == 1)
+                rows.RemoveAll(x => x.FactorCode == "HIST.PREG");
 
             return Ok(new { success = true, count = rows.Count, factors = rows });
         }

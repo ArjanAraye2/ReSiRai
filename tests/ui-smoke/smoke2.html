@@ -27,9 +27,10 @@ window.fetch = async (url) => {
 };
 window.alert = () => { };
 </script>
-<script src="file:///D:/Application/DentalRay/ReSiRai.Api/wwwroot/js/lab-extract-ui.js"></script>
-<script src="file:///D:/Application/DentalRay/ReSiRai.Api/wwwroot/js/factors-ui.js"></script>
-<script src="file:///D:/Application/DentalRay/ReSiRai.Api/wwwroot/js/dictation.js"></script>
+<!-- نسخه‌های تازه از همین پوشه (verify.ps1 کپی می‌کند)؛ مسیرِ مطلقِ DentalRay دیگر وجود ندارد. -->
+<script src="lab-extract-ui.js"></script>
+<script src="factors-ui.js"></script>
+<script src="dictation.js"></script>
 <script>
 (async () => {
   const out = [];
@@ -69,6 +70,14 @@ window.alert = () => { };
   } catch (e) {
     out.push("ERROR: " + (e && e.message ? e.message : e));
   }
+  const res = out.join(" ; ");
+  // عنوانِ سند نتیجه را اعلام می‌کند (قراردادِ README)؛ اعداد از همان مِک‌های بالا می‌آیند.
+  const pass = !out.some(x => x.startsWith("ERROR"))
+    && /panels=3/.test(res) && /rows=5/.test(res)
+    && res.includes("anHasRange=true") && res.includes("anHasNoValue=true") && res.includes("anHasRetest=true")
+    && /factorGroups=2/.test(res) && /searchBox=1/.test(res) && /micMounted=1/.test(res)
+    && /faLetterSearchHits=1/.test(res) && /faNameSearchHits=1/.test(res);
+  document.title = pass ? "SMOKE-2-PASS" : "SMOKE-2-FAIL " + res.slice(0, 200);
   const pre = document.createElement("pre");
   pre.textContent = "RESULT " + out.join(" ; ") + " END";
   document.body.appendChild(pre);

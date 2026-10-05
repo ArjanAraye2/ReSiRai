@@ -355,11 +355,13 @@ namespace ReSiRai.Api.Controllers
             // با تاریخ ثبتش نشان می‌دهد؛ منبعِ حقیقت همان مقدارِ مراجعه است و اینجا
             // چیزی مستقل ذخیره نمی‌شود. کوئری از accessibleStudies می‌آید، پس هرگز
             // مقدارِ مراجعهٔ پزشکِ دیگری به این نما راه نمی‌یابد.
+            // بیمارِ مرد (Gender=1): این نما بی‌معنی است و سمتِ سرور خاموش می‌ماند تا
+            // سطرِ «بارداری/شیردهی» — با کلاینتِ کهنه یا بدونِ جنسیت در کلاینت — دیده نشود.
             var pregnancy = await (
                 from v in _context.StudyFactorValues.AsNoTracking()
                 join f in _context.ClinicalFactors.AsNoTracking() on v.FactorID equals f.FactorID
                 join s in accessibleStudies on v.StudyID equals s.StudyID
-                where f.FactorCode == "HIST.PREG"
+                where f.FactorCode == "HIST.PREG" && patient.Gender != 1
                 orderby v.ObservedAt descending
                 select new { v.ValueNumber, v.ValueText, v.ObservedAt, s.StudyDate }
             ).FirstOrDefaultAsync();

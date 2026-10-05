@@ -115,7 +115,9 @@
           <div class="info-item"><span class="info-label">تماس اضطراری:</span><span id="detailEmergencyContact">-</span></div>
           <div class="info-item"><span class="info-label">شماره پروندهٔ مطب:</span><span id="detailFileNumber">-</span></div>
           <div class="info-item"><span class="info-label">ترجیح اطلاع‌رسانی:</span><span id="detailContactPreference">-</span></div>
-          <div class="info-item"><span class="info-label">بارداری/شیردهی:</span><span id="detailPregnancyStatus">-</span></div>
+          <!-- سطرِ بارداری/شیردهی به‌طور پیش‌فرض مخفی است و فقط با جنسیتِ «زن» باز می‌شود
+               (app.js). بیمارِ مرد — حتی با JSِ کهنه یا ناتمام — این سطر را نمی‌بیند. -->
+          <div class="info-item" style="display:none"><span class="info-label">بارداری/شیردهی:</span><span id="detailPregnancyStatus">-</span></div>
           <div class="info-item patient-detail-hidden"><span class="info-label">وضعیت:</span><span id="detailIsActive">-</span></div>
           <div class="info-item full-width"><span class="info-label">آدرس:</span><span id="detailAddress">-</span></div>
           <div class="info-item full-width"><span class="info-label">توضیحات:</span><span id="detailDescription">-</span></div>
@@ -303,13 +305,13 @@ window.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script src="/js/login-ui.js?v=20261004.6"></script>
-<script src="/js/app.js?v=20261007.2"></script>
+<script src="/js/app.js?v=20261007.3"></script>
 <script src="/js/study-delete.js?v=20261001.19"></script>
 <script src="/js/study-finance.js?v=20261001.19"></script>
 <script src="/js/study-lab-tests.js?v=20261001.19"></script>
 <script src="/js/study-sections.js?v=20261007.2"></script>
 <script src="/js/study-type-ui.js?v=20261007.2"></script>
-<script src="/js/factors-ui.js?v=20261007.1"></script>
+<script src="/js/factors-ui.js?v=20261007.3"></script>
 <script src="/js/factors-history.js?v=20261004.2"></script>
 <script src="/js/lab-extract-ui.js?v=20261001.19"></script>
 <script src="/js/consult-ui.js?v=20261001.19"></script>
