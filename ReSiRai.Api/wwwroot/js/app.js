@@ -220,7 +220,11 @@ function publishSelectedPatient(p){window.selectedPatient=p||null;window.selecte
 function renderPatientDetails(x){const p=x.patient,patientCode=formatPatientCode(p.patientID),studies=x.studies||[];E.patientFullName.textContent=`${p.firstName} ${p.lastName}`;E.patientDisplayCode.textContent=`شناسه پرونده: ${patientCode}`;E.patientNationalCode.textContent=`کد ملی: ${p.nationalCode}`;E.detailPatientCode.textContent=patientCode;E.detailFirstName.textContent=p.firstName||"-";E.detailLastName.textContent=p.lastName||"-";E.detailNationalCode.textContent=p.nationalCode||"-";E.detailMobile.textContent=p.mobile||"-";E.detailBirthDate.textContent=formatPersianDate(p.birthDate);if(E.detailAge)E.detailAge.textContent=patientAgeText(p.birthDate);E.detailGender.textContent=formatPatientGender(p.gender);E.detailIsActive.textContent=p.isActive?"فعال":"غیرفعال";E.detailAddress.textContent=p.address||"-";E.detailDescription.textContent=p.description||"-";if(E.detailBloodType)E.detailBloodType.textContent=p.bloodType||"ثبت نشده";if(E.detailMobile2)E.detailMobile2.textContent=p.mobile2||"-";if(E.detailBaseInsurance)E.detailBaseInsurance.textContent=p.baseInsuranceName?(p.baseInsuranceName+(p.baseInsuranceNo?` — ${p.baseInsuranceNo}`:"")):"ثبت نشده";if(E.detailSuppInsurance){const supp=[p.supp1InsuranceName,p.supp2InsuranceName].filter(Boolean);E.detailSuppInsurance.textContent=supp.length?supp.join(" ، "):"ثبت نشده";}if(E.detailEmergencyContact)E.detailEmergencyContact.textContent=(p.emergencyContactName||p.emergencyContactPhone)?`${p.emergencyContactName||""}${p.emergencyContactRelation?` (${p.emergencyContactRelation})`:""}${p.emergencyContactPhone?` — ${p.emergencyContactPhone}`:""}`.trim():"ثبت نشده";if(E.detailFileNumber)E.detailFileNumber.textContent=p.fileNumber||"-";if(E.detailContactPreference)E.detailContactPreference.textContent=contactPreferenceLabel(p.contactPreference);
  // بارداری/شیردهی: نما از آخرین مراجعهٔ قابل‌دیدنِ همین کاربر، با تاریخِ ثبتِ واقعی.
  // فقط وقتی مقدار «باردار» یا «شیرده» است دیده می‌شود؛ «خیر» و نبودِ داده، خلوت می‌ماند.
- if(E.detailPregnancyStatus)E.detailPregnancyStatus.textContent=p.pregnancyStatus?`${p.pregnancyStatus}${p.pregnancyObservedAt?` — ثبت در ${formatPersianDate(p.pregnancyObservedAt)}`:""}`:"—";
+ if(E.detailPregnancyStatus){
+     E.detailPregnancyStatus.textContent=p.pregnancyStatus?`${p.pregnancyStatus}${p.pregnancyObservedAt?` — ثبت در ${formatPersianDate(p.pregnancyObservedAt)}`:""}`:"—";
+     const pregRow=E.detailPregnancyStatus.closest(".info-item");
+     if(pregRow)pregRow.style.display=Number(p.gender)===1?"none":"";
+ }
  // بنر ایمنی: گروه خونیِ ثبت‌شده در بالای پرونده؛ نامعلوم بودن هم صادقانه گفته می‌شود.
  const safetyBanner=byId("patientSafetyBanner"),safetyBlood=byId("patientSafetyBloodType"),safetyHint=byId("patientSafetyHint");
  if(safetyBanner&&safetyBlood&&safetyHint){
@@ -848,7 +852,7 @@ function printPatientInformation(){
    ["بیمهٔ تکمیلی",[p.supp1InsuranceName,p.supp2InsuranceName].filter(Boolean).join(" ، ")||"ثبت نشده"],
    ["تماس اضطراری",(p.emergencyContactName||p.emergencyContactPhone)?`${p.emergencyContactName||""}${p.emergencyContactRelation?` (${p.emergencyContactRelation})`:""}${p.emergencyContactPhone?` — ${p.emergencyContactPhone}`:""}`.trim():"ثبت نشده"],
    ["شماره پروندهٔ مطب",p.fileNumber||"-"],["ترجیح اطلاع‌رسانی",contactPreferenceLabel(p.contactPreference)],
-   ["بارداری/شیردهی",p.pregnancyStatus?`${p.pregnancyStatus}${p.pregnancyObservedAt?` — ثبت در ${formatPersianDate(p.pregnancyObservedAt)}`:""}`:"—"],
+    ...(Number(p.gender)===1?[]:[["بارداری/شیردهی",p.pregnancyStatus?`${p.pregnancyStatus}${p.pregnancyObservedAt?` — ثبت در ${formatPersianDate(p.pregnancyObservedAt)}`:""}`:"—"]]),
    ["وضعیت",p.isActive?"فعال":"غیرفعال"],["آدرس",p.address||"-"],
   ["توضیحات",p.description||"-"],["تعداد مطالعات",E.studyCount.textContent||"0"],["تعداد تصاویر",E.totalImageCount.textContent||"0"]
  ];
