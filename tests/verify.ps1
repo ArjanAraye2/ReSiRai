@@ -29,7 +29,7 @@ Copy-Item (Join-Path $api 'wwwroot\js\study-sections.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\js\study-type-ui.js') $smoke -Force
 # smoke11 (بارداری/شیردهی فقط برایِ زن) پنلِ «شرایط فعلی» را از همین فایل می‌آزماید.
 Copy-Item (Join-Path $api 'wwwroot\js\factors-ui.js') $smoke -Force
-# smoke2 قبلاً از مسیرِ مطلقِ DentalRay (که دیگر وجود ندارد) بارگذاری می‌شد؛ حالا
+# smoke2 قبلاً از یک مسیرِ مطلقِ قدیمی (که دیگر وجود ندارد) بارگذاری می‌شد؛ حالا
 # همین نسخه‌های تازه را می‌آزماید تا پنلِ فاکتورها واقعاً آزموده شود.
 Copy-Item (Join-Path $api 'wwwroot\js\lab-extract-ui.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\js\dictation.js') $smoke -Force
