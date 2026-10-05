@@ -22,6 +22,8 @@ Copy-Item (Join-Path $api 'wwwroot\js\study-lab-tests.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\js\login-ui.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\js\app.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\js\study-sections.js') $smoke -Force
+# smoke10 (نوعِ مراجعه: autocomplete + سایر) کدِ واقعیِ باکس را از همین فایل می‌آزماید.
+Copy-Item (Join-Path $api 'wwwroot\js\study-type-ui.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\css\study-sections.css') $smoke -Force
 # smoke9 ساختارِ فرمِ ادغام‌شده را از خودِ index.html می‌خواند (یک نسخهٔ تازه کافی است).
 Copy-Item (Join-Path $api 'wwwroot\index.html') $smoke -Force
@@ -40,4 +42,4 @@ else {
 Write-Output ''
 Write-Output ('== verify summary: ' + $(if ($fail -eq 0) { 'BUILD + TESTS GREEN' } else { "$fail step(s) FAILED" }) + ' ==')
 Write-Output 'Next: powershell -File tests\ui-smoke\serve.ps1'
-Write-Output 'Then check titles of: smoke2, smoke3, smoke4, smoke5, smoke6, smoke7 (patients list offset), smoke8 (visit sections), smoke9 (ادغامِ فرمِ مراجعه)'
+Write-Output 'Then check titles of: smoke2, smoke3, smoke4, smoke5, smoke6, smoke7 (patients list offset), smoke8 (visit sections), smoke9 (ادغامِ فرمِ مراجعه), smoke10 (autocompleteِ نوعِ مراجعه + سایر)'

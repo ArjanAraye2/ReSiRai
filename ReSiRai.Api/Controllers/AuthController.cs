@@ -91,7 +91,7 @@ namespace ReSiRai.Api.Controllers
                 await _events.LogAsync("login", outcome: "fail", detail: "ورود ناموفق — پرسنل مرتبط با حساب نیست", userID: user.UserID, userName: userName);
                 return await LoginFailedAsync(accountKey, userName, user.UserID);
             }
-            var normalIdentity = new LoginIdentity(user.UserID, staff.NationalCode, staff.StaffID, staff.FirstName, staff.LastName, staff.StaffType, false, user.ViewReports);
+            var normalIdentity = new LoginIdentity(user.UserID, staff.NationalCode, staff.StaffID, staff.FirstName, staff.LastName, staff.StaffType, false, user.ViewReports, staff.SpecialtyID);
             await SignInAsync(normalIdentity, request.RememberMe);
             _loginLimiter.RecordSuccess(accountKey);
             await _events.LogAsync("login", detail: "ورود موفق", userID: user.UserID, userName: staff.NationalCode);
@@ -184,6 +184,10 @@ namespace ReSiRai.Api.Controllers
                 new("IsSuperAdmin", identity.IsSuperAdmin ? "true" : "false"),
                 new("ViewReports", identity.ViewReports ? "true" : "false")
             };
+            // The specialty is what the visit form falls back to when no doctor
+            // has been picked yet: it filters the "visit type" list.
+            if (identity.SpecialtyID.HasValue)
+                claims.Add(new("SpecialtyID", identity.SpecialtyID.Value.ToString()));
             var principal = new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, new AuthenticationProperties { IsPersistent = rememberMe, AllowRefresh = true, ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null });
         }
@@ -193,10 +197,13 @@ namespace ReSiRai.Api.Controllers
             int.TryParse(User.FindFirstValue("UserID"), out int userID);
             int.TryParse(User.FindFirstValue("StaffID"), out int staffID);
             byte.TryParse(User.FindFirstValue("StaffType"), out byte staffType);
-            return new LoginIdentity(userID, User.Identity?.Name ?? string.Empty, staffID, User.FindFirstValue("FirstName") ?? string.Empty, User.FindFirstValue("LastName") ?? string.Empty, staffType, string.Equals(User.FindFirstValue("IsSuperAdmin"), "true", StringComparison.OrdinalIgnoreCase), string.Equals(User.FindFirstValue("ViewReports"), "true", StringComparison.OrdinalIgnoreCase));
+            int? specialtyID = int.TryParse(User.FindFirstValue("SpecialtyID"), out int sid) && sid > 0 ? sid : null;
+            return new LoginIdentity(userID, User.Identity?.Name ?? string.Empty, staffID, User.FindFirstValue("FirstName") ?? string.Empty, User.FindFirstValue("LastName") ?? string.Empty, staffType, string.Equals(User.FindFirstValue("IsSuperAdmin"), "true", StringComparison.OrdinalIgnoreCase), string.Equals(User.FindFirstValue("ViewReports"), "true", StringComparison.OrdinalIgnoreCase), specialtyID);
         }
 
-        public sealed record LoginIdentity(int UserID, string UserName, int StaffID, string FirstName, string LastName, byte StaffType, bool IsSuperAdmin, bool ViewReports);
+        // SpecialtyID is optional: the super admin has no staff record, and a
+        // cookie issued before this claim existed simply has none either.
+        public sealed record LoginIdentity(int UserID, string UserName, int StaffID, string FirstName, string LastName, byte StaffType, bool IsSuperAdmin, bool ViewReports, int? SpecialtyID = null);
         private sealed record ResetCode(string Code, DateTimeOffset ExpiresAt, int Attempts);
     }
 }

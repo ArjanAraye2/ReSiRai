@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>SMOKE-10-RUN</title>
+<link rel="stylesheet" href="study-sections.css">
+<style>
+  body { font-family: Tahoma, Arial, sans-serif; background:#eef4f9; margin:0; padding:16px; color:#123 }
+  .card { background:#fff; border:1px solid #dbe4ec; border-radius:12px; padding:14px; max-width:820px }
+  #log { font-size:12px; direction:ltr; white-space:pre-wrap }
+</style>
+</head>
+<body>
+<div class="card" id="host"></div>
+<pre id="log"></pre>
+
+<script>
+/* نگهبانِ «نوعِ مراجعه» (۱۴۰۵/۰۷/۱۵) — docs/design/visit-types.md:
+   - باکس باید autocomplete باشد (متن + datalist + شناسهٔ پنهان)، نه <select>;
+   - فیلترِ زنده حینِ تایپ و «سایر» همیشه آخر؛
+   - تایپِ بی‌منطبق → پیشنهادِ «سایر» + بازشدنِ فیلدِ «توضیحِ سایر» و رفتنِ
+     متنِ تایپ‌شده به همان فیلد (payload: studyTypeNote)؛
+   - نوعِ قدیمیِ خارج از فهرستِ فیلترشده باید همچنان نمایش داده شود؛
+   - سیم‌کشیِ app.js: specialtyID از پزشک + studyTypeNote در payload. */
+"use strict";
+</script>
+<script>
+(async function () {
+  var results = [];
+  var check = function (name, cond, extra) {
+    results.push({ name: name, ok: !!cond, extra: extra == null ? "" : String(extra) });
+  };
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var optionValues = function (list) {
+    return Array.from(list.options).map(function (o) { return o.value; });
+  };
+  var type = function (text) {
+    var input = document.getElementById("newStudyType");
+    input.value = text;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  };
+  var commitBox = function () {
+    document.getElementById("newStudyType").dispatchEvent(new Event("change", { bubbles: true }));
+  };
+
+  try {
+    /* ---------- ۱) ساختارِ فرم از خودِ index.html (نسخهٔ تازه در verify.ps1) ---------- */
+    var html = "";
+    try {
+      var res = await fetch("index.html", { cache: "no-store" });
+      html = await res.text();
+    } catch (e) {
+      document.getElementById("log").textContent = "index.html could not be fetched: " + e.message;
+      document.title = "SMOKE-10-NEEDSSERVER (serve.ps1 را اجرا کن)";
+      return;
+    }
+    var doc = new DOMParser().parseFromString(html, "text/html");
+    var src = doc.getElementById("newStudyType");
+    check("markup-input-not-a-select", !!src && src.tagName === "INPUT", src && src.tagName);
+    check("markup-autocomplete-list", !!src && src.getAttribute("list") === "newStudyTypeList");
+    check("markup-required", !!src && src.required);
+    check("markup-datalist-present", !!doc.getElementById("newStudyTypeList"));
+    check("markup-hidden-id-select", !!doc.getElementById("newStudyTypeID"));
+    var otherBox = doc.getElementById("studyTypeOtherBox");
+    check("markup-other-box-present", !!otherBox);
+    check("markup-other-box-initially-hidden", !!otherBox && otherBox.classList.contains("hidden"));
+    var note = doc.getElementById("studyTypeNote");
+    check("markup-note-field", !!note && note.getAttribute("maxlength") === "500");
+    check("markup-script-wired", /study-type-ui\.js\?v=/.test(html));
+    // شناسه‌های تکراری نباید پیش بیاید (علتِ خاموش‌شدنِ فیلدها)
+    var ids = Array.from(doc.querySelectorAll("[id]")).map(function (n) { return n.id; });
+    var seen = {}, dup = [];
+    ids.forEach(function (id) { if (seen[id]) dup.push(id); seen[id] = true; });
+    check("no-duplicate-ids", dup.length === 0, dup.join(","));
+
+    /* ---------- ۲) سیم‌کشیِ app.js: فیلترِ تخصص + توضیحِ «سایر» در payload ---------- */
+    var appJs = "";
+    try { appJs = await (await fetch("app.js", { cache: "no-store" })).text(); }
+    catch (e) { check("appjs-fetched", false, e.message); }
+    check("app-fetches-filtered-list", /\/api\/studytypes\?specialtyID=/.test(appJs));
+    check("app-specialty-from-doctor-or-session", /studyTypeSpecialtyID/.test(appJs) && /reSiRaiCurrentUser\?\.specialtyID/.test(appJs));
+    check("app-payload-studyTypeNote", appJs.indexOf("studyTypeNote:stSel.note") >= 0);
+    check("app-title-shows-note", /study-type-note/.test(appJs) && /studyTypeNote/.test(appJs));
+    check("app-clears-note-for-new-form", /setNote\(""\)/.test(appJs));
+
+    /* ---------- ۳) رفتارِ زندهٔ باکس (کدِ واقعیِ study-type-ui.js) ---------- */
+    var section = doc.getElementById("studyDetailsSection");
+    var host = document.getElementById("host");
+    host.appendChild(document.importNode(section, true));
+    host.classList.remove("hidden");
+    document.getElementById("studyDetailsSection").classList.remove("hidden");
+
+    await new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = "study-type-ui.js";
+      s.onload = resolve;
+      s.onerror = function () { reject(new Error("study-type-ui.js could not be loaded")); };
+      document.body.appendChild(s);
+    });
+
+    var ui = window.ReSiRaiStudyTypeUI;
+    check("ui-exposed", !!ui);
+    var input = document.getElementById("newStudyType");
+    var list = document.getElementById("newStudyTypeList");
+    var idSelect = document.getElementById("newStudyTypeID");
+    var hint = document.getElementById("newStudyTypeHint");
+    var otherLive = document.getElementById("studyTypeOtherBox");
+    var noteLive = document.getElementById("studyTypeNote");
+
+    var types = [
+      { studyTypeID: 1, studyTypeName: "ویزیت قلب" },
+      { studyTypeID: 2, studyTypeName: "درد سینه" },
+      { studyTypeID: 3, studyTypeName: "سایر" },
+      { studyTypeID: 4, studyTypeName: "آب مروارید" }
+    ];
+    ui.setTypes(types, 0, "");
+
+    var all = optionValues(list);
+    check("other-always-last", all.length === 4 && all[3] === "سایر", all.join(" | "));
+    check("ids-hidden-select-empty", idSelect.value === "", idSelect.value);
+
+    // فیلترِ زنده حینِ تایپ
+    type("درد");
+    var filtered = optionValues(list);
+    check("live-filter-only-matches", filtered.length === 1 && filtered[0] === "درد سینه", filtered.join(" | "));
+    check("id-kept-while-typing", idSelect.value === "2", idSelect.value);
+    check("note-hidden-for-normal-type", otherLive.classList.contains("hidden"));
+
+    // تایپِ بی‌منطبق → پیشنهادِ «سایر» + فیلدِ توضیح
+    type("چیز ناشناخته");
+    var suggested = optionValues(list);
+    check("no-match-suggests-other", suggested.length === 1 && suggested[0] === "سایر — چیز ناشناخته", suggested.join(" | "));
+    check("hint-announces-suggestion", hint.dataset.suggest === "1", hint.textContent);
+    check("note-box-opened", !otherLive.classList.contains("hidden"));
+    check("no-id-until-committed", idSelect.value === "", idSelect.value);
+
+    // خروج از فیلد ← انتخابِ قطعی: «سایر» + متنِ تایپ‌شده در فیلدِ توضیح
+    commitBox();
+    check("committed-to-other", input.value === "سایر" && idSelect.value === "3", input.value + "/" + idSelect.value);
+    var sel = ui.selection();
+    check("payload-studyTypeNote", sel.id === 3 && sel.name === "سایر" && sel.note === "چیز ناشناخته", JSON.stringify(sel));
+    noteLive.value = "   ";
+    check("blank-note-sent-as-null", ui.selection().note === null, JSON.stringify(ui.selection()));
+
+    // انتخابِ نوعِ عادی باید فیلدِ توضیح را ببندد و نوت را صفر کند
+    ui.setTypes(types, 0, "");
+    type("درد سینه");
+    commitBox();
+    var normal = ui.selection();
+    check("normal-type-selection", normal.id === 2 && normal.name === "درد سینه" && normal.note === null, JSON.stringify(normal));
+    check("note-box-closed-for-normal", otherLive.classList.contains("hidden"));
+
+    // نوعِ قدیمیِ خارج از فهرستِ فیلترشده باید همچنان نمایش داده شود
+    ui.setTypes(types, 99, "نوع قدیمی خارج از فهرست");
+    check("legacy-type-still-shown", input.value === "نوع قدیمی خارج از فهرست", input.value);
+    check("legacy-type-selected", ui.selection().id === 99, ui.selection().id);
+
+    // حالتِ نمایش: فقط‌خواندنی + دکمه‌های میکروفون/✕ پنهان
+    ui.setEditable(false);
+    check("readonly-in-view-mode", input.readOnly === true && noteLive.readOnly === true);
+    check("readonly-hides-tools", input.parentElement.classList.contains("study-type-readonly"));
+    ui.setEditable(true);
+    check("editable-in-edit-mode", input.readOnly === false && !input.parentElement.classList.contains("study-type-readonly"));
+
+    // فرمِ تازه: فهرست پر می‌شود ولی توضیحِ «سایر»ِ قبل نباید بماند
+    ui.setTypes(types, 0, "");
+    ui.setNote("متنِ قدیمی");
+    ui.setNote("");
+    check("fresh-form-note-cleared", noteLive.value === "", noteLive.value);
+    check("fresh-form-input-cleared", input.value === "", input.value);
+    check("fresh-form-note-box-hidden", otherLive.classList.contains("hidden"));
+  } catch (e) {
+    results.push({ name: "exception", ok: false, extra: (e && e.message) || String(e) });
+  }
+
+  var failed = results.filter(function (r) { return !r.ok; });
+  document.getElementById("log").textContent = results.map(function (r) {
+    return (r.ok ? "PASS " : "FAIL ") + r.name + (r.extra ? " :: " + r.extra : "");
+  }).join("\n");
+  document.title = failed.length
+    ? "SMOKE-10-FAIL " + failed[0].name + " " + failed[0].extra
+    : "SMOKE-10-PASS (" + results.length + " checks)";
+})();
+</script>
+</body>
+</html>

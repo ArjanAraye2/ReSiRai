@@ -335,6 +335,7 @@ namespace ReSiRai.Api.Controllers
                 {
                     s.StudyID, s.PatientID, s.StudyDate, s.StudyTypeID,
                     StudyTypeName = st.StudyTypeName,
+                    s.StudyTypeNote,
                     s.BodyPart, s.Description, s.Report, s.CreatedDate, s.ModifiedDate,
                     s.DoctorStaffID,
                     DoctorName = _context.Staff.AsNoTracking()

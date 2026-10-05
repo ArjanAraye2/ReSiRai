@@ -56,6 +56,14 @@ namespace ReSiRai.Api.Models
         [MaxLength(500)]
         public string? FollowUpNote { get; set; }
 
+        /// <summary>
+        /// Free text of the «سایر» visit type ("دیگر چه؟"). The type itself lives
+        /// in tblStudyTypes, so the text is stored on the visit: only «سایر» has
+        /// one, and it explains what the catch-all row cannot.
+        /// </summary>
+        [MaxLength(500)]
+        public string? StudyTypeNote { get; set; }
+
         // UI/API helper only. Tooth selections are physically stored in
         // tblRadiologyStudyTeeth, not in tblRadiologyStudies.
         [NotMapped]

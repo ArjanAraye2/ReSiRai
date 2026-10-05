@@ -1343,5 +1343,7 @@
 
   // flushPending: ذخیرهٔ بخش‌هایِ بافرشده پس از ثبتِ مراجعه (app.js).
   // resetDraft: شروعِ دوبارهٔ یک مراجعهٔ جدید.
-  window.ReSiRaiStudySections = { render, resetDraft, flushPending };
+  // attachTools: الگویِ ثابتِ میکروفون + ✕ برایِ هر فیلدِ متنی؛ باکسِ «نوعِ
+  // مراجعه» (study-type-ui.js) هم از همین الگو استفاده می‌کند.
+  window.ReSiRaiStudySections = { render, resetDraft, flushPending, attachTools };
 })();

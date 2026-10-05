@@ -490,3 +490,21 @@
     .gsec-num { width: 100%; }
     .gsec-row .gsec-num { width: calc(50% - 4px); }
 }
+
+/* ---------- باکسِ «نوعِ مراجعه» (study-type-ui.js) ---------- */
+/* حالتِ نمایش: میکروفون و ✕ باید ناپیدا شوند. استایلِ درون‌خطیِ sync() با
+   !important بازنده است، پس دکمه حتی وقتی متن دیده می شود پنهان می ماند. */
+.gsec-micbox.study-type-readonly .gsec-mic,
+.gsec-micbox.study-type-readonly .gsec-clr { display: none !important; }
+
+.gsec-micbox.study-type-readonly .gsec-txt { padding-inline-start: 12px; }
+
+/* راهنمای پیشنهادِ «سایر» کلیک‌پذیر است تا همان انتخاب قطعی شود. */
+.study-type-hint[data-suggest="1"] {
+    color: #f4511e;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* توضیحِ «سایر» کنارِ نوع در تیترِ بالایِ فرم. */
+#studyDetailsTitle .study-type-note { font-size: .9em; font-weight: 600; opacity: .85; }

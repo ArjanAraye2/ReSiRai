@@ -39,7 +39,7 @@
     <link rel="stylesheet" href="/css/site.css?v=20261007.1" />
     <link rel="stylesheet" href="/css/study-finance.css?v=20261001.19" />
 <link rel="stylesheet" href="/css/factors.css?v=20261007.1" />
-<link rel="stylesheet" href="/css/study-sections.css?v=20261006.1" />
+<link rel="stylesheet" href="/css/study-sections.css?v=20261007.2" />
     <!-- Loaded up-front so Study/Teeth forms never flash unstyled; the JS
          helpers use these ids and therefore skip injecting them again. -->
     <link id="studyTeethStylesheet" rel="stylesheet" href="/css/study-teeth.css?v=20261001.19" />
@@ -168,7 +168,24 @@
       <div class="form-grid">
         <div class="form-field">
           <label for="newStudyType">دلیل مراجعه</label>
-          <select id="newStudyType" required><option value="">در حال دریافت دلایل مراجعه...</option></select>
+          <!-- باکسِ autocomplete (الگویِ باکسِ تخصص در staff-ui.js): متن + datalist
+               با حفظِ شناسه. شناسهٔ انتخاب‌شده در #newStudyTypeID می‌ماند تا
+               payload همچنان StudyTypeID بگیرد؛ متنِ دیده‌شده در #newStudyType. -->
+          <span class="gsec-micbox study-type-micbox">
+            <input id="newStudyType" class="gsec-txt" type="text" list="newStudyTypeList" autocomplete="off"
+                   maxlength="150" required placeholder="در حال دریافت دلایل مراجعه..." />
+          </span>
+          <datalist id="newStudyTypeList"></datalist>
+          <select id="newStudyTypeID" class="hidden" tabindex="-1" aria-hidden="true"></select>
+          <small id="newStudyTypeHint" class="field-hint study-type-hint">نام را بنویسید؛ فهرست با تخصصِ پزشک فیلتر می‌شود.</small>
+        </div>
+        <div id="studyTypeOtherBox" class="form-field full-width hidden">
+          <label for="studyTypeNote">توضیحِ سایر</label>
+          <span class="gsec-micbox study-type-micbox">
+            <input id="studyTypeNote" class="gsec-txt" type="text" maxlength="500"
+                   placeholder="منظور از «سایر» را بنویسید…" />
+          </span>
+          <small class="field-hint">نوعِ مراجعه «سایر» است؛ همین متن کنارِ نوع نمایش داده می‌شود.</small>
         </div>
         <div class="form-field">
           <label for="newStudyDate">تاریخ و زمان شمسی</label>
@@ -286,11 +303,12 @@ window.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script src="/js/login-ui.js?v=20261004.6"></script>
-<script src="/js/app.js?v=20261007.1"></script>
+<script src="/js/app.js?v=20261007.2"></script>
 <script src="/js/study-delete.js?v=20261001.19"></script>
 <script src="/js/study-finance.js?v=20261001.19"></script>
 <script src="/js/study-lab-tests.js?v=20261001.19"></script>
-<script src="/js/study-sections.js?v=20261007.1"></script>
+<script src="/js/study-sections.js?v=20261007.2"></script>
+<script src="/js/study-type-ui.js?v=20261007.2"></script>
 <script src="/js/factors-ui.js?v=20261007.1"></script>
 <script src="/js/factors-history.js?v=20261004.2"></script>
 <script src="/js/lab-extract-ui.js?v=20261001.19"></script>

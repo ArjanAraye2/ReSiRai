@@ -23,6 +23,9 @@ namespace ReSiRai.Api.Controllers
                 if (!await _context.Patients.AnyAsync(p=>p.PatientID==study.PatientID)) return NotFound(new { success=false, message="Patient not found." });
                 if (study.StudyTypeID <= 0) return BadRequest(new { success=false, message="StudyTypeID is required." });
                 if (!await _context.StudyTypes.AnyAsync(t=>t.StudyTypeID==study.StudyTypeID && t.IsActive)) return BadRequest(new { success=false, message="Selected Study type does not exist or is inactive." });
+                // «سایر» is a catch-all: its meaning lives in the note written next to it.
+                study.StudyTypeNote = NormalizeOptionalText(study.StudyTypeNote);
+                if (study.StudyTypeNote?.Length > 500) return BadRequest(new { success=false, message="StudyTypeNote cannot be longer than 500 characters." });
 
                 // Ordinary users may create a Study only inside their permitted Doctor/Clinic scope.
                 // Super Admin may also create legacy/test Studies without ownership while migration is unfinished.
@@ -80,7 +83,7 @@ namespace ReSiRai.Api.Controllers
             var toothRows=await _context.RadiologyStudyTeeth.AsNoTracking().Where(x=>ids.Contains(x.StudyID)).ToListAsync();
             var typeIds=studies.Select(s=>s.StudyTypeID).Distinct().ToList();
             var types=await _context.StudyTypes.AsNoTracking().Where(t=>typeIds.Contains(t.StudyTypeID)).ToDictionaryAsync(t=>t.StudyTypeID,t=>t.StudyTypeName);
-            var result=studies.Select(s=>new{s.StudyID,s.PatientID,s.ClinicID,s.DoctorStaffID,s.StudyDate,s.StudyTypeID,StudyTypeName=types.GetValueOrDefault(s.StudyTypeID),s.BodyPart,s.Description,s.Report,s.CreatedDate,s.ModifiedDate,s.Status,s.FollowUpDate,s.FollowUpNote,s.WaitStageID,ToothNumbers=toothRows.Where(t=>t.StudyID==s.StudyID).Select(t=>(int)t.ToothNumber).OrderBy(n=>n).ToArray()}).ToList();
+            var result=studies.Select(s=>new{s.StudyID,s.PatientID,s.ClinicID,s.DoctorStaffID,s.StudyDate,s.StudyTypeID,StudyTypeName=types.GetValueOrDefault(s.StudyTypeID),s.StudyTypeNote,s.BodyPart,s.Description,s.Report,s.CreatedDate,s.ModifiedDate,s.Status,s.FollowUpDate,s.FollowUpNote,s.WaitStageID,ToothNumbers=toothRows.Where(t=>t.StudyID==s.StudyID).Select(t=>(int)t.ToothNumber).OrderBy(n=>n).ToArray()}).ToList();
             return Ok(new{success=true,patientID,count=result.Count,studies=result});
         }
 
@@ -101,6 +104,10 @@ namespace ReSiRai.Api.Controllers
                 if(!typeAllowed)return BadRequest(new{success=false,message="Selected Study type does not exist or is inactive."});
                 var teeth=NormalizeTeeth(request.ToothNumbers);if(teeth==null)return BadRequest(new{success=false,message="One or more FDI tooth numbers are invalid."});
                 var body=NormalizeOptionalText(request.BodyPart);var desc=NormalizeOptionalText(request.Description);var report=NormalizeOptionalText(request.Report);
+                // The note belongs to the «سایر» type; the client clears it by
+                // sending null as soon as another type is chosen.
+                var typeNote=NormalizeOptionalText(request.StudyTypeNote);
+                if(typeNote?.Length>500)return BadRequest(new{success=false,message="StudyTypeNote cannot be longer than 500 characters."});
                 if(body?.Length>100)return BadRequest(new{success=false,message="BodyPart cannot be longer than 100 characters."});if(desc?.Length>1000)return BadRequest(new{success=false,message="Description cannot be longer than 1000 characters."});if(request.StudyDate==default)return BadRequest(new{success=false,message="StudyDate is required."});
                 await using var transaction=await _context.Database.BeginTransactionAsync();
                                 // Study status: 1 open, 2 completed, 3 needs another study later.
@@ -108,7 +115,7 @@ namespace ReSiRai.Api.Controllers
                 var statusError = ValidateFollowUp(request.Status, request.FollowUpDate, request.FollowUpNote);
                 if (statusError != null) return BadRequest(new { success = false, message = statusError });
                 var followUpNote = NormalizeOptionalText(request.FollowUpNote);
-                study.StudyDate=request.StudyDate;study.StudyTypeID=request.StudyTypeID;study.BodyPart=body;study.Description=desc;study.Report=report;
+                study.StudyDate=request.StudyDate;study.StudyTypeID=request.StudyTypeID;study.BodyPart=body;study.Description=desc;study.Report=report;study.StudyTypeNote=typeNote;
                 study.Status=request.Status;
                 // The doctor identifies the specialty, which drives waiting stages.
                 if(request.DoctorStaffID.HasValue&&!await _context.Staff.AnyAsync(s=>s.StaffID==request.DoctorStaffID.Value&&s.StaffType==2))

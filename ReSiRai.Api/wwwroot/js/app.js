@@ -27,6 +27,8 @@ E.recentStudiesSummary=byId("recentStudiesSummary");
 // فیلدهای «اطلاعات تکمیلی» بیمار (کشو و ورودی) — به‌صورت صریح به E اضافه می‌شوند
 // چون فهرست ids فقط شناسه‌های موجود در نسخه‌های قدیمی را پوشش می‌دهد.
 ["newPatientExtraDetails","editPatientExtraDetails","newBloodType","editBloodType","newMobile2","editMobile2","newFileNumber","editFileNumber","newContactPreference","editContactPreference","newEmergencyContactName","editEmergencyContactName","newEmergencyContactRelation","editEmergencyContactRelation","newEmergencyContactPhone","editEmergencyContactPhone","newBaseInsuranceType","editBaseInsuranceType","newBaseInsuranceNo","editBaseInsuranceNo","newSupp1InsuranceType","editSupp1InsuranceType","newSupp1InsuranceNo","editSupp1InsuranceNo","newSupp2InsuranceType","editSupp2InsuranceType","newSupp2InsuranceNo","editSupp2InsuranceNo","detailBloodType","detailMobile2","detailBaseInsurance","detailSuppInsurance","detailEmergencyContact","detailFileNumber","detailContactPreference","detailPregnancyStatus","detailAge","deletePatientButton"].forEach(id=>E[id]=byId(id));
+// اجزایِ باکسِ autocompleteِ «نوعِ مراجعه» (index.html + study-type-ui.js).
+["newStudyTypeList","newStudyTypeID","newStudyTypeHint","studyTypeOtherBox","studyTypeNote"].forEach(id=>E[id]=byId(id));
 
 function hideMainSections(){[E.patientsSection,E.patientDetailsSection,E.studyDetailsSection,E.studyImagesSection,E.newPatientSection,E.editPatientSection,E.uploadImageSection,E.mergePatientSection].forEach(x=>x?.classList.add("hidden"));}
 function showPatientsScreen(){hideMainSections();E.patientsSection.classList.remove("hidden");window.scrollTo(0,0);}
@@ -316,8 +318,54 @@ function syncStudyDetailsStatusFields(){
  E.studyDetailsWaitBox?.classList.toggle("hidden",!waiting);
  E.studyDetailsFollowUpBox?.classList.toggle("hidden",!waiting);
 }
-async function ensureStudyDetailsTypes(selectedID){
- try{const r=await fetch("/api/studytypes",{cache:"no-store"}),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error();E.newStudyType.replaceChildren();(x.studyTypes||[]).forEach(t=>{const o=document.createElement("option");o.value=String(t.studyTypeID);o.textContent=t.studyTypeName;E.newStudyType.appendChild(o);});if(selectedID&&!Array.from(E.newStudyType.options).some(o=>Number(o.value)===Number(selectedID))){const current=document.createElement("option");current.value=String(selectedID);current.textContent=`${selectedStudy?.studyTypeName||"نوع فعلی"} (غیرفعال)`;E.newStudyType.prepend(current);}E.newStudyType.value=String(selectedID||"");}catch{E.newStudyType.replaceChildren();const o=document.createElement("option");o.value=String(selectedID||"");o.textContent=selectedStudy?.studyTypeName||"تعیین نشده";E.newStudyType.appendChild(o);}
+// ---- نوعِ مراجعه: فهرستِ فیلترشده بر اساسِ تخصصِ پزشکِ مراجعه ---------------
+// سلسله‌مراتبِ تخصص: ۱) پزشکِ انتخابیِ مراجعه (فهرستِ پرسنل SpecialtyID دارد)
+// ۲) تخصصِ کاربرِ واردشده اگر نشست آن را داشته باشد ۳) بدونِ فیلتر (همه).
+// نبودِ پزشک یا نبودِ دسترسی خطا نیست: فهرستِ کامل همان رفتارِ قبلی است.
+function studyTypeSpecialtyID(){
+ const doctorID=Number(E.studyDetailsDoctor?.value)||0;
+ const fromDoctor=Number((doctorsCache||[]).find(d=>Number(d.staffID)===doctorID)?.specialtyID)||0;
+ if(fromDoctor)return fromDoctor;
+ const mine=Number(window.reSiRaiCurrentUser?.specialtyID)||0;
+ return mine>0?mine:0;
+}
+// خروجیِ سرور = نوع‌هایِ همان تخصص ∪ مشترک‌ها ∪ سایر (StudyTypesController).
+// نوعِ در حالِ نمایش همیشه نگه داشته می‌شود: مراجعهٔ قدیمی نباید فقط چون
+// فیلتر شده نامرئی شود (نامِ آن به فهرست افزوده می‌شود).
+async function ensureStudyDetailsTypes(selectedID,selectedName){
+ const specialtyID=studyTypeSpecialtyID();
+ const url=specialtyID?`/api/studytypes?specialtyID=${specialtyID}`:"/api/studytypes";
+ const name=selectedName||selectedStudy?.studyTypeName||"";
+ try{
+  const r=await fetch(url,{cache:"no-store"}),x=await readApiJson(r);
+  if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"دلایل مراجعه دریافت نشد."));
+  window.ReSiRaiStudyTypeUI?.setTypes(x.studyTypes||[],selectedID,name);
+ }catch(e){
+  const ui=window.ReSiRaiStudyTypeUI;
+  if(ui?.count()){
+   // فهرستِ قبلی سالم است؛ فقط نوعِ بازشده را دوباره انتخاب کن.
+   ui.setTypes(ui.types(),selectedID,name);
+  }else{
+   // فهرستی نرسیده: دست‌کم نوعِ خودِ مراجعه را بگذار تا فرم قابلِ کار بماند.
+   ui?.setTypes(selectedID?[{studyTypeID:selectedID,studyTypeName:name||"نوع فعلی"}]:[],selectedID,name);
+   setFormStatus(E.studyDetailsStatus,e.message||"دلایل مراجعه دریافت نشد.",true);
+  }
+ }
+}
+// انتخابِ فعلیِ باکس (شناسه + نام + توضیحِ «سایر») برایِ payload و نمایش.
+function currentStudyTypeSelection(){return window.ReSiRaiStudyTypeUI?.selection()||{id:0,name:"",note:null};}
+// پزشکِ مراجعه عوض شد ← فهرستِ نوع‌ها باید برایِ تخصصِ تازه ساخته شود؛ نوعِ
+// انتخاب‌شده حفظ می‌شود (اگر برایِ این تخصص نبود، همچنان نمایش داده می‌شود).
+function refilterStudyTypes(){
+ if(studyFormMode==="view")return;
+ const sel=currentStudyTypeSelection();
+ ensureStudyDetailsTypes(sel.id,sel.name);
+}
+// تیترِ بالایِ فرم: نوع و توضیحِ «سایر» کنارِ هم دیده می‌شوند.
+function setStudyDetailsTitle(name,note){
+ if(!E.studyDetailsTitle)return;
+ E.studyDetailsTitle.textContent=name||(`مراجعهٔ ${selectedStudyID||""}`);
+ if(note){const s=document.createElement("span");s.className="study-type-note";s.textContent=` — ${note}`;E.studyDetailsTitle.appendChild(s);}
 }
 // Marks a study complete straight from its card, without opening the panel.
 //
@@ -366,16 +414,20 @@ async function completeStudyFromCard(study,button){
 }
 async function openStudyDetails(study){
  selectedStudyID=study.studyID;selectedStudy=study;window.selectedStudy=study;setStudyFormMode("view");hideMainSections();E.studyDetailsSection.classList.remove("hidden");
- E.studyDetailsTitle.textContent=study.studyTypeName||("مراجعهٔ "+study.studyID);E.studyDetailsDate.textContent=formatPersianDateTime(study.studyDate);
+ setStudyDetailsTitle(study.studyTypeName,study.studyTypeNote);E.studyDetailsDate.textContent=formatPersianDateTime(study.studyDate);
  // Status badge so the state is visible without entering edit mode.
  const badge=createStudyStatusBadge(study);
  if(E.studyDetailsStatusBadge){E.studyDetailsStatusBadge.replaceChildren();if(badge)E.studyDetailsStatusBadge.appendChild(badge);}
- await ensureStudyDetailsTypes(study.studyTypeID);
  E.newBodyPart.value=study.bodyPart||"";E.newStudyDate.value=formatPersianDateTimeForInput(study.studyDate);
  E.newStudyDescription.value=study.description||"";E.newStudyReport.value=study.report||"";
  // Doctor and status, then the waiting stage narrowed to that doctor's specialty.
  await loadDoctors();
  fillDoctorSelect(study.doctorStaffID);
+ // فهرستِ نوع‌ها بعد از پزشک ساخته می‌شود تا فیلتر از تخصصِ همان پزشک بیاید؛
+ // نوعِ قدیمیِ خارج از این فهرست همچنان نمایش داده می‌شود و توضیحِ «سایر»
+ // کنارِ نوع می‌نشیند.
+ await ensureStudyDetailsTypes(study.studyTypeID,study.studyTypeName);
+ window.ReSiRaiStudyTypeUI?.setNote(study.studyTypeNote||"");
  E.studyDetailsStatus2.value=String(Number(study.status)||2);
  await fillWaitStageSelect(study.waitStageID);
  E.studyDetailsFollowUpDate.value=study.followUpDate?formatPersianDateForInput(study.followUpDate):"";
@@ -396,7 +448,10 @@ function setStudyDetailsEditing(editing){
  const creating=studyFormMode==="new",on=editing||creating;
  [E.newBodyPart,E.newStudyDate,E.newStudyDescription,E.newStudyReport,
   E.studyDetailsFollowUpDate,E.studyDetailsFollowUpNote].forEach(x=>{if(x)x.readOnly=!on;});
- E.newStudyType.disabled=!on;
+ // باکسِ نوع، autocomplete است: در حالتِ نمایش فقط‌خواندنی می‌شود (هم فیلدِ متن
+ // هم فیلدِ توضیحِ «سایر» و هم دکمه‌های میکروفون/✕).
+ window.ReSiRaiStudyTypeUI?.setEditable(on);
+ if(!window.ReSiRaiStudyTypeUI){E.newStudyType.readOnly=!on;if(E.studyTypeNote)E.studyTypeNote.readOnly=!on;}
  // The doctor and the status are part of the record, so they unlock with the rest.
  if(E.studyDetailsDoctor)E.studyDetailsDoctor.disabled=!on;
  if(E.studyDetailsStatus2)E.studyDetailsStatus2.disabled=!on;
@@ -417,13 +472,14 @@ async function saveStudyDetails(){
  if(!Number.isInteger(studyID)||studyID<=0){setFormStatus(E.studyDetailsStatus,"مطالعه معتبر انتخاب نشده است.",true);return;}
  try{
   studyDetailsSaveInProgress=true;E.studyDetailsSaveButton.disabled=true;E.studyDetailsSaveButton.textContent="در حال ذخیره...";setFormStatus(E.studyDetailsStatus,"در حال ذخیره تغییرات...",false);
-  const studyTypeID=Number(E.newStudyType.value);if(!Number.isInteger(studyTypeID)||studyTypeID<=0)throw new Error("دلیل مراجعه را انتخاب کنید.");
+  const stSel=currentStudyTypeSelection();
+  const studyTypeID=stSel.id;if(!Number.isInteger(studyTypeID)||studyTypeID<=0)throw new Error("دلیل مراجعه را انتخاب کنید.");
   const studyDate=parsePersianDateForBackend(E.newStudyDate.value,true);if(!studyDate)throw new Error("تاریخ مطالعه را وارد کنید.");
   const status=Number(E.studyDetailsStatus2?.value)||2;
   // شمای دندان مخفی است؛ اگر از خودِ چارت چیزی خوانده نشود، دندان‌های ثبت‌شدهٔ
   // همین مراجعه نگه داشته می‌شوند تا ذخیره، آن‌ها را پاک نکند.
   const chartTeeth=window.ReSiRaiTeethChart?.getSelected(E.studyDetailsTeethChart)||[];
-  const body={studyDate,studyTypeID,bodyPart:emptyToNull(E.newBodyPart.value),description:emptyToNull(E.newStudyDescription.value),report:emptyToNull(E.newStudyReport.value),
+  const body={studyDate,studyTypeID,studyTypeNote:stSel.note,bodyPart:emptyToNull(E.newBodyPart.value),description:emptyToNull(E.newStudyDescription.value),report:emptyToNull(E.newStudyReport.value),
    toothNumbers:chartTeeth.length?chartTeeth:(Array.isArray(selectedStudy?.toothNumbers)?selectedStudy.toothNumbers:[]),
    status,
    waitStageID:status===3?(Number(E.studyDetailsWaitStage?.value)||null):null,
@@ -431,8 +487,8 @@ async function saveStudyDetails(){
    followUpNote:status===3?emptyToNull(E.studyDetailsFollowUpNote.value):null,
    doctorStaffID:Number(E.studyDetailsDoctor?.value)||null};
   const r=await fetch(`/api/radiologystudies/${studyID}`,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});let x={};try{x=await r.json();}catch{}if(!r.ok||!x.success)throw new Error(getApiError(x,`ویرایش Study انجام نشد. (HTTP ${r.status})`));
-  const updated={...selectedStudy,...(x.study||{}),studyID,studyTypeID,studyTypeName:E.newStudyType.options[E.newStudyType.selectedIndex]?.text||selectedStudy?.studyTypeName,studyDate,bodyPart:body.bodyPart,description:body.description,report:body.report,status:body.status,waitStageID:body.waitStageID,followUpDate:body.followUpDate,followUpNote:body.followUpNote,doctorStaffID:body.doctorStaffID,doctorName:E.studyDetailsDoctor?.options[E.studyDetailsDoctor.selectedIndex]?.text||selectedStudy?.doctorName,waitStageName:E.studyDetailsWaitStage?.options[E.studyDetailsWaitStage.selectedIndex]?.text||selectedStudy?.waitStageName};selectedStudy=updated;
-  setStudyFormMode("view");setStudyDetailsEditing(false);E.studyDetailsTitle.textContent=updated.studyTypeName||`مراجعهٔ ${studyID}`;E.studyDetailsDate.textContent=formatPersianDateTime(studyDate);setFormStatus(E.studyDetailsStatus,"تغییرات مطالعه با موفقیت ذخیره شد.",false);showToast("مطالعه با موفقیت ویرایش شد.");
+  const updated={...selectedStudy,...(x.study||{}),studyID,studyTypeID,studyTypeName:stSel.name||selectedStudy?.studyTypeName,studyTypeNote:body.studyTypeNote,studyDate,bodyPart:body.bodyPart,description:body.description,report:body.report,status:body.status,waitStageID:body.waitStageID,followUpDate:body.followUpDate,followUpNote:body.followUpNote,doctorStaffID:body.doctorStaffID,doctorName:E.studyDetailsDoctor?.options[E.studyDetailsDoctor.selectedIndex]?.text||selectedStudy?.doctorName,waitStageName:E.studyDetailsWaitStage?.options[E.studyDetailsWaitStage.selectedIndex]?.text||selectedStudy?.waitStageName};selectedStudy=updated;
+  setStudyFormMode("view");setStudyDetailsEditing(false);setStudyDetailsTitle(updated.studyTypeName,updated.studyTypeNote);E.studyDetailsDate.textContent=formatPersianDateTime(studyDate);setFormStatus(E.studyDetailsStatus,"تغییرات مطالعه با موفقیت ذخیره شد.",false);showToast("مطالعه با موفقیت ویرایش شد.");
   try{const pr=await fetch(`/api/patients/${selectedPatientID}/details`,{cache:"no-store"}),pd=await pr.json();if(pr.ok&&pd.success){const fresh=(pd.studies||[]).find(s=>s.studyID===studyID);if(fresh)selectedStudy=fresh;}}catch(refreshError){console.warn("Study saved, but patient workspace refresh failed:",refreshError);}
  }catch(e){setFormStatus(E.studyDetailsStatus,e.message||"ویرایش Study انجام نشد.",true);
  }finally{studyDetailsSaveInProgress=false;E.studyDetailsSaveButton.disabled=false;E.studyDetailsSaveButton.textContent="ذخیره تغییرات";}
@@ -455,6 +511,8 @@ window.ReSiRaiSaveStudyDetails=event=>{event?.preventDefault?.();return saveStud
  function studySummary(study){
   const parts=[];
   if(study.bodyPart)parts.push(study.bodyPart);
+  // توضیحِ «سایر» هم بخشی از همان مراجعه است و در خلاصه دیده می‌شود.
+  if(study.studyTypeNote)parts.push(`سایر: ${study.studyTypeNote}`);
   const toothCount=Array.isArray(study.toothNumbers)?study.toothNumbers.length:0;
   if(toothCount)parts.push(`${toothCount} دندان`);
   if(study.imageCount)parts.push(`${study.imageCount} تصویر`);
@@ -922,15 +980,18 @@ async function openNewStudyForm(){
  window.ReSiRaiFactors?.render({studyID:0},factorsHost||undefined);
  window.ReSiRaiStudySections?.resetDraft();
  await window.ReSiRaiStudySections?.render(0);
- E.newStudyType.innerHTML='<option value="">در حال دریافت دلایل مراجعه...</option>';
- E.newStudyType.disabled=true;
- try{
-  const r=await fetch("/api/studytypes",{cache:"no-store"}),x=await readApiJson(r);
-  if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"دلایل مراجعه دریافت نشد."));
-  E.newStudyType.innerHTML='<option value="">انتخاب دلیل مراجعه</option>';
-  (x.studyTypes||[]).forEach(t=>{const o=document.createElement("option");o.value=String(t.studyTypeID);o.textContent=t.studyTypeName;E.newStudyType.appendChild(o);});
-  E.newStudyType.disabled=false;E.newStudyType.focus();
- }catch(e){E.newStudyType.innerHTML='<option value="">دریافت دلایل مراجعه ناموفق بود</option>';setFormStatus(E.studyDetailsStatus,e.message||"دلایل مراجعه دریافت نشد.",true);}
+ E.newStudyType.placeholder="در حال دریافت دلایل مراجعه...";
+ E.newStudyType.readOnly=true;
+ // فهرستِ پرسنل هم باید تازه باشد: پزشکِ انتخاب‌نشده یعنی بدونِ فیلتر، ولی
+ // به‌محضِ انتخابِ پزشک باید فهرستِ نوع‌ها برایِ تخصصِ او ساخته شود.
+ await loadDoctors();
+ fillDoctorSelect(null);
+ await ensureStudyDetailsTypes(0,"");
+ // توضیحِ «سایر»ِ مراجعهٔ قبلی نباید به فرمِ تازه سرایز کند (باکس هم پنهان است).
+ window.ReSiRaiStudyTypeUI?.setNote("");
+ if(window.ReSiRaiStudyTypeUI?.count())E.newStudyType.placeholder="تایپ کنید؛ فهرست با تخصصِ پزشک فیلتر می‌شود…";
+ window.ReSiRaiStudyTypeUI?.setEditable(true);
+ E.newStudyType.focus();
 }
 // Public entry point keeps this primary action independent from later optional bindings.
 window.ReSiRaiOpenNewStudy=event=>{event?.preventDefault?.();return openNewStudyForm();};
@@ -971,13 +1032,17 @@ function attachStatusToggle(prefix){E[`${prefix}Status`]?.addEventListener("chan
 // payloadِ مراجعه از فرمِ واحد خوانده می‌شود — هم برایِ ثبتِ مراجعهٔ جدید و هم
 // (با شناسه) برایِ ویرایش. فیلدها یکی‌اند؛ فقط حالتِ فرم فرق دارد.
 function studyPayload(){
- const studyTypeID=Number(E.newStudyType.value);
+ const stSel=currentStudyTypeSelection();
+ const studyTypeID=stSel.id;
  if(!Number.isInteger(studyTypeID)||studyTypeID<=0)throw new Error("دلیل مراجعه را انتخاب کنید.");
  const chart=byId("newStudyTeethChart");
  const status=Number(E.studyDetailsStatus2?.value)||2;
  return{
   studyDate:parsePersianDateForBackend(E.newStudyDate.value,true),
   studyTypeID,
+  // توضیحِ «سایر» فقط وقتی همان نوع انتخاب شده باشد می‌رود؛ وگرنه null تا
+  // متنِ مراجعهٔ دیگری از این راه پاک نشود.
+  studyTypeNote:stSel.note,
   bodyPart:emptyToNull(E.newBodyPart.value),
   description:emptyToNull(E.newStudyDescription.value),
   report:emptyToNull(E.newStudyReport.value),
@@ -1049,7 +1114,7 @@ async function createStudy(){
   // اگر لیستِ پرونده تازه نشد، همانِ دادهٔ پاسخِ ثبت پایهٔ نمایش است.
   const saved={
    ...(x.study||{}),studyID:savedStudyID,
-   studyTypeName:E.newStudyType.options[E.newStudyType.selectedIndex]?.text||x.study?.studyTypeName,
+   studyTypeName:currentStudyTypeSelection().name||x.study?.studyTypeName,studyTypeNote:body.studyTypeNote,
    studyDate:body.studyDate,status:body.status,followUpDate:body.followUpDate,followUpNote:body.followUpNote,
    bodyPart:body.bodyPart,description:body.description,report:body.report,
    doctorStaffID:body.doctorStaffID,waitStageID:body.waitStageID,toothNumbers:body.toothNumbers,
@@ -1128,7 +1193,7 @@ E.studyDetailsSaveButton?.addEventListener("click",e=>{e.preventDefault();saveSt
 // The status decides whether the waiting fields apply, and the doctor decides
 // which waiting stages are offered.
 E.studyDetailsStatus2?.addEventListener("change",syncStudyDetailsStatusFields);
-E.studyDetailsDoctor?.addEventListener("change",()=>fillWaitStageSelect(null));
+E.studyDetailsDoctor?.addEventListener("change",()=>{fillWaitStageSelect(null);refilterStudyTypes();});
 E.newStudyButton?.addEventListener("click",e=>{e.preventDefault();openNewStudyForm();});
 E.studyDetailsUploadButton?.addEventListener("click",()=>{if(selectedStudy)openUploadImageForm(selectedStudy);});
 E.editPatientButton?.addEventListener("click",openEditPatientForm);

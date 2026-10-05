@@ -14,6 +14,7 @@ namespace ReSiRai.Api.Data
         public DbSet<RadiologyStudyImage> RadiologyStudyImages { get; set; }
         public DbSet<RadiologyStudyTooth> RadiologyStudyTeeth { get; set; }
         public DbSet<StudyType> StudyTypes { get; set; }
+        public DbSet<StudyTypeSpecialty> StudyTypeSpecialties { get; set; }
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Clinic> Clinics { get; set; }
         public DbSet<ClinicStaff> ClinicStaff { get; set; }
@@ -106,6 +107,15 @@ namespace ReSiRai.Api.Data
                 .HasForeignKey(x => x.Supp1InsuranceTypeID).OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<Patient>().HasOne<InsuranceType>().WithMany()
                 .HasForeignKey(x => x.Supp2InsuranceTypeID).OnDelete(DeleteBehavior.NoAction);
+
+            // Visit type <-> specialty: a type belongs to the specialties that
+            // offer it. Composite key matches SQL and the two ON DELETE CASCADE
+            // rules keep the link table free of orphans.
+            modelBuilder.Entity<StudyTypeSpecialty>().HasKey(x => new { x.StudyTypeID, x.SpecialtyID });
+            modelBuilder.Entity<StudyTypeSpecialty>().HasOne<StudyType>().WithMany()
+                .HasForeignKey(x => x.StudyTypeID).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<StudyTypeSpecialty>().HasOne<Specialty>().WithMany()
+                .HasForeignKey(x => x.SpecialtyID).OnDelete(DeleteBehavior.Cascade);
 
             // Tick-based visit sections: one row per (visit, section). The delete rule
             // follows SQL (cascade) - a deleted visit takes its recorded sections with

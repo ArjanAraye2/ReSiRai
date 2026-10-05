@@ -34,5 +34,11 @@ namespace ReSiRai.Api.Models
         public DateTime? FollowUpDate { get; set; }
 
         public string? FollowUpNote { get; set; }
+
+        /// <summary>
+        /// The free text of the «سایر» visit type. The client sends null for any
+        /// other type, so switching away from «سایر» clears the old text.
+        /// </summary>
+        public string? StudyTypeNote { get; set; }
     }
 }
