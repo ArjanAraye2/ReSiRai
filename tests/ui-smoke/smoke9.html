@@ -95,7 +95,8 @@ window.fetch = async function (url, options) {
     check("no-second-study-form", doc.querySelectorAll("form").length >= 1 && !doc.getElementById("studyDetailsForm"));
 
     // فیلدهای مشترک همه داخلِ همان یک بخش‌اند
-    var common = ["newStudyType", "newStudyDate", "newBodyPart", "newStudyDescription", "newStudyReport",
+    var common = ["newStudyType", "newStudyDate", "newBodyPart", "newStudyDescription", "newStudyDiagnosis",
+      "studyDetailsWorkEndDate", "studyDetailsWorkEndButton",
       "studyDetailsStatus2", "studyDetailsFollowUpDate", "studyDetailsFollowUpNote",
       "studySectionsPanel", "studyFactorsPanel", "newStudySubmitButton",
       "studyDetailsSaveButton", "studyDetailsEditButton", "studyDetailsCancelButton"];

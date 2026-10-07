@@ -13,7 +13,14 @@ namespace ReSiRai.Api.Models
 
         public string? BodyPart { get; set; }
         public string? Description { get; set; }
-        public string? Report { get; set; }
+
+        /// <summary>متنِ تشخیصِ مراجعه (پیش‌تر Report نامیده می‌شد).</summary>
+        public string? Diagnosis { get; set; }
+
+        /// <summary>
+        /// زمانِ پایانِ کار؛ null یعنی هنوز ثبت نشده یا از فرم پاک شده است.
+        /// </summary>
+        public DateTime? WorkEndDate { get; set; }
 
         // FDI numbers selected in the odontogram. Empty means no teeth selected.
         public List<int> ToothNumbers { get; set; } = new();

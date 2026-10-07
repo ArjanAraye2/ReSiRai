@@ -85,7 +85,7 @@ public sealed class AiConsultController : ControllerBase
             patient = await _db.Patients.AsNoTracking()
                 .FirstOrDefaultAsync(x => x.PatientID == study.PatientID, cancellationToken);
             reason = study.Description;
-            notes = study.Report;
+            notes = study.Diagnosis;
         }
         else
         {

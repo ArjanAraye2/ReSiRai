@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>smoke12</title>
+<style>body{font-family:Tahoma,Arial,sans-serif;background:#eef4f9;margin:0;padding:16px;color:#123}#log{font-size:12px;direction:ltr;white-space:pre-wrap;background:#fff;border:1px solid #dbe4ec;border-radius:12px;padding:12px}</style>
+</head>
+<body>
+<!-- نگهبانِ دو فیلدِ تازهٔ مراجعه (توافقِ ۱۴۰۵/۰۷/۱۶):
+       ۱) «گزارش» به «تشخیص» تبدیل شد (شناسهٔ newStudyDiagnosis، کلیدِ payload
+          diagnosis، نمایش در کارت و لینکِ اشتراک).
+       ۲) «پایانِ کار»: فیلد در کارتِ وضعیت کار + دکمه در نوارِ ابزار که با یک
+          کلیک ساعتِ همین حالا را ثبت می‌کند (PUT .../work-end).
+     DOM از index.html واقعی ساخته می‌شود (کپیِ تازه در verify.ps1) و app.js
+     واقعاً اجرا می‌شود — همان الگویِ smoke11. -->
+<script>
+  window.__puts = [];
+  var realFetch = window.fetch.bind(window);
+  window.fetch = function (url, opts) {
+    var u = String(url), method = (opts && opts.method) || "GET";
+    var json = function (p) {
+      return Promise.resolve(new Response(JSON.stringify(p), { status: 200, headers: { "Content-Type": "application/json" } }));
+    };
+    if (u.indexOf("/work-end") >= 0) {
+      window.__puts.push({ url: u, method: method, body: opts && opts.body });
+      return json({ success: true, workEndDate: "2026-10-08T12:34:56" });
+    }
+    if (u.indexOf("/api/") >= 0) {
+      return json({ success: true, studyTypes: [], waitStages: [], doctors: [], sections: [], factors: [], toothNumbers: [], study: {} });
+    }
+    return realFetch(url, opts);
+  };
+</script>
+<script>
+(async function () {
+  var results = [];
+  var check = function (name, cond, extra) {
+    results.push({ name: name, ok: !!cond, extra: extra == null ? "" : String(extra) });
+  };
+  var loadScript = function (src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = src;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error("load failed: " + src)); };
+      document.body.appendChild(s);
+    });
+  };
+
+  try {
+    /* ---------- ۱) DOM از index.htmlِ واقعی ---------- */
+    var html = "";
+    try {
+      html = await (await fetch("index.html", { cache: "no-store" })).text();
+    } catch (e) {
+      document.title = "SMOKE-12-NEEDSSERVER (serve.ps1 را اجرا کن)";
+      return;
+    }
+    var parsed = new DOMParser().parseFromString(html, "text/html");
+    parsed.querySelectorAll("script").forEach(function (n) { n.remove(); });
+    var nodes = Array.from(parsed.body.childNodes).map(function (n) { return document.importNode(n, true); });
+    document.body.replaceChildren(...nodes);
+
+    /* ---------- ۲) قراردادِ HTML ---------- */
+    check("diagnosis-field-exists", !!document.getElementById("newStudyDiagnosis"));
+    check("old-report-field-gone", !document.getElementById("newStudyReport"));
+    var diagLabel = document.querySelector('label[for="newStudyDiagnosis"]');
+    check("diagnosis-label", !!diagLabel && diagLabel.textContent.indexOf("تشخیص") >= 0, diagLabel && diagLabel.textContent);
+    var workEndField = document.getElementById("studyDetailsWorkEndDate");
+    check("workend-field-exists", !!workEndField, "");
+    check("workend-field-inside-form", !!workEndField && !!workEndField.closest("#newStudyForm"));
+    var workEndButton = document.getElementById("studyDetailsWorkEndButton");
+    check("workend-button-in-toolbar", !!workEndButton && !!workEndButton.closest(".details-toolbar"));
+    check("workend-button-hidden-by-default", !!workEndButton && workEndButton.classList.contains("hidden"));
+
+    /* ---------- ۳) قراردادِ app.js ---------- */
+    var appJs = "";
+    try { appJs = await (await fetch("app.js", { cache: "no-store" })).text(); }
+    catch (e) { check("appjs-fetched", false, e.message); }
+    check("payload-sends-diagnosis", appJs.indexOf("diagnosis:emptyToNull(E.newStudyDiagnosis.value)") >= 0);
+    check("payload-sends-workend", appJs.indexOf("workEndDate:parsePersianDateForBackend(E.studyDetailsWorkEndDate.value,true)") >= 0);
+    check("no-old-report-key", appJs.indexOf("newStudyReport") < 0 && appJs.indexOf("study.report") < 0);
+    check("workend-handler-defined", /function markWorkEnd\s*\(/.test(appJs) && appJs.indexOf("work-end") >= 0);
+    check("diagnosis-shown-in-card", appJs.indexOf('createInfoLine("تشخیص"') >= 0);
+
+    /* ---------- ۴) رفتار با app.jsِ واقعی ---------- */
+    await loadScript("app.js");
+
+    var study = {
+      studyID: 42, patientID: 1, studyTypeID: 1, studyTypeName: "ویزیت عمومی",
+      studyDate: "2026-10-08T09:00:00", bodyPart: "گلو",
+      description: "توضیح آزمایشی", diagnosis: "تشخیص آزمایشی",
+      workEndDate: "2026-10-08T10:30:00", status: 1, toothNumbers: []
+    };
+    var openError = "";
+    try { await openStudyDetails(study); } catch (e) { openError = (e && e.message) || String(e); }
+
+    var diagInput = document.getElementById("newStudyDiagnosis");
+    check("open-fills-diagnosis", !!diagInput && diagInput.value === "تشخیص آزمایشی", diagInput && diagInput.value);
+    var workEndInput = document.getElementById("studyDetailsWorkEndDate");
+    check("open-fills-workend", !!workEndInput && !!workEndInput.value, workEndInput && workEndInput.value);
+    check("workend-button-visible-when-open", !!workEndButton && !workEndButton.classList.contains("hidden"));
+    check("fields-readonly-in-view-mode", !!diagInput && diagInput.readOnly);
+
+    // یک کلیکِ «پایانِ کار»: بدونِ تایپ، ساعتِ جدید جایِ مقدارِ قبلی می‌نشیند.
+    var before = workEndInput ? workEndInput.value : "";
+    await markWorkEnd();
+    check("workend-click-sends-put", window.__puts.length === 1 && window.__puts[0].method === "PUT",
+      JSON.stringify(window.__puts.map(function (p) { return p.url; })));
+    check("workend-field-updated", !!workEndInput && !!workEndInput.value && workEndInput.value !== before,
+      before + " -> " + (workEndInput && workEndInput.value));
+  } catch (e) {
+    results.push({ name: "exception", ok: false, extra: (e && e.message) || String(e) });
+  }
+
+  var failed = results.filter(function (r) { return !r.ok; });
+  var log = document.createElement("pre");
+  log.id = "log";
+  log.textContent = results.map(function (r) {
+    return (r.ok ? "PASS " : "FAIL ") + r.name + (r.extra ? " :: " + r.extra : "");
+  }).join("\n");
+  document.body.appendChild(log);
+  document.title = failed.length
+    ? "SMOKE-12-FAIL " + failed[0].name + " " + failed[0].extra
+    : "SMOKE-12-PASS (" + results.length + " checks)";
+})();
+</script>
+</body>
+</html>

@@ -139,7 +139,7 @@ namespace ReSiRai.Api.Controllers
                 studyType,
                 studyDate = study!.StudyDate,
                 bodyPart = study.BodyPart,
-                report = study.Report,
+                diagnosis = study.Diagnosis,
                 images = images.Select(x => new
                 {
                     x.ImageID,

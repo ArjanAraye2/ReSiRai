@@ -148,6 +148,9 @@
       <button id="backToPatientDetailsButton" type="button" class="secondary-button">← بازگشت به پرونده بیمار</button>
       <button id="studyDetailsEditButton" type="button" class="secondary-button">ویرایش Study</button>
       <button id="studyDetailsImagesButton" type="button">تصاویر این مراجعه</button>
+      <!-- «پایانِ کار»: یک کلیک بدونِ تایپ — ساعتِ همین حالا رویِ همین مراجعه
+           ثبت می‌شود (فیلدِ «پایانِ کار» در کارتِ وضعیت کار) و بعداً قابلِ اصلاح است. -->
+      <button id="studyDetailsWorkEndButton" type="button" class="secondary-button hidden">پایانِ کار</button>
       <button id="studyDetailsSaveButton" type="button" class="hidden">ذخیره تغییرات</button>
       <button id="studyDetailsCancelButton" type="button" class="secondary-button hidden">انصراف</button>
     </div>
@@ -228,19 +231,25 @@
           <label for="studyDetailsFollowUpNote" style="margin-top:8px">یادداشت پیگیری</label>
           <input id="studyDetailsFollowUpNote" type="text" maxlength="500" readonly />
         </div>
+        <div class="form-field full-width">
+          <label for="studyDetailsWorkEndDate">پایانِ کار</label>
+          <input id="studyDetailsWorkEndDate" data-jalali-datetime type="text" maxlength="16" placeholder="مثال: 1405/06/22 15:10" readonly />
+          <small class="field-hint">اختیاری. دکمهٔ «پایانِ کار» در نوارِ ابزار، همین حالا را ثبت می‌کند؛ مدتِ کار = پایانِ کار − تاریخِ مراجعه.</small>
+        </div>
       </div>
     </section>
 
     <section class="study-form-card">
-      <h3 class="study-form-card-title">شرح و گزارش</h3>
+      <h3 class="study-form-card-title">شرح و تشخیص</h3>
       <div class="form-grid">
         <div class="form-field full-width">
           <label for="newStudyDescription">توضیحات</label>
           <textarea id="newStudyDescription" maxlength="1000" rows="3"></textarea>
         </div>
         <div class="form-field full-width">
-          <label for="newStudyReport">گزارش</label>
-          <textarea id="newStudyReport" rows="4"></textarea>
+          <label for="newStudyDiagnosis">تشخیص</label>
+          <textarea id="newStudyDiagnosis" rows="4"></textarea>
+          <small class="field-hint">تشخیصِ نهاییِ این مراجعه؛ در کارتِ مراجعه و لینکِ اشتراک دیده می‌شود.</small>
         </div>
       </div>
     </section>
@@ -305,7 +314,7 @@ window.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script src="/js/login-ui.js?v=20261004.6"></script>
-<script src="/js/app.js?v=20261007.3"></script>
+<script src="/js/app.js?v=20261008.1"></script>
 <script src="/js/study-delete.js?v=20261001.19"></script>
 <script src="/js/study-finance.js?v=20261001.19"></script>
 <script src="/js/study-lab-tests.js?v=20261001.19"></script>

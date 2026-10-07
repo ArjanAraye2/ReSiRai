@@ -38,9 +38,10 @@ namespace ReSiRai.Api.Controllers
                 }
 
                 var teeth=NormalizeTeeth(study.ToothNumbers); if(teeth==null)return BadRequest(new{success=false,message="One or more FDI tooth numbers are invalid."});
-                study.BodyPart=NormalizeOptionalText(study.BodyPart);study.Description=NormalizeOptionalText(study.Description);study.Report=NormalizeOptionalText(study.Report);
+                study.BodyPart=NormalizeOptionalText(study.BodyPart);study.Description=NormalizeOptionalText(study.Description);study.Diagnosis=NormalizeOptionalText(study.Diagnosis);
                 if(study.BodyPart?.Length>100)return BadRequest(new{success=false,message="BodyPart cannot be longer than 100 characters."});
                 if(study.Description?.Length>1000)return BadRequest(new{success=false,message="Description cannot be longer than 1000 characters."});
+                if(study.Diagnosis?.Length>1000)return BadRequest(new{success=false,message="تشخیص نمی‌تواند بیشتر از ۱۰۰۰ نویسه باشد."});
                 // Study status: 1 open, 2 completed, 3 needs another study later.
                 if (study.Status is < 1 or > 3) study.Status = 2;
                 var statusError = ValidateFollowUp(study.Status, study.FollowUpDate, study.FollowUpNote);
@@ -50,6 +51,9 @@ namespace ReSiRai.Api.Controllers
                 if (study.WaitStageID.HasValue && !await _context.WaitStages.AnyAsync(w => w.WaitStageID == study.WaitStageID.Value && w.IsActive))
                     return BadRequest(new { success = false, message = "مرحله انتظار انتخاب‌شده معتبر نیست." });
                 if(study.StudyDate==default)study.StudyDate=DateTime.Now;
+                // «پایانِ کار» اختیاری است؛ اگر ثبت شده باشد نمی‌تواند پیش از شروعِ مراجعه باشد.
+                if(study.WorkEndDate.HasValue&&study.WorkEndDate.Value<study.StudyDate)
+                    return BadRequest(new{success=false,message="پایانِ کار نمی‌تواند پیش از تاریخِ مراجعه باشد."});
                 study.StudyID=0;study.CreatedDate=DateTime.Now;study.ModifiedDate=null;
                 await using var transaction=await _context.Database.BeginTransactionAsync();
                 _context.RadiologyStudies.Add(study);await _context.SaveChangesAsync();
@@ -83,7 +87,7 @@ namespace ReSiRai.Api.Controllers
             var toothRows=await _context.RadiologyStudyTeeth.AsNoTracking().Where(x=>ids.Contains(x.StudyID)).ToListAsync();
             var typeIds=studies.Select(s=>s.StudyTypeID).Distinct().ToList();
             var types=await _context.StudyTypes.AsNoTracking().Where(t=>typeIds.Contains(t.StudyTypeID)).ToDictionaryAsync(t=>t.StudyTypeID,t=>t.StudyTypeName);
-            var result=studies.Select(s=>new{s.StudyID,s.PatientID,s.ClinicID,s.DoctorStaffID,s.StudyDate,s.StudyTypeID,StudyTypeName=types.GetValueOrDefault(s.StudyTypeID),s.StudyTypeNote,s.BodyPart,s.Description,s.Report,s.CreatedDate,s.ModifiedDate,s.Status,s.FollowUpDate,s.FollowUpNote,s.WaitStageID,ToothNumbers=toothRows.Where(t=>t.StudyID==s.StudyID).Select(t=>(int)t.ToothNumber).OrderBy(n=>n).ToArray()}).ToList();
+            var result=studies.Select(s=>new{s.StudyID,s.PatientID,s.ClinicID,s.DoctorStaffID,s.StudyDate,s.StudyTypeID,StudyTypeName=types.GetValueOrDefault(s.StudyTypeID),s.StudyTypeNote,s.BodyPart,s.Description,s.Diagnosis,s.WorkEndDate,s.CreatedDate,s.ModifiedDate,s.Status,s.FollowUpDate,s.FollowUpNote,s.WaitStageID,ToothNumbers=toothRows.Where(t=>t.StudyID==s.StudyID).Select(t=>(int)t.ToothNumber).OrderBy(n=>n).ToArray()}).ToList();
             return Ok(new{success=true,patientID,count=result.Count,studies=result});
         }
 
@@ -103,19 +107,22 @@ namespace ReSiRai.Api.Controllers
                 bool typeAllowed=await _context.StudyTypes.AnyAsync(t=>t.StudyTypeID==request.StudyTypeID&&(t.IsActive||t.StudyTypeID==study.StudyTypeID));
                 if(!typeAllowed)return BadRequest(new{success=false,message="Selected Study type does not exist or is inactive."});
                 var teeth=NormalizeTeeth(request.ToothNumbers);if(teeth==null)return BadRequest(new{success=false,message="One or more FDI tooth numbers are invalid."});
-                var body=NormalizeOptionalText(request.BodyPart);var desc=NormalizeOptionalText(request.Description);var report=NormalizeOptionalText(request.Report);
+                var body=NormalizeOptionalText(request.BodyPart);var desc=NormalizeOptionalText(request.Description);var diagnosis=NormalizeOptionalText(request.Diagnosis);
                 // The note belongs to the «سایر» type; the client clears it by
                 // sending null as soon as another type is chosen.
                 var typeNote=NormalizeOptionalText(request.StudyTypeNote);
                 if(typeNote?.Length>500)return BadRequest(new{success=false,message="StudyTypeNote cannot be longer than 500 characters."});
-                if(body?.Length>100)return BadRequest(new{success=false,message="BodyPart cannot be longer than 100 characters."});if(desc?.Length>1000)return BadRequest(new{success=false,message="Description cannot be longer than 1000 characters."});if(request.StudyDate==default)return BadRequest(new{success=false,message="StudyDate is required."});
+                if(body?.Length>100)return BadRequest(new{success=false,message="BodyPart cannot be longer than 100 characters."});if(desc?.Length>1000)return BadRequest(new{success=false,message="Description cannot be longer than 1000 characters."});if(diagnosis?.Length>1000)return BadRequest(new{success=false,message="تشخیص نمی‌تواند بیشتر از ۱۰۰۰ نویسه باشد."});if(request.StudyDate==default)return BadRequest(new{success=false,message="StudyDate is required."});
+                // «پایانِ کار» اختیاری است؛ اگر ثبت شده باشد نمی‌تواند پیش از شروعِ مراجعه باشد.
+                if(request.WorkEndDate.HasValue&&request.WorkEndDate.Value<request.StudyDate)
+                    return BadRequest(new{success=false,message="پایانِ کار نمی‌تواند پیش از تاریخِ مراجعه باشد."});
                 await using var transaction=await _context.Database.BeginTransactionAsync();
                                 // Study status: 1 open, 2 completed, 3 needs another study later.
                 if (request.Status is < 1 or > 3) return BadRequest(new { success = false, message = "وضعیت مطالعه معتبر نیست." });
                 var statusError = ValidateFollowUp(request.Status, request.FollowUpDate, request.FollowUpNote);
                 if (statusError != null) return BadRequest(new { success = false, message = statusError });
                 var followUpNote = NormalizeOptionalText(request.FollowUpNote);
-                study.StudyDate=request.StudyDate;study.StudyTypeID=request.StudyTypeID;study.BodyPart=body;study.Description=desc;study.Report=report;study.StudyTypeNote=typeNote;
+                study.StudyDate=request.StudyDate;study.StudyTypeID=request.StudyTypeID;study.BodyPart=body;study.Description=desc;study.Diagnosis=diagnosis;study.WorkEndDate=request.WorkEndDate;study.StudyTypeNote=typeNote;
                 study.Status=request.Status;
                 // The doctor identifies the specialty, which drives waiting stages.
                 if(request.DoctorStaffID.HasValue&&!await _context.Staff.AnyAsync(s=>s.StaffID==request.DoctorStaffID.Value&&s.StaffType==2))
@@ -138,6 +145,28 @@ namespace ReSiRai.Api.Controllers
                 return Ok(new{success=true,study,toothNumbers=teeth,message="Study updated successfully."});
             }
             catch(Exception ex){return StatusCode(500,new{success=false,message="Study update failed.",error=ex.Message});}
+        }
+
+        /// <summary>
+        /// «پایانِ کار» با یک کلیک: زمانِ همین حالا رویِ همین مراجعه ثبت می‌شود
+        /// تا مدتِ کار قابلِ محاسبه باشد. مقدارِ ثبت‌شده بعداً از راهِ ویرایشِ
+        /// عادی فرم قابلِ اصلاح یا پاک‌شدن است (فیلدِ «پایانِ کار»).
+        /// </summary>
+        [HttpPut("{studyID:int}/work-end")]
+        public async Task<IActionResult> WorkEndStudy(int studyID)
+        {
+            try
+            {
+                if(studyID<=0)return BadRequest(new{success=false,message="StudyID must be greater than zero."});
+                if(!await _studyAccess.CanAccessStudyAsync(studyID,User))return NotFound(new{success=false,message="Study not found."});
+                var study=await _context.RadiologyStudies.FirstOrDefaultAsync(s=>s.StudyID==studyID);
+                if(study==null)return NotFound(new{success=false,message="Study not found."});
+                study.WorkEndDate=DateTime.Now;
+                study.ModifiedDate=DateTime.Now;
+                await _context.SaveChangesAsync();
+                return Ok(new{success=true,workEndDate=study.WorkEndDate,study});
+            }
+            catch(Exception ex){return StatusCode(500,new{success=false,message="پایانِ کار ثبت نشد.",error=ex.Message});}
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-// دیکتهٔ فیلدهای متنیِ مراجعه: ناحیه، توضیحات، گزارش (در فرمِ جدید و ویرایش)
+// دیکتهٔ فیلدهای متنیِ مراجعه: ناحیه، توضیحات، تشخیص (در فرمِ جدید و ویرایش)
 // و شرحِ اقدام. بدونِ واژهٔ بیداری؛ هر جملهٔ قطعی به فیلد اضافه می‌شود و چیزی
 // خودکار ثبت نمی‌شود — کاربر متن را بازبینی و خودش ذخیره می‌کند.
 (() => {
@@ -7,9 +7,9 @@
  const TARGET_IDS = [
   // فرمِ مراجعهٔ جدید
   "factorsQuickSearch",
-   "newBodyPart", "newStudyDescription", "newStudyReport",
+   "newBodyPart", "newStudyDescription", "newStudyDiagnosis",
   // صفحهٔ جزئیات/ویرایشِ مراجعه
-  "studyDetailsBodyPart", "studyDetailsDescription", "studyDetailsReport"
+  "studyDetailsBodyPart", "studyDetailsDescription", "studyDetailsDiagnosis"
  ];
  const ACTION_DESC = '.study-actions-form input[type="text"]'; // placeholder در حالتِ بازپرداخت عوض می‌شود
 

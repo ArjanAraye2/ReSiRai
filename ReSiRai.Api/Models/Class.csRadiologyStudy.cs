@@ -30,7 +30,10 @@ namespace ReSiRai.Api.Models
         [MaxLength(1000)]
         public string? Description { get; set; }
 
-        public string? Report { get; set; }
+        // متنِ «تشخیص»ِ این مراجعه (پیش‌تر با نامِ Report بود؛ نامِ ستون در
+        // Database/20261011_StudyDiagnosisWorkEnd.sql به Diagnosis تغییر کرد).
+        // برایِ نمایشِ در کارتِ مراجعه، چاپِ اطلاعات و لینکِ اشتراک استفاده می‌شود.
+        public string? Diagnosis { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
 
@@ -63,6 +66,13 @@ namespace ReSiRai.Api.Models
         /// </summary>
         [MaxLength(500)]
         public string? StudyTypeNote { get; set; }
+
+        /// <summary>
+        /// زمانِ پایانِ کار رویِ همین مراجعه (اختیاری). مدتِ کار از همین‌جا
+        /// محاسبه می‌شود: WorkEndDate − StudyDate. با دکمهٔ «پایانِ کار» در
+        /// نوارِ ابزارِ مراجعه ثبت و بعداً از راهِ ویرایش قابلِ اصلاح است.
+        /// </summary>
+        public DateTime? WorkEndDate { get; set; }
 
         // UI/API helper only. Tooth selections are physically stored in
         // tblRadiologyStudyTeeth, not in tblRadiologyStudies.

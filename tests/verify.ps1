@@ -51,4 +51,4 @@ else {
 Write-Output ''
 Write-Output ('== verify summary: ' + $(if ($fail -eq 0) { 'BUILD + TESTS GREEN' } else { "$fail step(s) FAILED" }) + ' ==')
 Write-Output 'Next: powershell -File tests\ui-smoke\serve.ps1'
-Write-Output 'Then check titles of: smoke2, smoke3, smoke4, smoke5, smoke6, smoke7 (patients list offset), smoke8 (visit sections), smoke9 (ادغامِ فرمِ مراجعه), smoke10 (autocompleteِ نوعِ مراجعه + سایر), smoke11 (بارداری/شیردهی فقط برایِ زن)'
+Write-Output 'Then check titles of: smoke2, smoke3, smoke4, smoke5, smoke6, smoke7 (patients list offset), smoke8 (visit sections), smoke9 (ادغامِ فرمِ مراجعه), smoke10 (autocompleteِ نوعِ مراجعه + سایر), smoke11 (بارداری/شیردهی فقط برایِ زن), smoke12 (تشخیص + پایانِ کار)'

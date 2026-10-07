@@ -336,7 +336,7 @@ namespace ReSiRai.Api.Controllers
                     s.StudyID, s.PatientID, s.StudyDate, s.StudyTypeID,
                     StudyTypeName = st.StudyTypeName,
                     s.StudyTypeNote,
-                    s.BodyPart, s.Description, s.Report, s.CreatedDate, s.ModifiedDate,
+                    s.BodyPart, s.Description, s.Diagnosis, s.WorkEndDate, s.CreatedDate, s.ModifiedDate,
                     s.DoctorStaffID,
                     DoctorName = _context.Staff.AsNoTracking()
                         .Where(st => st.StaffID == s.DoctorStaffID)
@@ -409,7 +409,7 @@ namespace ReSiRai.Api.Controllers
             var studyList = studies.Select(s => new
             {
                 s.StudyID, s.PatientID, s.StudyDate, s.StudyTypeID, s.StudyTypeName,
-                s.BodyPart, s.Description, s.Report, s.CreatedDate, s.ModifiedDate,
+                s.BodyPart, s.Description, s.Diagnosis, s.WorkEndDate, s.CreatedDate, s.ModifiedDate,
                 s.Status, s.FollowUpDate, s.FollowUpNote, s.WaitStageID, s.WaitStageName,
                 imageCount = (imageCounts.TryGetValue(s.StudyID, out int count) ? count : 0)
                              - (documentCounts.TryGetValue(s.StudyID, out int docCount) ? docCount : 0),

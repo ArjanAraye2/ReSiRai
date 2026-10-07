@@ -77,7 +77,7 @@
   ["studyType", "دلیل مراجعه", "input"],
   ["bodyPart", "ناحیه", "input"],
   ["description", "توضیحات", "area"],
-  ["report", "گزارش", "area"]
+  ["report", "تشخیص", "area"]
  ];
 
  function review(x) {
@@ -169,7 +169,7 @@
    if (matchStudyType(picked.studyType.value)) used++;
    else notes.push(`دلیلِ مراجعهٔ پیشنهادی در لیست نیست: ${picked.studyType.value}`);
   }
-  for (const [key, id] of [["bodyPart", "newBodyPart"], ["description", "newStudyDescription"], ["report", "newStudyReport"]]) {
+  for (const [key, id] of [["bodyPart", "newBodyPart"], ["description", "newStudyDescription"], ["report", "newStudyDiagnosis"]]) {
    if (picked[key]?.on) { const el = document.getElementById(id); if (el) { el.value = picked[key].value; used++; } }
   }
   if (picked.teeth?.on) {

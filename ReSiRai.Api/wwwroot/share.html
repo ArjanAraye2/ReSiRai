@@ -179,7 +179,7 @@
     برای دیدن تصاویر، روی هر تصویر بزنید تا تمام‌صفحه باز شود. تصاویر ویو بزرگ، بزرگ‌نمایی و جابه‌جایی بین تصاویر پشتیبانی می‌شود.
   </div>
 
-  <div class="report" id="report" hidden><strong>شرح تصویر</strong><span id="reportText"></span></div>
+  <div class="report" id="report" hidden><strong>تشخیص</strong><span id="reportText"></span></div>
 
   <div class="grid" id="grid" hidden></div>
   <div class="state" id="state">در حال دریافت تصاویر…</div>
@@ -246,7 +246,7 @@
     $("studyDate").textContent = data.studyDate ? jalali(data.studyDate) : "";
     document.title = "تصاویر پرونده " + (data.patientName || "");
 
-    if (data.report) { $("reportText").textContent = data.report; $("report").hidden = false; }
+    if (data.diagnosis) { $("reportText").textContent = data.diagnosis; $("report").hidden = false; }
 
     images = data.images || [];
     if (!images.length) {
