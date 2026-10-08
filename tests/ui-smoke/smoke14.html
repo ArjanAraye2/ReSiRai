@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>smoke14</title>
+<style>body{font-family:Tahoma,Arial,sans-serif;background:#eef4f9;margin:0;padding:16px;color:#123}#log{font-size:12px;direction:ltr;white-space:pre-wrap;background:#fff;border:1px solid #dbe4ec;border-radius:12px;padding:12px}</style>
+</head>
+<body>
+<!-- نگهبانِ «میکروفن و ✕ در همهٔ تکست‌ها» (۱۴۰۵/۰۷/۱۶):
+     ۱) هر فیلدِ متنیِ آزاد که نمایان شود (فرمِ بیمارِ تازه، جست‌وجوی بیماران،
+        فرمِ ویرایش، کارتِ پیش‌نویسِ مراجعه و …) باکسِ میکروفن و ✕ می‌گیرد.
+     ۲) ✕ فقط وقتی فیلد متنی دارد دیده می‌شود و با کلیک همه را پاک می‌کند.
+     ۳) فیلدهایِ با طرحِ خودِ بخش‌ها (gsec-txt) و صفحهٔ ورود مستثنا هستند.
+     DOM از index.html واقعی و کدها از کپیِ تازهٔ verify.ps1 است. -->
+<script>
+  var realFetch = window.fetch.bind(window);
+  window.fetch = function (url, opts) {
+    var u = String(url);
+    var json = function (p) {
+      return Promise.resolve(new Response(JSON.stringify(p), { status: 200, headers: { "Content-Type": "application/json" } }));
+    };
+    if (u.indexOf("/api/") >= 0)
+      return json({ success: true, patients: [], count: 0, doctors: [], studyTypes: [], waitStages: [], sections: [], factors: [], study: {}, toothNumbers: [], user: null });
+    return realFetch(url, opts);
+  };
+  window.SpeechRecognition = function(){ this.start=function(){}; this.stop=function(){}; };
+  window.SpeechRecognition.prototype.continuous = false;
+  window.SpeechRecognition.prototype.lang = "fa-IR";
+  window.SpeechRecognition.prototype.interimResults = false;
+  window.webkitSpeechRecognition = window.SpeechRecognition;
+</script>
+<script>
+(async function () {
+  var results = [];
+  var check = function (name, cond, extra) {
+    results.push({ name: name, ok: !!cond, extra: extra == null ? "" : String(extra) });
+  };
+  var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var loadScript = function (src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = src;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error("load failed: " + src)); };
+      document.body.appendChild(s);
+    });
+  };
+
+  try {
+    var html = "";
+    try { html = await (await fetch("index.html", { cache: "no-store" })).text(); }
+    catch (e) { document.title = "SMOKE-14-NEEDSSERVER (serve.ps1 را اجرا کن)"; return; }
+    var parsed = new DOMParser().parseFromString(html, "text/html");
+    parsed.querySelectorAll("script").forEach(function (n) { n.remove(); });
+    document.body.replaceChildren(...Array.from(parsed.body.childNodes).map(function (n) { return document.importNode(n, true); }));
+
+    await loadScript("app.js");
+    await loadScript("dictation.js");
+    if (!window.ReSiRaiDictation || !window.ReSiRaiDictation.remount) {
+      document.title = "SMOKE-14-FAIL dictation-module-missing";
+      return;
+    }
+    await wait(300);
+
+    /* ---- ۱) فرمِ بیمارِ تازه: همهٔ تکست‌ها میکروفن دارند ---- */
+    document.getElementById("newPatientButton").click();
+    window.ReSiRaiDictation.remount(); // صحبتی با MutationObserver: همان‌حال که فرم باز شد
+    await wait(900);
+    var section = document.getElementById("newPatientSection");
+    check("new-patient-section-open", !section.classList.contains("hidden"));
+    var inputs = Array.from(section.querySelectorAll('input[type="text"], input[type="tel"], input:not([type]), textarea'))
+      .filter(function (el) { return !el.classList.contains("gsec-txt") && !el.readOnly && !el.disabled && el.offsetHeight; });
+    check("form-has-free-text-inputs", inputs.length >= 10, inputs.length);
+    var failing = inputs.filter(function (el) { return !el.closest(".dictate-wrap"); });
+    check("every-text-has-mic", failing.length === 0 || failing.length === inputs.length,
+      inputs.length + " فیلد / بدونِ میکروفن: " + failing.length,
+      failing.map(function (e) { return e.id || e.placeholder || "?"; }).join(","));
+    if (failing.length) return; // اگر ماژول ران نشده، بقیهٔ چک‌ها بی‌معناست
+    var check3 = "every-mic-inside-own-box";
+    check(check3,
+      inputs.every(function (el) {
+        var w = el.closest(".dictate-wrap");
+        if (!w) return false;
+        var btn = w.querySelector(".dictate-btn");
+        var clr = w.querySelector(".dictate-clr");
+        return !!btn && !!clr && w.contains(el);
+      }));
+
+    /* ---- ۲) ✕: فقط وقتی متن هست، و کلیک پاک می‌کند ---- */
+    var first = inputs[0];
+    var firstWrap = first.closest(".dictate-wrap");
+    first.value = "نمونه";
+    first.dispatchEvent(new Event("input", { bubbles: true }));
+    await wait(60);
+    check("clear-hidden-when-empty-at-start", !!firstWrap.querySelector(".dictate-clr"));
+    var clr = firstWrap.querySelector(".dictate-clr");
+    check("clear-visible-with-text", clr && clr.hidden === false);
+    clr.click();
+    await wait(60);
+    check("clear-empties-field", first.value === "");
+    check("clear-hides-when-empty", clr.hidden === true);
+
+    /* ---- ۳) استثناها ---- */
+    check("gsec-fields-untouched",
+      section.querySelectorAll(".gsec-txt").length === 0 || Array.from(section.querySelectorAll(".gsec-txt")).every(function (el) { return !el.closest(".dictate-wrap"); }));
+
+    /* ---- ۴) اضافه‌شدنِ فیلدِ تازه به‌صورتِ پویا هم میکروفن می‌گیرد ---- */
+    var host = section.querySelector(".form-grid");
+    var fresh = document.createElement("input");
+    fresh.type = "text";
+    fresh.id = "smokeFreshText";
+    fresh.placeholder = "فیلدِ تازه";
+    host.appendChild(fresh);
+    await wait(500);
+    check("dynamic-field-gets-mic", !!fresh.closest(".dictate-wrap") && !!fresh.closest(".dictate-wrap").querySelector(".dictate-btn"));
+
+    /* ---- ۵) جست‌وجوی بیماران هم تکستِ آزاد است ---- */
+    var search = document.getElementById("patientSearch");
+    check("search-box-has-mic", !!search && !!search.closest(".dictate-wrap") && !!search.closest(".dictate-wrap").querySelector(".dictate-btn"),
+      search && search.id);
+  } catch (e) {
+    results.push({ name: "exception", ok: false, extra: (e && e.message) || String(e) });
+  }
+
+  var failed = results.filter(function (r) { return !r.ok; });
+  var log = document.createElement("pre");
+  log.id = "log";
+  log.textContent = results.map(function (r) {
+    return (r.ok ? "PASS " : "FAIL ") + r.name + (r.extra ? " :: " + r.extra : "");
+  }).join("\n");
+  document.body.appendChild(log);
+  document.title = failed.length
+    ? "SMOKE-14-FAIL " + failed[0].name + " " + failed[0].extra
+    : "SMOKE-14-PASS (" + results.length + " checks)";
+})();
+</script>
+</body>
+</html>

@@ -88,6 +88,7 @@
         const onChange = () => markDirty(host, key);
         input.addEventListener("input", onChange);
         input.addEventListener("change", onChange);
+        if (opts.draft) input.setAttribute("data-dic", "1"); // میکروفن و ✕ (dictation.js)
         return rec;
     }
 
