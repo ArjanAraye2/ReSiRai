@@ -88,7 +88,7 @@
         const onChange = () => markDirty(host, key);
         input.addEventListener("input", onChange);
         input.addEventListener("change", onChange);
-        if (opts.draft) input.setAttribute("data-dic", "1"); // میکروفن و ✕ (dictation.js)
+        if (host.__draft) input.setAttribute("data-dic", "1"); // میکروفن و ✕ (dictation.js)
         return rec;
     }
 
@@ -532,5 +532,7 @@
         wireDraft(card);
     }
 
-    window.ReSiRaiVisitDraft = { mount, showNew, suppress, buildFields, forget: forgetDraft, saveCard, loadContext };
+    window.ReSiRaiVisitDraft = { mount, showNew, suppress, hideDraft, buildFields, forget: forgetDraft, saveCard, loadContext };
+
+ function hideDraft() { clearDraftHost(); suppressed = true; }
 })();
