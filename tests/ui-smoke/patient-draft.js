@@ -294,9 +294,11 @@
         if (!payload.gender) { hintError(state.rows.gender.row, "جنسیت را انتخاب کنید."); state.rows.gender.input.focus(); return; }
 
         hint("", "در حال ثبت…");
+        console.info("[معرفیِ بیمار] ارسال ثبت…", payload.nationalCode);
         try {
             const r = await fetch("/api/patients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
             const x = await readJson(r);
+            console.info("[معرفیِ بیمار] پاسخِ سرور:", r.status, x);
             if (r.status === 409 && x.duplicate) {
                 const go = window.askConfirmation ? await window.askConfirmation({
                     title: "بیمار موجود است",
@@ -306,15 +308,18 @@
                 if (go && x.existing && x.existing.patientID) { state.found = null; await lookupAfterCreate(x.existing.patientID, payload.nationalCode); }
                 return;
             }
-            if (!r.ok || !x.success) throw new Error(x.message || "ثبت بیمار انجام نشد.");
-            const newID = x.patientID || (x.patient && x.patient.patientID);
+            if (!r.ok || !x.success) throw new Error(x.message || "ثبت بیمار انجام نشد.");            const newID = x.patientID || (x.patient && x.patient.patientID);
             if (window.showToast) window.showToast("بیمار ثبت شد.");
             // پرونده باز می‌شود و آمادهٔ ثبتِ مراجعه است.
             await window.openPatient(newID);
             reset();
             if (state.hint) state.hint.textContent = "پرونده باز شد — آمادهٔ ثبتِ مراجعه";
         } catch (e) {
-            hint("", (e && e.message) || "ثبت بیمار انجام نشد.");
+            console.error("[معرفیِ بیمار] خطای ثبت:", e && (e.message || e), e && e.stack || "");
+            const msg = (e && e.message) || "ثبت بیمار انجام نشد.";
+            hint("", msg);
+            if (window.showToast) window.showToast(msg, "error", "ثبتِ بیمار");
+            else alert && alert(msg);
         }
     }
 

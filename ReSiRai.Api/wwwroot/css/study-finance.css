@@ -159,16 +159,18 @@
 .study-actions-status:empty { display: none; }
 .study-actions-status.error { color: var(--danger ); }
 
-/* دیکته: میکروفن و ✕ **کنارِ** فیلد می‌نشینند (نه رویِ متن) — سالنِ متن پاک می‌ماند. */
-.dictate-wrap { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; }
+/* دیکته: میکروفن و ✕ **کنارِ** فیلد در همان خط — بدونِ تغییرِ ارتفاع: دکمه‌های
+   کوچک‌تر از فیلد، وسط‌چین، و بدون شکستن به خطِ دوم در فیلدهای باریک. */
+.dictate-wrap { position: relative; display: flex; flex-wrap: nowrap; align-items: center; gap: 5px; min-width: 0; }
 .dictate-wrap input,
 .dictate-wrap textarea { flex: 1 1 auto; width: auto; min-width: 0; padding-inline-end: 8px; }
-/* نشانگرِ «در حالِ گوش دادن / متنِ موقت»: زیرِ فیلد در خطِ خودش؛ خالی = بدونِ ارتفاع. */
+/* نشانگرِ «در حالِ گوش دادن»: شناورِ زیرِ فیلد؛ از جریان خارج است، ارتفاعِ
+   ردیف‌ها را تغییر نمی‌دهد و رویِ متنِ درحالِ تایپ نمی‌افتد. */
 .dictate-hint {
-    display: block;
-    flex: 1 1 100%;
-    min-height: 0;
-    margin-top: 2px;
+    position: absolute;
+    inset-block-start: calc(100% + 3px);
+    inset-inline-start: 0;
+    max-width: calc(100% - 12px);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -176,22 +178,25 @@
     font-size: var( --fs-xs );
     font-weight: 600;
     pointer-events: none;
+    background: var( --surface, #fff );
+    padding: 1px 8px;
+    border-radius: 6px;
+    box-shadow: 0 1px 5px rgba( 16, 40, 60, .14 );
+    z-index: 6;
 }
 .dictate-hint:empty { display: none; }
 .dictate-btn {
     position: static;
     flex: 0 0 auto;
     order: 3;
-    min-height: 24px;
-    min-width: 26px;
-    padding: 2px 7px;
+    font-size: 12px;
+    line-height: 1.25;
+    padding: 1px 7px;
     border: 1px solid var( --border );
     border-radius: 999px;
     background: var( --surface );
     color: var( --muted );
     cursor: pointer;
-    font-size: 13px;
-    line-height: 1.4;
 }
 .dictate-btn:hover { border-color: var( --primary ); color: var( --primary ); }
 .dictate-btn.is-listening {
@@ -206,14 +211,14 @@
     position: static;
     flex: 0 0 auto;
     order: 2;
-    min-width: 24px;
-    min-height: 24px;
+    min-width: 21px;
+    padding: 1px 5px;
     border: 1px solid var( --border );
     border-radius: 999px;
     background: var( --surface );
     color: var( --muted );
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
     line-height: 1.2;
     display: flex;
     align-items: center;
