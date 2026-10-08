@@ -244,7 +244,16 @@
         const chosenDoctor = ctx.doctors.find(d => Number(d.staffID) === Number(rows.doctorStaffID.input.value));
         const specialtyID = (chosenDoctor && chosenDoctor.specialtyID) || ctx.specialtyID || 0;
 
-        fillSelect(rows.type.input, (await loadTypes(specialtyID)).map(t => ({
+        // فهرستِ «دلیل مراجعه»: اگر پاسخِ فیلترشده بر طبقِ رشته خالی آمد، بی‌درنگ
+        // کلِ فهرست را می‌گیریم تا کاربر هرگز با کشوی خالی گیر نکند.
+        let typeItems = await loadTypes(specialtyID);
+        if (!typeItems.length && specialtyID) {
+            console.warn("[مراجعه] فهرستِ رشته خالی؛ بدونِ فیلترِ رشته دوباره تلاش می‌شود.");
+            typeItems = await loadTypes();
+        }
+        console.info("[مراجعه] hydrate: رشته=" + specialtyID + " دلیل مراجعه=" + typeItems.length + " پزشکان=" + ctx.doctors.length);
+        if (!typeItems.length) { const st = host.__state; if (st) st.textContent = "فهرستِ «دلیل مراجعه» نیامد — کنسولِ مرورگر (F12) را ببینید."; }
+        fillSelect(rows.type.input, typeItems.map(t => ({
             value: t.StudyTypeID, text: t.StudyTypeName
         })), study ? (study.studyTypeID ?? "") : "");
 
