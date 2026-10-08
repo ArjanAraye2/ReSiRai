@@ -56,8 +56,13 @@
         const url = specialtyID ? `/api/studytypes?specialtyID=${specialtyID}` : "/api/studytypes";
         try {
             const x = await fetch(url, { cache: "no-store" }).then(readJson);
-            return x.studyTypes || [];
-        } catch { return []; }
+            const list = x.studyTypes || [];
+            if (!list.length) console.warn('[مراجعه] فهرستِ «دلیل مراجعه» خالی:', url, x);
+            return list;
+        } catch (e) {
+            console.error('[مراجعه] خواندنِ «دلیل مراجعه» شکست خورد:', url, e && (e.message || e));
+            return [];
+        }
     }
 
     async function loadWaitStages(specialtyID) {

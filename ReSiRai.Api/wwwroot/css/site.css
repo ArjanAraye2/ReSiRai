@@ -5678,16 +5678,17 @@ body { line-height: 1.75; }
 .study-draft-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
 .study-draft-title{display:flex;align-items:center;gap:8px;font-weight:700;color:#123}
 .study-draft-badge{background:#fff3d6;color:#8a5b00;border:1px solid #f0d9a6;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600}
-.visit-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:6px 16px}
+.visit-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:6px 16px}
 .visit-fields-bar{grid-column:1/-1;min-height:18px;font-size:12px;color:#8a5b00}
 .visit-fields-bar:empty{display:none}
 .visit-fields-state.is-error{color:#b42318;font-weight:600}
-.visit-field-row{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:8px;align-items:center;border-bottom:1px dashed #e7eff6;padding:5px 0}
-.visit-field-label{font-size:13px;font-weight:600;color:#285b8f}
-.visit-field-input{min-width:0;display:flex;gap:6px;align-items:center}
+.visit-field-row{display:grid;grid-template-columns:104px minmax(0,1fr) auto;gap:8px;align-items:center;border-bottom:1px dashed #e7eff6;padding:5px 0}.visit-field-label{font-size:13px;font-weight:600;color:#285b8f}
+.visit-field-input{min-width:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .visit-input{width:100%;box-sizing:border-box;border:1px solid var(--border,#cfe0ee);border-radius:8px;padding:6px 8px;font:inherit;font-size:13px;background:#fff;color:#123}
 /* فیلد مراجعه همیشه کلِ ستون را پُر کند — چه دیکته آن را پیچیده باشد چه نه؛ تأییدِ سطر را فشرد نکن (به‌جای width:100% از flex استفاده می‌شود تا ردیف‌های Verify با دکمه درهم نشکند: Elan، ثبت و ...) */
 .visit-field-input input,.visit-field-input textarea,.visit-field-input select{flex:1 1 0;min-width:0;width:auto;box-sizing:border-box}
+/* فیلدهای تاریخ/ساعت هرگز آنقدر باریک نشوند که عدد بُریده شود */
+.visit-field-row input[data-jalali-date],.visit-field-row input[data-jalali-datetime]{min-width:118px}
 .visit-field-input .jalali-input-wrap{flex:1 1 0;min-width:0;width:auto}
 .visit-field-input .jalali-input-wrap input{flex:1 1 0;min-width:0;width:auto}
 textarea.visit-input{resize:vertical}

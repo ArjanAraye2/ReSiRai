@@ -1,4 +1,4 @@
-/* ReSiRai - Study finance panel
+﻿/* ReSiRai - Study finance panel
    Uses the shared design tokens and the app type scale, and adds the row style
    used when a payment is edited inline (with the Jalali date picker).
 
@@ -454,3 +454,7 @@
 .labtest-evidence td{background:#0f172a08}
 .labtest-evidence img{max-width:min(100%,720px);max-height:220px;border:1px solid var(--border,#d9dee7);border-radius:8px;display:block}
 .labtest-evidence.hidden{display:none}
+
+/* برچسبِ روزِ هفتهٔ تقویم در ردیفهای فشردهٔ کارتِ مراجعه جا نمی‌شود و فیلد را
+   تنگ می‌کند — در کارت مراجعه مخفی (در پنل‌های دیگر برچسب خودش هست). */
+.visit-field-row .jalali-weekday-name{display:none}

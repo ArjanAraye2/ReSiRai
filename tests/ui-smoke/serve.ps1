@@ -15,6 +15,8 @@ while ($true) {
       $bytes = [System.IO.File]::ReadAllBytes($file)
       if ($name.EndsWith('.js')) { $ctx.Response.ContentType = 'application/javascript; charset=utf-8' }
       elseif ($name.EndsWith('.html')) { $ctx.Response.ContentType = 'text/html; charset=utf-8' }
+      elseif ($name.EndsWith('.css')) { $ctx.Response.ContentType = 'text/css; charset=utf-8' }
+      elseif ($name.EndsWith('.png') -or $name.EndsWith('.jpg') -or $name.EndsWith('.jpeg') -or $name.EndsWith('.gif') -or $name.EndsWith('.svg') -or $name.EndsWith('.ico')) { $ctx.Response.ContentType = 'image/*' }
       else { $ctx.Response.ContentType = 'text/plain; charset=utf-8' }
       $ctx.Response.ContentLength64 = $bytes.Length
       $ctx.Response.OutputStream.Write($bytes, 0, $bytes.Length)
