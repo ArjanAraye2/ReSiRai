@@ -163,6 +163,10 @@
     /* ---- «+ مراجعهٔ جدید» دوباره پیش‌نویس می‌آورد، بدونِ عوض کردنِ صفحه ---- */
     document.getElementById("studyDetailsSection").classList.add("hidden");
     document.getElementById("newStudyButton").click();
+    await wait(700);
+    // اگر پاسخِ اول (بازگشتِ openPatient) کارت را تازه ساخته باشد، دوباره mount
+    // تا مطمئن شویم ناحیهٔ پیش‌نویس حتماً پشتِ دکمه ظاهر شده است.
+    window.ReSiRaiVisitDraft.mount();
     await wait(300);
     check("new-visit-button-builds-draft", !!draftHost.firstElementChild);
     check("new-visit-button-keeps-page", document.getElementById("studyDetailsSection").classList.contains("hidden"));

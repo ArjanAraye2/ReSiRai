@@ -55,6 +55,7 @@
     document.body.replaceChildren(...Array.from(parsed.body.childNodes).map(function (n) { return document.importNode(n, true); }));
 
     await loadScript("app.js");
+    await loadScript("patient-draft.js");
     await loadScript("dictation.js");
     if (!window.ReSiRaiDictation || !window.ReSiRaiDictation.remount) {
       document.title = "SMOKE-14-FAIL dictation-module-missing";
@@ -62,20 +63,17 @@
     }
     await wait(300);
 
-    /* ---- ۱) فرمِ بیمارِ تازه: همهٔ تکست‌ها میکروفن دارند ---- */
-    document.getElementById("newPatientButton").click();
-    window.ReSiRaiDictation.remount(); // صحبتی با MutationObserver: همان‌حال که فرم باز شد
+    /* ---- ۱) ناحیهٔ معرفیِ بیمار: همهٔ تکست‌ها میکروفن دارند ---- */
+    window.ReSiRaiPatientDraft.mount(); // ناحیهٔ معرفیِ بیمارِ تازه بالایِ فهرست
+    window.ReSiRaiDictation.remount(); // پس از ظهورِ ناحیه، دوباره بباف
     await wait(900);
-    var section = document.getElementById("newPatientSection");
-    check("new-patient-section-open", !section.classList.contains("hidden"));
+    var section = document.getElementById("patientsSection");
+    check("patient-draft-host-shown", !!document.getElementById("patientDraftHost") && document.getElementById("patientDraftHost").firstElementChild !== null);
     var inputs = Array.from(section.querySelectorAll('input[type="text"], input[type="tel"], input:not([type]), textarea'))
       .filter(function (el) { return !el.classList.contains("gsec-txt") && !el.readOnly && !el.disabled && el.offsetHeight; });
-    check("form-has-free-text-inputs", inputs.length >= 10, inputs.length);
-    var failing = inputs.filter(function (el) { return !el.closest(".dictate-wrap"); });
-    check("every-text-has-mic", failing.length === 0 || failing.length === inputs.length,
-      inputs.length + " فیلد / بدونِ میکروفن: " + failing.length,
-      failing.map(function (e) { return e.id || e.placeholder || "?"; }).join(","));
-    if (failing.length) return; // اگر ماژول ران نشده، بقیهٔ چک‌ها بی‌معناست
+    check("form-has-free-text-inputs", inputs.length >= 1, inputs.length);
+    var withoutMic = inputs.filter(function (el) { return !el.closest(".dictate-wrap"); });
+    check("every-text-has-mic", withoutMic.length === 0, "بدونِ میکروفن: " + withoutMic.length);
     var check3 = "every-mic-inside-own-box";
     check(check3,
       inputs.every(function (el) {
@@ -105,7 +103,7 @@
       section.querySelectorAll(".gsec-txt").length === 0 || Array.from(section.querySelectorAll(".gsec-txt")).every(function (el) { return !el.closest(".dictate-wrap"); }));
 
     /* ---- ۴) اضافه‌شدنِ فیلدِ تازه به‌صورتِ پویا هم میکروفن می‌گیرد ---- */
-    var host = section.querySelector(".form-grid");
+    var host = document.getElementById("patientDraftHost").querySelector(".patient-draft-body");
     var fresh = document.createElement("input");
     fresh.type = "text";
     fresh.id = "smokeFreshText";

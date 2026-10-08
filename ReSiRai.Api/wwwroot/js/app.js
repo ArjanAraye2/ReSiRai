@@ -35,7 +35,7 @@ E.recentStudiesSummary=byId("recentStudiesSummary");
 ["newStudyTypeList","newStudyTypeID","newStudyTypeHint","studyTypeOtherBox","studyTypeNote"].forEach(id=>E[id]=byId(id));
 
 function hideMainSections(){[E.patientsSection,E.patientDetailsSection,E.studyDetailsSection,E.studyImagesSection].forEach(x=>x?.classList.add("hidden"));E.newPatientSection?.classList.add("hidden");E.editPatientSection?.classList.add("hidden");}
-function showPatientsScreen(){hideMainSections();E.patientsSection.classList.remove("hidden");window.scrollTo(0,0);}
+function showPatientsScreen(){hideMainSections();E.patientsSection.classList.remove("hidden");window.ReSiRaiPatientDraft&&window.ReSiRaiPatientDraft.mount();window.scrollTo(0,0);}
 function showToast(message,type="success",title=""){const t=document.createElement("div");t.className=`toast ${type}`;t.innerHTML=`<div class="toast-title"></div><div class="toast-message"></div>`;t.children[0].textContent=title||(type==="success"?"انجام شد":type==="error"?"خطا":"توجه");t.children[1].textContent=message;E.toastContainer.appendChild(t);setTimeout(()=>t.remove(),4300);}
 function askConfirmation({title="تأیید عملیات",message,confirmText="تأیید",danger=true}){return new Promise(resolve=>{E.confirmTitle.textContent=title;E.confirmMessage.textContent=message;E.confirmYesButton.textContent=confirmText;E.confirmYesButton.classList.toggle("danger-button",danger);E.confirmModal.classList.remove("hidden");const done=v=>{E.confirmModal.classList.add("hidden");E.confirmYesButton.onclick=E.confirmNoButton.onclick=null;resolve(v);};E.confirmYesButton.onclick=()=>done(true);E.confirmNoButton.onclick=()=>done(false);});}
 function getApiError(r,f){const m=r?.message||r?.messageEn||r?.error;if(!m)return f;const translations={"A patient with this NationalCode already exists.":"بیماری با این کد ملی قبلاً ثبت شده است.","NationalCode must contain only digits.":"کد ملی فقط باید شامل عدد باشد.","PatientID must be greater than zero.":"شناسه بیمار معتبر نیست.","Patient not found.":"بیمار پیدا نشد.","StudyType is required.":"دلیل مراجعه را وارد کنید.","StudyType cannot be longer than 50 characters.":"دلیل مراجعه نمی‌تواند بیشتر از ۵۰ نویسه باشد.","BodyPart cannot be longer than 100 characters.":"ناحیه نمی‌تواند بیشتر از ۱۰۰ نویسه باشد.","Description cannot be longer than 1000 characters.":"توضیحات نمی‌تواند بیشتر از ۱۰۰۰ نویسه باشد.","Study creation failed.":"ثبت مراجعه انجام نشد.","StudyDate is required.":"تاریخ مراجعه الزامی است.","Study not found.":"مراجعه پیدا نشد."};return translations[m]||m;}
@@ -155,7 +155,7 @@ async function loadPatients(search="",{append=false}={}){
   if(!append)E.patientsTableBody.replaceChildren();
   document.getElementById("patientsLoadMoreBox")?.remove();
   (x.patients||x||[]).forEach(p=>{
-   const tr=document.createElement("tr");tr.tabIndex=0;tr.className="patient-list-row";tr.title="نمایش پرونده و مطالعات بیمار";
+   const tr=document.createElement("tr");tr.tabIndex=0;tr.className="patient-list-row";tr.title="نمایش پرونده و مطالعات بیمار";tr.dataset.patientId=String(p.patientID);;
    const insurance = p.baseInsuranceName ? p.baseInsuranceName : (p.baseInsuranceTypeID ? "دارد" : "—");
    const insCell=createCell(insurance);
    const followCell=document.createElement("td");
@@ -227,7 +227,7 @@ async function openPatient(id){selectedPatientID=id;const request=beginPatientOp
 // Other modules (patient messaging, printing helpers) need the open patient.
 // Publishing it here keeps one source of truth: whenever the record renders,
 // window.selectedPatient matches what is on screen.
-function publishSelectedPatient(p){window.selectedPatient=p||null;window.selectedPatientID=Number(p?.patientID)||null;try{selectedPatient=p||null;if(p)selectedPatientID=Number(p.patientID);}catch{}}
+function publishSelectedPatient(p){window.selectedPatient=p||null;window.selectedPatientID=Number(p?.patientID)||null;try{selectedPatient=p||null;if(p)selectedPatientID=Number(p.patientID);}catch{}window.openPatient=openPatient;window.openPatientInline=openPatientInline;}
 function renderPatientDetails(x){const p=x.patient,patientCode=formatPatientCode(p.patientID),studies=x.studies||[];E.patientFullName.textContent=`${p.firstName} ${p.lastName}`;E.patientDisplayCode.textContent=`شناسه پرونده: ${patientCode}`;E.patientNationalCode.textContent=`کد ملی: ${p.nationalCode}`;E.detailPatientCode.textContent=patientCode;E.detailFirstName.textContent=p.firstName||"-";E.detailLastName.textContent=p.lastName||"-";E.detailNationalCode.textContent=p.nationalCode||"-";E.detailMobile.textContent=p.mobile||"-";E.detailBirthDate.textContent=formatPersianDate(p.birthDate);if(E.detailAge)E.detailAge.textContent=patientAgeText(p.birthDate);E.detailGender.textContent=formatPatientGender(p.gender);E.detailIsActive.textContent=p.isActive?"فعال":"غیرفعال";E.detailAddress.textContent=p.address||"-";E.detailDescription.textContent=p.description||"-";if(E.detailBloodType)E.detailBloodType.textContent=p.bloodType||"ثبت نشده";if(E.detailMobile2)E.detailMobile2.textContent=p.mobile2||"-";if(E.detailBaseInsurance)E.detailBaseInsurance.textContent=p.baseInsuranceName?(p.baseInsuranceName+(p.baseInsuranceNo?` — ${p.baseInsuranceNo}`:"")):"ثبت نشده";if(E.detailSuppInsurance){const supp=[p.supp1InsuranceName,p.supp2InsuranceName].filter(Boolean);E.detailSuppInsurance.textContent=supp.length?supp.join(" ، "):"ثبت نشده";}if(E.detailEmergencyContact)E.detailEmergencyContact.textContent=(p.emergencyContactName||p.emergencyContactPhone)?`${p.emergencyContactName||""}${p.emergencyContactRelation?` (${p.emergencyContactRelation})`:""}${p.emergencyContactPhone?` — ${p.emergencyContactPhone}`:""}`.trim():"ثبت نشده";if(E.detailFileNumber)E.detailFileNumber.textContent=p.fileNumber||"-";if(E.detailContactPreference)E.detailContactPreference.textContent=contactPreferenceLabel(p.contactPreference);
  // بارداری/شیردهی: نما از آخرین مراجعهٔ قابل‌دیدنِ همین کاربر، با تاریخِ ثبتِ واقعی.
  // سطر در index.html مخفی به دنیا می‌آید و فقط با جنسیتِ «زن» (۲) باز می‌شود؛
@@ -967,7 +967,7 @@ async function loadInsuranceOptions(){
 }
 function fillPatientExtras(prefix,p){const set=(key,value)=>{const el=E[prefix+key];if(el)el.value=value??"";};const setSel=(key,value)=>{const el=E[prefix+key];if(el)el.value=value==null?"":String(value);};setSel("BloodType",p.bloodType);set("Mobile2",p.mobile2);set("EmergencyContactName",p.emergencyContactName);set("EmergencyContactRelation",p.emergencyContactRelation);set("EmergencyContactPhone",p.emergencyContactPhone);setSel("BaseInsuranceType",p.baseInsuranceTypeID);set("BaseInsuranceNo",p.baseInsuranceNo);setSel("Supp1InsuranceType",p.supp1InsuranceTypeID);set("Supp1InsuranceNo",p.supp1InsuranceNo);setSel("Supp2InsuranceType",p.supp2InsuranceTypeID);set("Supp2InsuranceNo",p.supp2InsuranceNo);set("FileNumber",p.fileNumber);setSel("ContactPreference",p.contactPreference);const details=E[prefix+"PatientExtraDetails"];if(details)details.open=!!(p.bloodType||p.mobile2||p.emergencyContactName||p.emergencyContactPhone||p.baseInsuranceTypeID||p.supp1InsuranceTypeID||p.supp2InsuranceTypeID||p.fileNumber||p.contactPreference);}
 
-function openNewPatientForm(){window.ReSiRaiVisitDraft&&window.ReSiRaiVisitDraft.hideDraft();E.patientsSection.classList.add("hidden");window.scrollTo(0,0);E.newPatientForm.reset();setFormStatus(E.newPatientStatus,"",false);fillPatientExtras("new",{});loadInsuranceOptions();E.newPatientSection.classList.remove("hidden");E.newPatientSection.scrollIntoView({behavior:"smooth",block:"start"});E.newFirstName.focus();}
+function openNewPatientForm(){window.ReSiRaiPatientDraft&&window.ReSiRaiPatientDraft.mount();window.scrollTo(0,0);}
 async function createPatient(){try{const r=await fetch("/api/patients",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(patientPayload("new"))}),x=await readApiJson(r);
  // بازشناسی: کد ملی از قبل هست. به‌جای خطای خشک، پروندهٔ موجود را نشان می‌دهیم.
  if(r.status===409&&x.duplicate){const ex=x.existing||{};const name=`${ex.firstName||""} ${ex.lastName||""}`.trim()||"این بیمار";const go=await askConfirmation({title:"بیمار موجود است",message:`بیمار «${name}» با این کد ملی از قبل در سامانه ثبت شده است. آیا پروندهٔ موجود باز شود؟ (برای ثبت مراجعهٔ جدید همین پرونده را باز کنید.)`,confirmText:"باز کردن پرونده",danger:false});if(go&&ex.patientID){await loadPatients();await openPatient(ex.patientID);}return;}
@@ -1236,7 +1236,10 @@ E.includeInactivePatients.onchange=()=>{resetPatientList();loadPatients(E.patien
  });
 })();
 E.openStudiesOnly.onchange=()=>{resetPatientList();loadPatients(E.patientSearch.value);};
-E.dueFollowUpOnly.onchange=()=>{E.openStudiesOnly.checked=E.dueFollowUpOnly.checked||E.openStudiesOnly.checked;resetPatientList();loadPatients(E.patientSearch.value);};E.newPatientButton.onclick=openNewPatientForm;E.newPatientForm.onsubmit=e=>{e.preventDefault();createPatient();};E.backToPatientsButton.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();showPatientsScreen();});
+E.dueFollowUpOnly.onchange=()=>{E.openStudiesOnly.checked=E.dueFollowUpOnly.checked||E.openStudiesOnly.checked;resetPatientList();loadPatients(E.patientSearch.value);};
+ if(E.newPatientButton)E.newPatientButton.onclick=openNewPatientForm; // دکمه حذف شد؛ فقط نگهداری برای فرمهای دیگر
+ window.ReSiRaiPatientDraft&&window.ReSiRaiPatientDraft.mount(); // ناحیهٔ معرفی بیمار همیشه بالای فهرست
+ if(E.newPatientForm)E.newPatientForm.onsubmit=e=>{e.preventDefault();createPatient();}; // فرمِ یادمانده بدونِ ناوبری (if removed in future versions, keep optional)E.backToPatientsButton.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();showPatientsScreen();});
 E.backToPatientDetailsButton?.addEventListener("click",()=>openPatient(selectedPatientID));
 E.backToStudyDetailsButton?.addEventListener("click",()=>{if(selectedStudy)openStudyDetails(selectedStudy);});
 E.studyDetailsImagesButton?.addEventListener("click",()=>{if(selectedStudy)openStudyImages(selectedStudy);});
@@ -1314,3 +1317,5 @@ function loadApplicationData(){
 }
 window.addEventListener("resirai-auth-changed",e=>{ if(e.detail) loadApplicationData(); });
 if(window.reSiRaiCurrentUser) loadApplicationData();
+// ← for patient-draft.js (بدونِ ناوبری) و ابزارهای دیگر
+window.openPatient=openPatient;window.openPatientInline=openPatientInline;window.openEditPatientForm=openEditPatientForm;window.loadPatients=loadPatients;

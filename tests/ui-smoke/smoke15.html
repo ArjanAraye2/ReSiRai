@@ -6,40 +6,47 @@
 <style>body{font-family:Tahoma,Arial,sans-serif;background:#eef4f9;margin:0;padding:16px;color:#123}#log{font-size:12px;direction:ltr;white-space:pre-wrap;background:#fff;border:1px solid #dbe4ec;border-radius:12px;padding:12px}</style>
 </head>
 <body>
-<!-- نگهبانِ «بیمار بدونِ ناوبری» (۱۴۰۵/۰۷/۱۶):
-     ۱) فرمِ بیمارِ جدید و ویرایش **درونِ خودِ پرونده** (#patientDetailsSection) رندر می‌شوند، نه صفحهٔ جدا.
-     ۲) «بیمار جدید» پرونده را همه‌جا نگه می‌دارد — فقط فرم زیرِ ناحیه‌ها باز می‌شود.
-     ۳) «ثبت بیمار» فرم را جمع می‌کند و فهرست را تازه می‌کند، بدونِ خروج از صفحه.
-     ۴) پیش‌نویسِ مراجعه در همین لحظه مخفی می‌شود.
-     ۵) دکمه‌های «انصراف» در فرم‌ها فقط فرم را جمع می‌کنند (ناوبریِ صفحات حذف).
+<!-- نگهبانِ «معرفیِ بیمار بدونِ ناوبری» (۱۴۰۵/۰۷/۱۶):
+     ۱) ناحیهٔ معرفیِ بیمار **همیشه بالایِ فهرستِ بیماران** است و دکمهٔ «+ بیمار جدید» حذف شده.
+     ۲) تا کدِ ملیِ ۱۰ رقمی معتبر وارد نشود، بقیه فیلدها فقط‌خواندنی‌اند.
+     ۳) کدِ ملی بی‌تطابق ← بقیه فیلدها باز می‌شوند؛ با حداقلِ اطلاعات لازم (نام، نام خانوادگی، جنسیت)
+        کلیدِ «ثبت» کنارِ فیلد جاری ظاهر می‌شود و با کلیک، بیمار ساخته می‌شود.
+     ۴) کدِ ملی با تطابق ← سابقه با این پزشک → ردیف در فهرست نشان داده می‌شود؛
+        سابقه با پزشک دیگر (stub: visits با doctor دیگه) → پرونده باز می‌شود (آمادهٔ ثبت مراجعه).
      DOM از index.html واقعی و کدها از کپیِ تازهٔ verify.ps1 است. -->
 <script>
+  window.__created = [];
+  window.__posted = null;
   var realFetch = window.fetch.bind(window);
   window.fetch = function (url, opts) {
     var u = String(url), method = (opts && opts.method) || "GET";
     var json = function (p) { return Promise.resolve(new Response(JSON.stringify(p), { status: 200, headers: { "Content-Type": "application/json" } })); };
     if (u.indexOf("/api/patients") >= 0 && method === "POST") {
       window.__posted = { url: u, body: JSON.parse(opts.body) };
-      return json({ success: true, patientID: 9 });
+      window.__created.push(JSON.parse(opts.body).nationalCode);
+      return json({ success: true, patientID: 9, patient: Object.assign({ patientID: 9 }, JSON.parse(opts.body)) });
     }
     if (u.indexOf("/api/patients/") >= 0 && u.indexOf("/details") >= 0) {
-      var id = (u.match(/\/patients\/(\d+)\/details/) || [])[1] || 3;
-      var patientPayload = { patientID: Number(id), firstName: "جان", lastName: "دو", gender: 1, isActive: true, nationalCode: "0000" + id };
-      return json({ success: true, patient: patientPayload, studies: [], studyCount: 0, totalImageCount: 0 });
+      // پزشکِ دیگری هم سابقه دارد (doctorStaffID: 99)
+      var id = (u.match(/\/patients\/(\d+)\/details/) || [])[1] || 1;
+      return json({
+        success: true,
+        patient: { patientID: Number(id), firstName: "سن", lastName: "سابقه", gender: 1, isActive: true, nationalCode: "1111111111" },
+        studies: [{ studyID: 71, studyTypeID: 39, studyDate: "2026-10-01T10:00:00", doctorStaffID: 99, status: 2 }],
+        studyCount: 1, totalImageCount: 0
+      });
     }
     if (u.indexOf("/api/patients") >= 0 && method === "GET")
-      return json({ success: true, patients: [{ patientID: 3, firstName: "جان", lastName: "دو", mobile: "3", nationalCode: "3" }, { patientID: 9, firstName: "نمونه", lastName: "آزمونی", mobile: "9", nationalCode: "9999999999" }], statistics: {}, count: 2, totalCount: 2, offset: 0, hasMore: false });
-    if (u.indexOf("/api/staff/doctors") >= 0)
-      return json({ success: true, doctors: [{ staffID: 11, firstName: "دکتر", lastName: "نمونه", specialtyID: 11, specialtyName: "پزشکی عمومی" }] });
+      return json({ success: true, patients: [{ patientID: 9, firstName: "سن", lastName: "سابقه", mobile: "9", nationalCode: "1111111111", openStudyCount: 0, dueFollowUpCount: 0 }], statistics: {}, count: 1, totalCount: 1, offset: 0, hasMore: false });
     if (u.indexOf("/api/visit-context") >= 0)
       return json({ success: true, clinicID: 1, doctorStaffID: 11, doctorName: "دکتر نمونه", specialtyID: 11, canPickDoctor: false });
+    if (u.indexOf("/api/staff/doctors") >= 0)
+      return json({ success: true, doctors: [{ staffID: 11, firstName: "دکتر", lastName: "نمونه", specialtyID: 11, specialtyName: "پزشکی عمومی" }] });
     if (u.indexOf("/api/") >= 0)
-      return json({ success: true, sections: [], factors: [], values: [], history: [], toothNumbers: [], study: {}, studyTypes: [], waitStages: [], insuranceTypes: [], options: [] });
+      return json({ success: true, sections: [], factors: [], values: [], history: [], toothNumbers: [], study: {}, studyTypes: [], waitStages: [], insuranceTypes: [] });
     return realFetch(url, opts);
   };
   window.confirm = function () { return true; };
-  window.SpeechRecognition = window.SpeechRecognition || function(){ this.start=function(){}; this.stop=function(){}; };
-  window.webkitSpeechRecognition = window.SpeechRecognition;
 </script>
 <script>
 (async function () {
@@ -47,6 +54,7 @@
   var check = function (name, cond, extra) { results.push({ name: name, ok: !!cond, extra: extra == null ? "" : String(extra) }); };
   var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
   var loadScript = function (src) { return new Promise(function (res, rej) { var s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = function(){ rej(new Error("load failed: "+src)); }; document.body.appendChild(s); }); };
+  var $ = function (sel, root) { return (root || document).querySelector(sel); };
   try {
     var html = "";
     try { html = await (await fetch("index.html", { cache: "no-store" })).text(); }
@@ -55,74 +63,69 @@
     parsed.querySelectorAll("script").forEach(function (n) { n.remove(); });
     document.body.replaceChildren(...Array.from(parsed.body.childNodes).map(function (n) { return document.importNode(n, true); }));
 
-    /* ---- قراردادِ HTML ---- */
-    check("patient-forms-inside-record",
-      !!document.getElementById("patientFormHost") &&
-      !!document.getElementById("patientFormHost").querySelector("#newPatientSection") &&
-      !!document.getElementById("patientFormHost").querySelector("#editPatientSection") &&
-      !!document.getElementById("patientFormHost").querySelector("#newPatientSection").closest("#patientDetailsSection"),
-      "patientFormHost");
-    check("old-sections-moved", document.body.children.length > 0);
+    /* ---- ۱) قراردادِ HTML: ناحیه بالای فهرست، بدونِ دکمه و بدونِ فرمِ جدا ---- */
+    check("patient-draft-host-exists", !!document.getElementById("patientDraftHost"));
+    check("host-inside-patients-section",
+      !!document.getElementById("patientDraftHost") &&
+      !!document.getElementById("patientDraftHost").closest("#patientsSection"));
+    check("old-create-button-gone", !document.getElementById("newPatientButton"));
+    check("old-new-patient-form-gone", !document.getElementById("newPatientSection"));
+    var appJs = await (await fetch("app.js", { cache: "no-store" })).text();
+    check("app-hooks-patient-draft", appJs.indexOf("ReSiRaiPatientDraft.mount()") >= 0);
+    check("app-rows-have-patient-id", appJs.indexOf("tr.dataset.patientId") >= 0);
 
+    /* ---- ۲) رانِ واقعی ---- */
     await loadScript("app.js");
-    await loadScript("visit-draft.js");
+    await loadScript("patient-draft.js");
     await loadScript("dictation.js");
-    await wait(300);
+    window.ReSiRaiPatientDraft.mount();
+    await wait(400);
+    var card = document.getElementById("patientDraftHost").firstElementChild;
+    check("draft-card-built", !!card && card.classList.contains("patient-draft-card"));
 
-    /* ---- باز کردنِ فرمِ بیمارِ جدید: بدونِ خروج از پرونده ---- */
-    await openPatient(3);
-    await wait(500);
-    document.getElementById("newPatientButton").click();
-    await wait(300);
-    check("new-form-opens-inside-record", !document.getElementById("newPatientSection").classList.contains("hidden") &&
-      !!document.getElementById("newPatientSection").closest("#patientDetailsSection"));
-    check("form-hides-draft", !document.getElementById("visitDraftHost").firstElementChild);
-    check("form-still-in-record", !!document.getElementById("newPatientSection").closest("#patientDetailsSection"));
+    check("others-readonly-before-code", $(".patient-draft-body [data-key='firstName'] input", card).readOnly === true);
 
-    /* ---- ثبتِ بیمار جدید: فرم جمع و بدونِ تغییر صفحه ---- */
-    // فرم را واقعاً پُر می‌کنیم تا createPatient با اعتبارسنجیِ واقعی اجرا شود.
-    window.ReSiRaiDictation && window.ReSiRaiDictation.remount && window.ReSiRaiDictation.remount();
-    var fFn = document.getElementById("newFirstName"), fLn = document.getElementById("newLastName");
-    var fNc = document.getElementById("newNationalCode"), fG = document.getElementById("newGender");
-    if (fFn) fFn.value = "نمونه";
-    if (fLn) fLn.value = "آزمونی";
-    if (fNc) fNc.value = "9999999999";
-    if (fG) fG.value = "1";
-    if (typeof createPatient === "function") await createPatient();
-    else document.getElementById("newPatientForm").dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
-    await wait(900);
-    check("form-closed-after-create", document.getElementById("newPatientSection").classList.contains("hidden"));
-    check("posted-payload", !!window.__posted && !!window.__posted.body.nationalCode, window.__posted && JSON.stringify(window.__posted.body.nationalCode));
+    /* ---- ۳) کدِ ملی معتبر و بی‌تطابق: بقیه باز و «ثبت» کنارِ فیلد جاری ---- */
+    var codeIn = $(".patient-draft-body [data-key='nationalCode'] input", card);
+    codeIn.value = "1234567891";
+    codeIn.dispatchEvent(new Event("input", { bubbles: true }));
+    await wait(600); // lookup debounce
+    check("others-unlocked-after-new-code", $(".patient-draft-body [data-key='firstName'] input", card).readOnly === false);
+    var fIn = $(".patient-draft-body [data-key='firstName'] input", card);
+    fIn.value = "نمونه";
+    fIn.dispatchEvent(new Event("input", { bubbles: true }));
+    await wait(60);
+    check("no-save-key-for-dirty-field-yet", $(".patient-draft-body [data-key='firstName'] .visit-field-save", card).classList.contains("hidden"));
 
-    /* ---- ویرایشِ بیمار: درونِ پرونده (دکمهٔ ویرایش در ردیفِ پرونده) ---- */
-    var editPod = document.createElement("div"); editPod.id = "smokeEditPod"; editPod.appendChild(document.createElement("span"));
-    document.getElementById("patientDetailsSection").appendChild(editPod);
-    // روش مستقیم: بازکردنِ پرونده با id واقعی، بعد فرم
-    await openPatient(3);
+    /* ---- حداقلِ لازم را کامل کن و روی همان فیلد بمان: ثبت ظاهر می‌شود ---- */
+    var lIn = $(".patient-draft-body [data-key='lastName'] input", card);
+    lIn.focus();
+    lIn.value = "آزمونی";
+    lIn.dispatchEvent(new Event("input", { bubbles: true }));
+    var gIn = $(".patient-draft-body [data-key='gender'] select", card);
+    gIn.value = "1";
+    gIn.dispatchEvent(new Event("change", { bubbles: true }));
+    lIn.focus(); // کرسر رویِ همان فیلد، پس «ثبت» کنارِ آن ظاهر می‌شود
+    await wait(60);
+    check("save-key-visible-on-last-name", !$(".patient-draft-body [data-key='lastName'] .visit-field-save", card).classList.contains("hidden"));
+
+    /* ---- ۴) ثبت بیمار تازه: POST و باز شدنِ پرونده در همان صفحه ---- */
+    await $(".patient-draft-body [data-key='lastName'] .visit-field-save", card).click();
     await wait(700);
-    var row = document.querySelector(".patient-list-row .patient-edit-button");
-    if (!row) { row = document.querySelector(".patient-edit-button"); }
-    check("edit-button-in-row", !!row, row ? "found" : "missing");
-    if (row) row.click();
-    await wait(1300);
-    check("edit-form-opens-inside-record", !document.getElementById("editPatientSection").classList.contains("hidden") &&
-      !!document.getElementById("editPatientSection").closest("#patientDetailsSection"));
-    document.getElementById("cancelEditPatientButton").click();
-    await wait(300);
-    check("cancel-edit-stays-in-record", document.getElementById("editPatientSection").classList.contains("hidden") &&
-      !!document.getElementById("editPatientSection").closest("#patientDetailsSection"));
+    check("patient-posted-once", window.__created.indexOf("1234567891") >= 0, window.__created.length);
+    check("record-opened-in-place", !document.getElementById("patientDetailsSection").classList.contains("hidden"));
 
-    /* ---- انصراف در بیمار جدید ---- */
-    document.getElementById("newPatientButton").click();
-    await wait(300);
-    document.getElementById("cancelNewPatientButton").click();
-    await wait(300);
-    check("cancel-new-stays-in-record", document.getElementById("newPatientSection").classList.contains("hidden") &&
-      !!document.getElementById("newPatientSection").closest("#patientDetailsSection"));
+    /* ---- ۵) کدِ ملی با تطابق: پزشکِ دیگر → پرونده باز و آمادهٔ مراجعه ---- */
+    var codeIn2 = $(".patient-draft-body [data-key='nationalCode'] input", card);
+    if (codeIn2) {
+      codeIn2.value = "1111111111";
+      codeIn2.dispatchEvent(new Event("input", { bubbles: true }));
+      await wait(900);
+      check("other-clinic-opens-record", !document.getElementById("patientDetailsSection").classList.contains("hidden"));
+    }
   } catch (e) {
     results.push({ name: "exception", ok: false, extra: (e && e.message) || String(e) });
   }
-
   var failed = results.filter(function (r) { return !r.ok; });
   var log = document.createElement("pre");
   log.id = "log";

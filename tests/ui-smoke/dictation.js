@@ -16,12 +16,13 @@
  // کارت‌های بازشونده، پنل‌ها) — پس برش می‌کنیم به «همهٔ تکست‌ها».
  const FREE_TEXT_SELECTOR = [
   'input[type="text"]',
+  'input[type="search"]',
   'input[type="tel"]',
   'input:not([type])',
   'textarea'
  ].map(s => s + ":not(.gsec-txt)").join(","); // آیکنِ خودِ بخش‌ها دارند (attachTools)
 
- const isRootSelector = "#patientsSection, #patientDetailsSection, #studyDetailsSection, #studyImagesSection, #newPatientSection, #editPatientSection, #mergePatientSection, #uploadImageSection, #visitDraftHost, #studiesContainer, .visit-fields";
+ const isRootSelector = "#host, #patientsSection, #patientDetailsSection, #studyDetailsSection, #studyImagesSection, #newPatientSection, #editPatientSection, #mergePatientSection, #uploadImageSection, #visitDraftHost, #studiesContainer, .visit-fields";
 
  function isDictatable(el) {
   if (!el || !el.matches(FREE_TEXT_SELECTOR)) return false;

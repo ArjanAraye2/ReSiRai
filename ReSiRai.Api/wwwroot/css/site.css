@@ -1,4 +1,4 @@
-/* ==========================================================
+﻿/* ==========================================================
    ReSiRai
    Frontend Style
    ========================================================== */
@@ -206,11 +206,11 @@ textarea:focus-visible,
     border-radius: inherit;
 }
 
-/* --- استانداردِ لوگوی رسیرای (برگهٔ هویت) — اندازهٔ دلخواه در کد ممنوع ------
-   فایل‌ها: اصلی 1200×720 · هدر 600×360 · ورود 400×240 · سایدبار 260×156 ·
-   موبایل 180×108 · فشرده 120×72 · آیکن‌ها 512/256/128/64/32 — نسبتِ ۵:۳ ثابت.
-   هر لوگو فقط از همین اندازه‌ها: یا ارتفاع از متغیرها، یا عرضِ چاپ (mm).
-   object-fit:contain تا نسبتِ تصویر هرگز کشیده/بریده نشود. */
+/* --- Ø§Ø³ØªØ§Ù†Ø¯Ø§Ø±Ø¯Ù Ù„ÙˆÚ¯ÙˆÛŒ Ø±Ø³ÛŒØ±Ø§ÛŒ (Ø¨Ø±Ú¯Ù‡Ù” Ù‡ÙˆÛŒØª) â€” Ø§Ù†Ø¯Ø§Ø²Ù‡Ù” Ø¯Ù„Ø®ÙˆØ§Ù‡ Ø¯Ø± Ú©Ø¯ Ù…Ù…Ù†ÙˆØ¹ ------
+   ÙØ§ÛŒÙ„â€ŒÙ‡Ø§: Ø§ØµÙ„ÛŒ 1200Ã—720 Â· Ù‡Ø¯Ø± 600Ã—360 Â· ÙˆØ±ÙˆØ¯ 400Ã—240 Â· Ø³Ø§ÛŒØ¯Ø¨Ø§Ø± 260Ã—156 Â·
+   Ù…ÙˆØ¨Ø§ÛŒÙ„ 180Ã—108 Â· ÙØ´Ø±Ø¯Ù‡ 120Ã—72 Â· Ø¢ÛŒÚ©Ù†â€ŒÙ‡Ø§ 512/256/128/64/32 â€” Ù†Ø³Ø¨ØªÙ Ûµ:Û³ Ø«Ø§Ø¨Øª.
+   Ù‡Ø± Ù„ÙˆÚ¯Ùˆ ÙÙ‚Ø· Ø§Ø² Ù‡Ù…ÛŒÙ† Ø§Ù†Ø¯Ø§Ø²Ù‡â€ŒÙ‡Ø§: ÛŒØ§ Ø§Ø±ØªÙØ§Ø¹ Ø§Ø² Ù…ØªØºÛŒØ±Ù‡Ø§ØŒ ÛŒØ§ Ø¹Ø±Ø¶Ù Ú†Ø§Ù¾ (mm).
+   object-fit:contain ØªØ§ Ù†Ø³Ø¨ØªÙ ØªØµÙˆÛŒØ± Ù‡Ø±Ú¯Ø² Ú©Ø´ÛŒØ¯Ù‡/Ø¨Ø±ÛŒØ¯Ù‡ Ù†Ø´ÙˆØ¯. */
 :root {
     --logo-h-sidebar: 156px;
     --logo-h-header: 90px;
@@ -512,8 +512,8 @@ button {
     }
 
     .form-field textarea {
-        /* ارتفاعِ ثابتِ بزرگ حذف شد: جعبه به‌اندازهٔ متنِ داخلش باز می‌شود
-           (field-sizing در پایینِ فایل)؛ اینجا فقط فاصلهٔ خط و کفِ حداقلی می‌ماند. */
+        /* Ø§Ø±ØªÙØ§Ø¹Ù Ø«Ø§Ø¨ØªÙ Ø¨Ø²Ø±Ú¯ Ø­Ø°Ù Ø´Ø¯: Ø¬Ø¹Ø¨Ù‡ Ø¨Ù‡â€ŒØ§Ù†Ø¯Ø§Ø²Ù‡Ù” Ù…ØªÙ†Ù Ø¯Ø§Ø®Ù„Ø´ Ø¨Ø§Ø² Ù…ÛŒâ€ŒØ´ÙˆØ¯
+           (field-sizing Ø¯Ø± Ù¾Ø§ÛŒÛŒÙ†Ù ÙØ§ÛŒÙ„)Ø› Ø§ÛŒÙ†Ø¬Ø§ ÙÙ‚Ø· ÙØ§ØµÙ„Ù‡Ù” Ø®Ø· Ùˆ Ú©ÙÙ Ø­Ø¯Ø§Ù‚Ù„ÛŒ Ù…ÛŒâ€ŒÙ…Ø§Ù†Ø¯. */
         min-height: 2.4em;
         line-height: 1.85;
     }
@@ -689,8 +689,8 @@ button {
    Patient Details
    ========================================================== */
 
-/* بخش‌هایِ بازشوندهٔ پروندهٔ بیمار: کارتِ هویت همیشه دیده می‌شود؛ جزئیات با
-   یک کلیک — تا مراجعات بدونِ اسکرول بالا بیایند. */
+/* Ø¨Ø®Ø´â€ŒÙ‡Ø§ÛŒÙ Ø¨Ø§Ø²Ø´ÙˆÙ†Ø¯Ù‡Ù” Ù¾Ø±ÙˆÙ†Ø¯Ù‡Ù” Ø¨ÛŒÙ…Ø§Ø±: Ú©Ø§Ø±ØªÙ Ù‡ÙˆÛŒØª Ù‡Ù…ÛŒØ´Ù‡ Ø¯ÛŒØ¯Ù‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯Ø› Ø¬Ø²Ø¦ÛŒØ§Øª Ø¨Ø§
+   ÛŒÚ© Ú©Ù„ÛŒÚ© â€” ØªØ§ Ù…Ø±Ø§Ø¬Ø¹Ø§Øª Ø¨Ø¯ÙˆÙ†Ù Ø§Ø³Ú©Ø±ÙˆÙ„ Ø¨Ø§Ù„Ø§ Ø¨ÛŒØ§ÛŒÙ†Ø¯. */
 .patient-info-more { margin-top: 6px; }
 .patient-info-more > summary {
     cursor: pointer;
@@ -707,7 +707,7 @@ button {
     background: #fbfcfd;
 }
 .patient-info-more > summary::-webkit-details-marker { display: none; }
-.patient-info-more > summary::before { content: "▸"; color: var( --muted, #888 ); transition: transform .15s ease; }
+.patient-info-more > summary::before { content: "â–¸"; color: var( --muted, #888 ); transition: transform .15s ease; }
 .patient-info-more[open] > summary::before { transform: rotate(90deg); }
 .patient-info-more > summary:hover { background: #f2f6f9; }
 .patient-info-more > .patient-info-grid { margin-top: 10px; }
@@ -839,7 +839,7 @@ button {
     gap: 15px;
 }
 
-/* گروه‌هایِ بازشونده به تفکیکِ نوعِ تصویر (تشخیصِ رسیرا) — تمیز و بدونِ شلوغی. */
+/* Ú¯Ø±ÙˆÙ‡â€ŒÙ‡Ø§ÛŒÙ Ø¨Ø§Ø²Ø´ÙˆÙ†Ø¯Ù‡ Ø¨Ù‡ ØªÙÚ©ÛŒÚ©Ù Ù†ÙˆØ¹Ù ØªØµÙˆÛŒØ± (ØªØ´Ø®ÛŒØµÙ Ø±Ø³ÛŒØ±Ø§) â€” ØªÙ…ÛŒØ² Ùˆ Ø¨Ø¯ÙˆÙ†Ù Ø´Ù„ÙˆØºÛŒ. */
 .image-type-group {
     border: 1px solid var( --border );
     border-radius: var( --radius-lg );
@@ -860,7 +860,7 @@ button {
 }
 .image-type-group > summary::-webkit-details-marker { display: none; }
 .image-type-group > summary::before {
-    content: "▸";
+    content: "â–¸";
     color: var( --muted, #888 );
     transition: transform .15s ease;
 }
@@ -1309,7 +1309,7 @@ button {
 }
 
 /* ==========================================================
-   Inline Images زیر هر Study
+   Inline Images Ø²ÛŒØ± Ù‡Ø± Study
    ========================================================== */
 
 .study-inline-images {
@@ -1357,8 +1357,8 @@ button {
     }
 
 
-    /* تصاویر داخل هر Study کمی کوچک‌تر باشند
-   تا چند تصویر در یک ردیف دیده شود. */
+    /* ØªØµØ§ÙˆÛŒØ± Ø¯Ø§Ø®Ù„ Ù‡Ø± Study Ú©Ù…ÛŒ Ú©ÙˆÚ†Ú©â€ŒØªØ± Ø¨Ø§Ø´Ù†Ø¯
+   ØªØ§ Ú†Ù†Ø¯ ØªØµÙˆÛŒØ± Ø¯Ø± ÛŒÚ© Ø±Ø¯ÛŒÙ Ø¯ÛŒØ¯Ù‡ Ø´ÙˆØ¯. */
 
     .study-inline-images .images-grid {
         grid-template-columns: repeat( auto-fill, minmax( 160px, 1fr ) );
@@ -1533,7 +1533,7 @@ button {
     background: #f6fafb;
     cursor: default;
 }
-/* The "مشاهده / ویرایش" panel is the main place a doctor looks at a Study. Its chart
+/* The "Ù…Ø´Ø§Ù‡Ø¯Ù‡ / ÙˆÛŒØ±Ø§ÛŒØ´" panel is the main place a doctor looks at a Study. Its chart
    is read-only (the teeth are not editable there) but the view buttons must stay
    usable, otherwise the panel is stuck on a single view - which is what used to
    happen when the whole toolbar was hidden. */
@@ -1628,7 +1628,7 @@ button {
     transition: background .15s ease, transform .15s ease;
 }
 /* Icons are real SVG so they inherit currentColor and stay crisp.
-   Previously these were unicode glyphs (♟ / ⚙), which rendered in the body
+   Previously these were unicode glyphs (â™Ÿ / âš™), which rendered in the body
    font and ignored the navigation colour - the patients glyph in particular
    came out almost black. */
 .sidebar-link .nav-icon {
@@ -2132,26 +2132,26 @@ button {
 #studyDetailsCancelButton { background:#eef4f6; color:#1f2d36; }
 
 /* ==========================================================
-   فرمِ واحدِ مراجعه: ثبتِ جدید و ویرایش در یک بخش (study-mode-new = حالتِ جدید).
+   ÙØ±Ù…Ù ÙˆØ§Ø­Ø¯Ù Ù…Ø±Ø§Ø¬Ø¹Ù‡: Ø«Ø¨ØªÙ Ø¬Ø¯ÛŒØ¯ Ùˆ ÙˆÛŒØ±Ø§ÛŒØ´ Ø¯Ø± ÛŒÚ© Ø¨Ø®Ø´ (study-mode-new = Ø­Ø§Ù„ØªÙ Ø¬Ø¯ÛŒØ¯).
    ========================================================== */
-/* در حالتِ جدید هنوز مراجعه‌ای نیست: کارهایِ تصویر پنهان می‌مانند، ولی نشانگرِ
-   فرمانِ صوتی (voiceStatus) سرِ جایش می‌ماند تا دیکته/صوت در حالتِ جدید هم پاسخ دهد. */
+/* Ø¯Ø± Ø­Ø§Ù„ØªÙ Ø¬Ø¯ÛŒØ¯ Ù‡Ù†ÙˆØ² Ù…Ø±Ø§Ø¬Ø¹Ù‡â€ŒØ§ÛŒ Ù†ÛŒØ³Øª: Ú©Ø§Ø±Ù‡Ø§ÛŒÙ ØªØµÙˆÛŒØ± Ù¾Ù†Ù‡Ø§Ù† Ù…ÛŒâ€ŒÙ…Ø§Ù†Ù†Ø¯ØŒ ÙˆÙ„ÛŒ Ù†Ø´Ø§Ù†Ú¯Ø±Ù
+   ÙØ±Ù…Ø§Ù†Ù ØµÙˆØªÛŒ (voiceStatus) Ø³Ø±Ù Ø¬Ø§ÛŒØ´ Ù…ÛŒâ€ŒÙ…Ø§Ù†Ø¯ ØªØ§ Ø¯ÛŒÚ©ØªÙ‡/ØµÙˆØª Ø¯Ø± Ø­Ø§Ù„ØªÙ Ø¬Ø¯ÛŒØ¯ Ù‡Ù… Ù¾Ø§Ø³Ø® Ø¯Ù‡Ø¯. */
 #studyDetailsSection.study-mode-new #studyReceiveImagesButton,
 #studyDetailsSection.study-mode-new #visitHeaderUploadButton,
 #studyDetailsSection.study-mode-new #pickupHeaderButton,
 #studyDetailsSection.study-mode-new #shareStudyDetailsButton {
     display: none;
 }
-/* دکمه‌های «ثبت مراجعه / انصراف» فقط در حالتِ جدید دیده می‌شوند. */
+/* Ø¯Ú©Ù…Ù‡â€ŒÙ‡Ø§ÛŒ Â«Ø«Ø¨Øª Ù…Ø±Ø§Ø¬Ø¹Ù‡ / Ø§Ù†ØµØ±Ø§ÙÂ» ÙÙ‚Ø· Ø¯Ø± Ø­Ø§Ù„ØªÙ Ø¬Ø¯ÛŒØ¯ Ø¯ÛŒØ¯Ù‡ Ù…ÛŒâ€ŒØ´ÙˆÙ†Ø¯. */
 #studyDetailsSection:not(.study-mode-new) #studyCreateActions {
     display: none;
 }
-/* اسکنِ کارتِ سابقه فقط هنگامِ ثبتِ مراجعهٔ جدید معنا دارد. */
+/* Ø§Ø³Ú©Ù†Ù Ú©Ø§Ø±ØªÙ Ø³Ø§Ø¨Ù‚Ù‡ ÙÙ‚Ø· Ù‡Ù†Ú¯Ø§Ù…Ù Ø«Ø¨ØªÙ Ù…Ø±Ø§Ø¬Ø¹Ù‡Ù” Ø¬Ø¯ÛŒØ¯ Ù…Ø¹Ù†Ø§ Ø¯Ø§Ø±Ø¯. */
 #studyDetailsSection:not(.study-mode-new) #studyCardScanField {
     display: none;
 }
-/* شمای دندان‌ها موقتاً پنهان است (کارتِ #studyDetailsTeethChart در HTML هم
-   display:none دارد)؛ نموداری هم که study-delete داخلِ فرم می‌سازد همین‌طور. */
+/* Ø´Ù…Ø§ÛŒ Ø¯Ù†Ø¯Ø§Ù†â€ŒÙ‡Ø§ Ù…ÙˆÙ‚ØªØ§Ù‹ Ù¾Ù†Ù‡Ø§Ù† Ø§Ø³Øª (Ú©Ø§Ø±ØªÙ #studyDetailsTeethChart Ø¯Ø± HTML Ù‡Ù…
+   display:none Ø¯Ø§Ø±Ø¯)Ø› Ù†Ù…ÙˆØ¯Ø§Ø±ÛŒ Ù‡Ù… Ú©Ù‡ study-delete Ø¯Ø§Ø®Ù„Ù ÙØ±Ù… Ù…ÛŒâ€ŒØ³Ø§Ø²Ø¯ Ù‡Ù…ÛŒÙ†â€ŒØ·ÙˆØ±. */
 #studyDetailsSection .study-teeth-panel {
     display: none;
 }
@@ -2506,7 +2506,7 @@ table button {
     box-shadow:0 5px 18px rgba(12,55,70,.14);
 }
 #patientProfilePhoto { width:100%; height:100%; object-fit:cover; }
-#patientProfilePhoto.empty:not([src])::after { content:"👤"; font-size:42px; }
+#patientProfilePhoto.empty:not([src])::after { content:"ðŸ‘¤"; font-size:42px; }
 .patient-profile-panel p { margin:3px 0 9px; color:var(--muted); font-size:12px; }
 .patient-profile-panel strong { color:#0d3f4f; font-size:16px; }
 
@@ -2781,7 +2781,7 @@ table button {
 
 
 /* ==========================================================
-   Design D — Patient list with row photo and clinical summary
+   Design D â€” Patient list with row photo and clinical summary
    ========================================================== */
 
 #patientsSection .table-container {
@@ -3446,7 +3446,7 @@ table button {
     background: linear-gradient(135deg, #eef8fb 0%, #eef8fb 52%, #e8f8f0 100%);
 }
 
-/* بنر ایمنی گروه خونی: بلافاصله زیر هویت بیمار؛ رنگ قرمزِ آرام، نه فریادی. */
+/* Ø¨Ù†Ø± Ø§ÛŒÙ…Ù†ÛŒ Ú¯Ø±ÙˆÙ‡ Ø®ÙˆÙ†ÛŒ: Ø¨Ù„Ø§ÙØ§ØµÙ„Ù‡ Ø²ÛŒØ± Ù‡ÙˆÛŒØª Ø¨ÛŒÙ…Ø§Ø±Ø› Ø±Ù†Ú¯ Ù‚Ø±Ù…Ø²Ù Ø¢Ø±Ø§Ù…ØŒ Ù†Ù‡ ÙØ±ÛŒØ§Ø¯ÛŒ. */
 #patientsSection + #patientDetailsSection .patient-safety-banner {
     display: flex;
     align-items: center;
@@ -3551,7 +3551,7 @@ table button {
     grid-column: auto;
 }
 
-/* سنِ محاسبه‌شده، هم‌رنگِ مقدار و کنارِ تاریخِ تولد؛ نه فریاد، فقط در دسترس. */
+/* Ø³Ù†Ù Ù…Ø­Ø§Ø³Ø¨Ù‡â€ŒØ´Ø¯Ù‡ØŒ Ù‡Ù…â€ŒØ±Ù†Ú¯Ù Ù…Ù‚Ø¯Ø§Ø± Ùˆ Ú©Ù†Ø§Ø±Ù ØªØ§Ø±ÛŒØ®Ù ØªÙˆÙ„Ø¯Ø› Ù†Ù‡ ÙØ±ÛŒØ§Ø¯ØŒ ÙÙ‚Ø· Ø¯Ø± Ø¯Ø³ØªØ±Ø³. */
 #patientsSection + #patientDetailsSection .patient-overview-identity .info-age {
     color: #55707e;
     font-size: 11px;
@@ -3572,22 +3572,22 @@ table button {
     text-align: left;
 }
 
-/* آدرس و توضیحات: جعبه به‌اندازهٔ لازم باز می‌شود — نه ارتفاعِ ثابتِ غول‌آسا.
-   متن کوتاه مثل بقیهٔ ردیف‌ها یک‌خطی می‌ماند؛ متن بلند فقط تا جایی رشد می‌کند
-   که واقعاً لازم است. */
+/* Ø¢Ø¯Ø±Ø³ Ùˆ ØªÙˆØ¶ÛŒØ­Ø§Øª: Ø¬Ø¹Ø¨Ù‡ Ø¨Ù‡â€ŒØ§Ù†Ø¯Ø§Ø²Ù‡Ù” Ù„Ø§Ø²Ù… Ø¨Ø§Ø² Ù…ÛŒâ€ŒØ´ÙˆØ¯ â€” Ù†Ù‡ Ø§Ø±ØªÙØ§Ø¹Ù Ø«Ø§Ø¨ØªÙ ØºÙˆÙ„â€ŒØ¢Ø³Ø§.
+   Ù…ØªÙ† Ú©ÙˆØªØ§Ù‡ Ù…Ø«Ù„ Ø¨Ù‚ÛŒÙ‡Ù” Ø±Ø¯ÛŒÙâ€ŒÙ‡Ø§ ÛŒÚ©â€ŒØ®Ø·ÛŒ Ù…ÛŒâ€ŒÙ…Ø§Ù†Ø¯Ø› Ù…ØªÙ† Ø¨Ù„Ù†Ø¯ ÙÙ‚Ø· ØªØ§ Ø¬Ø§ÛŒÛŒ Ø±Ø´Ø¯ Ù…ÛŒâ€ŒÚ©Ù†Ø¯
+   Ú©Ù‡ ÙˆØ§Ù‚Ø¹Ø§Ù‹ Ù„Ø§Ø²Ù… Ø§Ø³Øª. */
 #patientsSection + #patientDetailsSection .patient-overview-identity .info-item.full-width {
     align-items: flex-start;
-    /* جعبهٔ خالی/کوتاه هم‌قدِ بقیهٔ ردیف‌ها بماند (padding عمودی نصف شود چون
-       flex خودش فاصلهٔ عمودی اضافه نمیدهد). */
+    /* Ø¬Ø¹Ø¨Ù‡Ù” Ø®Ø§Ù„ÛŒ/Ú©ÙˆØªØ§Ù‡ Ù‡Ù…â€ŒÙ‚Ø¯Ù Ø¨Ù‚ÛŒÙ‡Ù” Ø±Ø¯ÛŒÙâ€ŒÙ‡Ø§ Ø¨Ù…Ø§Ù†Ø¯ (padding Ø¹Ù…ÙˆØ¯ÛŒ Ù†ØµÙ Ø´ÙˆØ¯ Ú†ÙˆÙ†
+       flex Ø®ÙˆØ¯Ø´ ÙØ§ØµÙ„Ù‡Ù” Ø¹Ù…ÙˆØ¯ÛŒ Ø§Ø¶Ø§ÙÙ‡ Ù†Ù…ÛŒØ¯Ù‡Ø¯). */
     padding-block: 3px;
 }
 #patientsSection + #patientDetailsSection .patient-overview-identity .info-item.full-width .info-label {
     padding-top: 2px;
 }
 
-/* فرمهای بیمار (ثبت/ویرایش): جعبهٔ آدرس و توضیحات به‌اندازهٔ متنِ داخلش باز
-   می‌شود — خالی = یک خط، پر = چند خط. مرورگرهای بدونِ field-sizing مقدار rows
-   را به‌عنوانِ سقفِ پیش‌فرض نگه می‌دارند. */
+/* ÙØ±Ù…Ù‡Ø§ÛŒ Ø¨ÛŒÙ…Ø§Ø± (Ø«Ø¨Øª/ÙˆÛŒØ±Ø§ÛŒØ´): Ø¬Ø¹Ø¨Ù‡Ù” Ø¢Ø¯Ø±Ø³ Ùˆ ØªÙˆØ¶ÛŒØ­Ø§Øª Ø¨Ù‡â€ŒØ§Ù†Ø¯Ø§Ø²Ù‡Ù” Ù…ØªÙ†Ù Ø¯Ø§Ø®Ù„Ø´ Ø¨Ø§Ø²
+   Ù…ÛŒâ€ŒØ´ÙˆØ¯ â€” Ø®Ø§Ù„ÛŒ = ÛŒÚ© Ø®Ø·ØŒ Ù¾Ø± = Ú†Ù†Ø¯ Ø®Ø·. Ù…Ø±ÙˆØ±Ú¯Ø±Ù‡Ø§ÛŒ Ø¨Ø¯ÙˆÙ†Ù field-sizing Ù…Ù‚Ø¯Ø§Ø± rows
+   Ø±Ø§ Ø¨Ù‡â€ŒØ¹Ù†ÙˆØ§Ù†Ù Ø³Ù‚ÙÙ Ù¾ÛŒØ´â€ŒÙØ±Ø¶ Ù†Ú¯Ù‡ Ù…ÛŒâ€ŒØ¯Ø§Ø±Ù†Ø¯. */
 textarea {
     field-sizing: content;
     min-height: 2.6em;
@@ -3714,8 +3714,8 @@ textarea {
     position: relative;
 }
 
-/* منوی «تصویر ▾»: در همان ردیف اکشن و در خط بعدی باز می‌شود — نه مطلق‌الموقعیت،
-   چون کارتِ مراجعه overflow:hidden دارد و منوی مطلق داخلش کلیپ می‌شد. */
+/* Ù…Ù†ÙˆÛŒ Â«ØªØµÙˆÛŒØ± â–¾Â»: Ø¯Ø± Ù‡Ù…Ø§Ù† Ø±Ø¯ÛŒÙ Ø§Ú©Ø´Ù† Ùˆ Ø¯Ø± Ø®Ø· Ø¨Ø¹Ø¯ÛŒ Ø¨Ø§Ø² Ù…ÛŒâ€ŒØ´ÙˆØ¯ â€” Ù†Ù‡ Ù…Ø·Ù„Ù‚â€ŒØ§Ù„Ù…ÙˆÙ‚Ø¹ÛŒØªØŒ
+   Ú†ÙˆÙ† Ú©Ø§Ø±ØªÙ Ù…Ø±Ø§Ø¬Ø¹Ù‡ overflow:hidden Ø¯Ø§Ø±Ø¯ Ùˆ Ù…Ù†ÙˆÛŒ Ù…Ø·Ù„Ù‚ Ø¯Ø§Ø®Ù„Ø´ Ú©Ù„ÛŒÙ¾ Ù…ÛŒâ€ŒØ´Ø¯. */
 .study-image-menu-box {
     flex: 1 0 100%;
     display: flex;
@@ -3741,7 +3741,7 @@ textarea {
 
 .study-image-menu-item:hover { background: var(--brand-100); color: var(--brand-700); border-color: var(--brand-200); }
 
-/* ردیف چهار کار تصویر، بالای لیست تصاویر در کارتِ بازشده */
+/* Ø±Ø¯ÛŒÙ Ú†Ù‡Ø§Ø± Ú©Ø§Ø± ØªØµÙˆÛŒØ±ØŒ Ø¨Ø§Ù„Ø§ÛŒ Ù„ÛŒØ³Øª ØªØµØ§ÙˆÛŒØ± Ø¯Ø± Ú©Ø§Ø±ØªÙ Ø¨Ø§Ø²Ø´Ø¯Ù‡ */
 .study-card-image-actions {
     display: flex;
     flex-wrap: wrap;
@@ -3810,8 +3810,8 @@ textarea {
 .study-card-teeth-chart .teeth-chart-selected { display: none; }
 .study-card-teeth-chart .teeth-chart-toolbar strong { font-size: 13px; }
 
-/* نمودار در کارتِ مراجعه: بستهٔ پیش‌فرض (حدود ۲۸۵px جا می‌گیرد). سطرِ سربرگ هم
-   دکمهٔ باز/بسته است و خلاصهٔ دندان‌ها را نشان می‌دهد تا هنگام بستن چیزی از دست نرود. */
+/* Ù†Ù…ÙˆØ¯Ø§Ø± Ø¯Ø± Ú©Ø§Ø±ØªÙ Ù…Ø±Ø§Ø¬Ø¹Ù‡: Ø¨Ø³ØªÙ‡Ù” Ù¾ÛŒØ´â€ŒÙØ±Ø¶ (Ø­Ø¯ÙˆØ¯ Û²Û¸Ûµpx Ø¬Ø§ Ù…ÛŒâ€ŒÚ¯ÛŒØ±Ø¯). Ø³Ø·Ø±Ù Ø³Ø±Ø¨Ø±Ú¯ Ù‡Ù…
+   Ø¯Ú©Ù…Ù‡Ù” Ø¨Ø§Ø²/Ø¨Ø³ØªÙ‡ Ø§Ø³Øª Ùˆ Ø®Ù„Ø§ØµÙ‡Ù” Ø¯Ù†Ø¯Ø§Ù†â€ŒÙ‡Ø§ Ø±Ø§ Ù†Ø´Ø§Ù† Ù…ÛŒâ€ŒØ¯Ù‡Ø¯ ØªØ§ Ù‡Ù†Ú¯Ø§Ù… Ø¨Ø³ØªÙ† Ú†ÛŒØ²ÛŒ Ø§Ø² Ø¯Ø³Øª Ù†Ø±ÙˆØ¯. */
 .study-chart-toggle {
     display: flex;
     align-items: center;
@@ -3842,7 +3842,7 @@ textarea {
 .study-scroll-chart.is-collapsed .study-card-teeth-chart { display: none; }
 .study-scroll-chart.is-collapsed { padding-bottom: 9px; }
 
-/* شمارهٔ سریالِ مراجعه در هدر کارت: قدیمی‌ترین =۱ */
+/* Ø´Ù…Ø§Ø±Ù‡Ù” Ø³Ø±ÛŒØ§Ù„Ù Ù…Ø±Ø§Ø¬Ø¹Ù‡ Ø¯Ø± Ù‡Ø¯Ø± Ú©Ø§Ø±Øª: Ù‚Ø¯ÛŒÙ…ÛŒâ€ŒØªØ±ÛŒÙ† =Û± */
 .study-visit-serial { color: var(--primary); font-weight: 850; }
 
 .study-scroll-images {
@@ -3850,15 +3850,15 @@ textarea {
     border-top: 1px solid #e4eff2;
 }
 
-/* تمام‌عرض و زیرِ هم: اقدامات، دریافت‌ها و تصاویر در یک ستون می‌نشینند. (بدنهٔ
-   کارت در عرض‌های بیش از ۱۱۰۰px دو ستونه است؛ جزئیات و نمودار کنار هم می‌مانند
-   و این سه بخش هر دو ستون را می‌گیرند.) */
+/* ØªÙ…Ø§Ù…â€ŒØ¹Ø±Ø¶ Ùˆ Ø²ÛŒØ±Ù Ù‡Ù…: Ø§Ù‚Ø¯Ø§Ù…Ø§ØªØŒ Ø¯Ø±ÛŒØ§ÙØªâ€ŒÙ‡Ø§ Ùˆ ØªØµØ§ÙˆÛŒØ± Ø¯Ø± ÛŒÚ© Ø³ØªÙˆÙ† Ù…ÛŒâ€ŒÙ†Ø´ÛŒÙ†Ù†Ø¯. (Ø¨Ø¯Ù†Ù‡Ù”
+   Ú©Ø§Ø±Øª Ø¯Ø± Ø¹Ø±Ø¶â€ŒÙ‡Ø§ÛŒ Ø¨ÛŒØ´ Ø§Ø² Û±Û±Û°Û°px Ø¯Ùˆ Ø³ØªÙˆÙ†Ù‡ Ø§Ø³ØªØ› Ø¬Ø²Ø¦ÛŒØ§Øª Ùˆ Ù†Ù…ÙˆØ¯Ø§Ø± Ú©Ù†Ø§Ø± Ù‡Ù… Ù…ÛŒâ€ŒÙ…Ø§Ù†Ù†Ø¯
+   Ùˆ Ø§ÛŒÙ† Ø³Ù‡ Ø¨Ø®Ø´ Ù‡Ø± Ø¯Ùˆ Ø³ØªÙˆÙ† Ø±Ø§ Ù…ÛŒâ€ŒÚ¯ÛŒØ±Ù†Ø¯.) */
 .study-actions,
 .study-finance,
 .study-scroll-images { grid-column: 1 / -1; }
 
-/* کارتِ سابقه: سندِ اسکن‌شدهٔ همان مراجعه — جدا از تصاویر رادیولوژی نشان داده
-   می‌شود و دکمهٔ تحلیل ندارد چون هنگامِ ثبتِ مراجعه خوانده شده است. */
+/* Ú©Ø§Ø±ØªÙ Ø³Ø§Ø¨Ù‚Ù‡: Ø³Ù†Ø¯Ù Ø§Ø³Ú©Ù†â€ŒØ´Ø¯Ù‡Ù” Ù‡Ù…Ø§Ù† Ù…Ø±Ø§Ø¬Ø¹Ù‡ â€” Ø¬Ø¯Ø§ Ø§Ø² ØªØµØ§ÙˆÛŒØ± Ø±Ø§Ø¯ÛŒÙˆÙ„ÙˆÚ˜ÛŒ Ù†Ø´Ø§Ù† Ø¯Ø§Ø¯Ù‡
+   Ù…ÛŒâ€ŒØ´ÙˆØ¯ Ùˆ Ø¯Ú©Ù…Ù‡Ù” ØªØ­Ù„ÛŒÙ„ Ù†Ø¯Ø§Ø±Ø¯ Ú†ÙˆÙ† Ù‡Ù†Ú¯Ø§Ù…Ù Ø«Ø¨ØªÙ Ù…Ø±Ø§Ø¬Ø¹Ù‡ Ø®ÙˆØ§Ù†Ø¯Ù‡ Ø´Ø¯Ù‡ Ø§Ø³Øª. */
 .study-scroll-docs {
     margin: 0 0 12px;
     padding: 10px;
@@ -3869,7 +3869,7 @@ textarea {
 .study-scroll-docs .images-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 }
-/* بازبینیِ اطلاعاتِ استخراج‌شده از کارتِ سابقه — فرمِ مراجعهٔ جدید */
+/* Ø¨Ø§Ø²Ø¨ÛŒÙ†ÛŒÙ Ø§Ø·Ù„Ø§Ø¹Ø§ØªÙ Ø§Ø³ØªØ®Ø±Ø§Ø¬â€ŒØ´Ø¯Ù‡ Ø§Ø² Ú©Ø§Ø±ØªÙ Ø³Ø§Ø¨Ù‚Ù‡ â€” ÙØ±Ù…Ù Ù…Ø±Ø§Ø¬Ø¹Ù‡Ù” Ø¬Ø¯ÛŒØ¯ */
 .scan-row {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -4142,8 +4142,8 @@ img.dashboard-recent-icon { padding: 0; object-fit: cover; background: #0f5165; 
     image-rendering: pixelated;
 }
 
-/* نمای تمام‌صفحهٔ کیوآرکد: همان کد با خانه‌های بسیار بزرگ‌تر، برای
-   دوربین‌هایی که به خانهٔ کوچک حساس‌اند (مثلاً شیائومی). */
+/* Ù†Ù…Ø§ÛŒ ØªÙ…Ø§Ù…â€ŒØµÙØ­Ù‡Ù” Ú©ÛŒÙˆØ¢Ø±Ú©Ø¯: Ù‡Ù…Ø§Ù† Ú©Ø¯ Ø¨Ø§ Ø®Ø§Ù†Ù‡â€ŒÙ‡Ø§ÛŒ Ø¨Ø³ÛŒØ§Ø± Ø¨Ø²Ø±Ú¯â€ŒØªØ±ØŒ Ø¨Ø±Ø§ÛŒ
+   Ø¯ÙˆØ±Ø¨ÛŒÙ†â€ŒÙ‡Ø§ÛŒÛŒ Ú©Ù‡ Ø¨Ù‡ Ø®Ø§Ù†Ù‡Ù” Ú©ÙˆÚ†Ú© Ø­Ø³Ø§Ø³â€ŒØ§Ù†Ø¯ (Ù…Ø«Ù„Ø§Ù‹ Ø´ÛŒØ§Ø¦ÙˆÙ…ÛŒ). */
 .qr-zoom-overlay {
     position: fixed;
     inset: 0;
@@ -4226,7 +4226,7 @@ img.dashboard-recent-icon { padding: 0; object-fit: cover; background: #0f5165; 
 }
 
 /* ==========================================================
-   کنترل صوتی در هدر مراجعه (فاز ۱)
+   Ú©Ù†ØªØ±Ù„ ØµÙˆØªÛŒ Ø¯Ø± Ù‡Ø¯Ø± Ù…Ø±Ø§Ø¬Ø¹Ù‡ (ÙØ§Ø² Û±)
    ========================================================== */
 
 .voice-status {
@@ -4270,7 +4270,7 @@ img.dashboard-recent-icon { padding: 0; object-fit: cover; background: #0f5165; 
     50% { opacity: 0.2; }
 }
 
-/* معادل صوتی هر دکمه، درست کنار خودش نمایش داده می‌شود */
+/* Ù…Ø¹Ø§Ø¯Ù„ ØµÙˆØªÛŒ Ù‡Ø± Ø¯Ú©Ù…Ù‡ØŒ Ø¯Ø±Ø³Øª Ú©Ù†Ø§Ø± Ø®ÙˆØ¯Ø´ Ù†Ù…Ø§ÛŒØ´ Ø¯Ø§Ø¯Ù‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯ */
 .image-viewer-toolbar button[data-voice] {
     display: inline-flex;
     flex-direction: column;
@@ -4289,7 +4289,7 @@ img.dashboard-recent-icon { padding: 0; object-fit: cover; background: #0f5165; 
     white-space: nowrap;
 }
 
-/* دکمهٔ بستن جدا از نوار است؛ برچسبش زیر خودش می‌آید */
+/* Ø¯Ú©Ù…Ù‡Ù” Ø¨Ø³ØªÙ† Ø¬Ø¯Ø§ Ø§Ø² Ù†ÙˆØ§Ø± Ø§Ø³ØªØ› Ø¨Ø±Ú†Ø³Ø¨Ø´ Ø²ÛŒØ± Ø®ÙˆØ¯Ø´ Ù…ÛŒâ€ŒØ¢ÛŒØ¯ */
 .modal-close-button[data-voice]::after {
     content: attr(data-voice);
     position: absolute;
@@ -4306,7 +4306,7 @@ img.dashboard-recent-icon { padding: 0; object-fit: cover; background: #0f5165; 
     white-space: nowrap;
 }
 
-/* بازخورد فرمان داخل بینندهٔ تمام‌صفحه، جایی که هدر دیده نمی‌شود */
+/* Ø¨Ø§Ø²Ø®ÙˆØ±Ø¯ ÙØ±Ù…Ø§Ù† Ø¯Ø§Ø®Ù„ Ø¨ÛŒÙ†Ù†Ø¯Ù‡Ù” ØªÙ…Ø§Ù…â€ŒØµÙØ­Ù‡ØŒ Ø¬Ø§ÛŒÛŒ Ú©Ù‡ Ù‡Ø¯Ø± Ø¯ÛŒØ¯Ù‡ Ù†Ù…ÛŒâ€ŒØ´ÙˆØ¯ */
 .voice-status-viewer {
     position: absolute;
     bottom: 14px;
@@ -4326,8 +4326,8 @@ img.dashboard-recent-icon { padding: 0; object-fit: cover; background: #0f5165; 
 
 .voice-status-viewer.is-error { background: rgba(180, 35, 24, 0.92); }
 
-/* راهنمای فرمان‌ها — فقط وقتی گوش دادن فعال است، زیر کلیدها دیده می‌شود */
-/* راهنمای فرمان‌ها حذف شد: برچسب صوتی زیر هر دکمه + توضیح کامل در tooltip همان دکمه است. */
+/* Ø±Ø§Ù‡Ù†Ù…Ø§ÛŒ ÙØ±Ù…Ø§Ù†â€ŒÙ‡Ø§ â€” ÙÙ‚Ø· ÙˆÙ‚ØªÛŒ Ú¯ÙˆØ´ Ø¯Ø§Ø¯Ù† ÙØ¹Ø§Ù„ Ø§Ø³ØªØŒ Ø²ÛŒØ± Ú©Ù„ÛŒØ¯Ù‡Ø§ Ø¯ÛŒØ¯Ù‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯ */
+/* Ø±Ø§Ù‡Ù†Ù…Ø§ÛŒ ÙØ±Ù…Ø§Ù†â€ŒÙ‡Ø§ Ø­Ø°Ù Ø´Ø¯: Ø¨Ø±Ú†Ø³Ø¨ ØµÙˆØªÛŒ Ø²ÛŒØ± Ù‡Ø± Ø¯Ú©Ù…Ù‡ + ØªÙˆØ¶ÛŒØ­ Ú©Ø§Ù…Ù„ Ø¯Ø± tooltip Ù‡Ù…Ø§Ù† Ø¯Ú©Ù…Ù‡ Ø§Ø³Øª. */
 .dashboard-network-note { margin: 9px 2px 0; color: #55707e; font-size: 12px; }
 
 .dashboard-network-settings-button {
@@ -4676,7 +4676,7 @@ body { line-height: 1.75; }
    Mobile: messages must never sit on the bottom bar
    The navigation bar owns the bottom 62px of the phone screen. Toasts are
    fixed and layered far above it, so while a message is on screen the bar
-   used to become untappable - tapping "بیماران" then did nothing at all.
+   used to become untappable - tapping "Ø¨ÛŒÙ…Ø§Ø±Ø§Ù†" then did nothing at all.
    ========================================================== */
 @media ( max-width: 700px ) {
     .toast-container {
@@ -4800,7 +4800,7 @@ body { line-height: 1.75; }
 }
 
 /* ==========================================================
-   الصاق تصویر موجود از پرونده به مراجعه (تصاویر بدون نوع یا غیرمتصل)
+   Ø§Ù„ØµØ§Ù‚ ØªØµÙˆÛŒØ± Ù…ÙˆØ¬ÙˆØ¯ Ø§Ø² Ù¾Ø±ÙˆÙ†Ø¯Ù‡ Ø¨Ù‡ Ù…Ø±Ø§Ø¬Ø¹Ù‡ (ØªØµØ§ÙˆÛŒØ± Ø¨Ø¯ÙˆÙ† Ù†ÙˆØ¹ ÛŒØ§ ØºÛŒØ±Ù…ØªØµÙ„)
    ========================================================== */
 
 .section-header-actions {
@@ -4922,7 +4922,7 @@ body { line-height: 1.75; }
 }
 
 /* ==========================================================
-   راهنمای ثابت زیر فرم‌ها (متن‌ها در js/help-content.js)
+   Ø±Ø§Ù‡Ù†Ù…Ø§ÛŒ Ø«Ø§Ø¨Øª Ø²ÛŒØ± ÙØ±Ù…â€ŒÙ‡Ø§ (Ù…ØªÙ†â€ŒÙ‡Ø§ Ø¯Ø± js/help-content.js)
    ========================================================== */
 
 .form-guide {
@@ -5003,7 +5003,7 @@ body { line-height: 1.75; }
 }
 
 /* ==========================================================
-   تور اولین ورود (متن‌ها در js/help-content.js → tour)
+   ØªÙˆØ± Ø§ÙˆÙ„ÛŒÙ† ÙˆØ±ÙˆØ¯ (Ù…ØªÙ†â€ŒÙ‡Ø§ Ø¯Ø± js/help-content.js â†’ tour)
    ========================================================== */
 
 .tour-overlay {
@@ -5059,7 +5059,7 @@ body { line-height: 1.75; }
 .tour-note { margin-top: 12px; color: #7c8b95; font-size: 11.5px; line-height: 1.9; }
 
 /* ==========================================================
-   صفحهٔ «راهنما» در منو
+   ØµÙØ­Ù‡Ù” Â«Ø±Ø§Ù‡Ù†Ù…Ø§Â» Ø¯Ø± Ù…Ù†Ùˆ
    ========================================================== */
 
 .help-page {
@@ -5078,7 +5078,7 @@ body { line-height: 1.75; }
     font-size: 12px;
 }
 
-/* کیوآرکدِ همان لینک، داخل پنجرهٔ «ارسال لینک تصویر با پیامک» */
+/* Ú©ÛŒÙˆØ¢Ø±Ú©Ø¯Ù Ù‡Ù…Ø§Ù† Ù„ÛŒÙ†Ú©ØŒ Ø¯Ø§Ø®Ù„ Ù¾Ù†Ø¬Ø±Ù‡Ù” Â«Ø§Ø±Ø³Ø§Ù„ Ù„ÛŒÙ†Ú© ØªØµÙˆÛŒØ± Ø¨Ø§ Ù¾ÛŒØ§Ù…Ú©Â» */
 .share-qr {
     display: flex;
     flex-direction: column;
@@ -5104,7 +5104,7 @@ body { line-height: 1.75; }
 
 
 /* ==========================================================
-   App event log (فقط مدیرِ سیستم)
+   App event log (ÙÙ‚Ø· Ù…Ø¯ÛŒØ±Ù Ø³ÛŒØ³ØªÙ…)
    ========================================================== */
 
 .events-filters {
@@ -5291,7 +5291,7 @@ body { line-height: 1.75; }
 }
 
 
-/* آماده‌سازیِ تحلیل: نکتهٔ ویژه قبل از ارسال، در خودِ پنجرهٔ تحلیل */
+/* Ø¢Ù…Ø§Ø¯Ù‡â€ŒØ³Ø§Ø²ÛŒÙ ØªØ­Ù„ÛŒÙ„: Ù†Ú©ØªÙ‡Ù” ÙˆÛŒÚ˜Ù‡ Ù‚Ø¨Ù„ Ø§Ø² Ø§Ø±Ø³Ø§Ù„ØŒ Ø¯Ø± Ø®ÙˆØ¯Ù Ù¾Ù†Ø¬Ø±Ù‡Ù” ØªØ­Ù„ÛŒÙ„ */
 
 .ai-prepare-label {
     margin: 0 0 7px;
@@ -5647,7 +5647,7 @@ body { line-height: 1.75; }
         background: #ffffff;
     }
 }
-/* ??????? ????? � ??? �??????? ??????� (????? ? ???????) */
+/* ??????? ????? ï¿½ ??? ï¿½??????? ??????ï¿½ (????? ? ???????) */
 .patient-extra-details{margin-top:14px;border:1px solid #dbe7f1;border-radius:12px;background:#f8fbfe;padding:7px 12px}
 .patient-extra-details>summary{cursor:pointer;font-weight:700;color:#215a86;padding:4px 0}
 .patient-extra-details[open]>summary{margin-bottom:10px;border-bottom:1px solid #e3edf5;padding-bottom:7px}
@@ -5669,9 +5669,9 @@ body { line-height: 1.75; }
 .patient-sortable.sort-desc::after{content:' ?';font-size:9px;color:#0b62c4}
 .patients-load-more{display:flex;justify-content:center;padding:14px 0}
 
-/* ==== کارتِ مراجعه بدونِ ناوبری (visit-draft.js) ===========================
-   پیش‌نویسِ بالایِ لیست + فیلدهایِ مستقیم‌ویرایش در هر کارت. هر تغییر، کلیدِ
-   «ثبت» را کنارِ همان فیلد ظاهر می‌کند؛ «ثبت» کلِ کارت را ذخیره می‌کند.        */
+/* ==== Ú©Ø§Ø±ØªÙ Ù…Ø±Ø§Ø¬Ø¹Ù‡ Ø¨Ø¯ÙˆÙ†Ù Ù†Ø§ÙˆØ¨Ø±ÛŒ (visit-draft.js) ===========================
+   Ù¾ÛŒØ´â€ŒÙ†ÙˆÛŒØ³Ù Ø¨Ø§Ù„Ø§ÛŒÙ Ù„ÛŒØ³Øª + ÙÛŒÙ„Ø¯Ù‡Ø§ÛŒÙ Ù…Ø³ØªÙ‚ÛŒÙ…â€ŒÙˆÛŒØ±Ø§ÛŒØ´ Ø¯Ø± Ù‡Ø± Ú©Ø§Ø±Øª. Ù‡Ø± ØªØºÛŒÛŒØ±ØŒ Ú©Ù„ÛŒØ¯Ù
+   Â«Ø«Ø¨ØªÂ» Ø±Ø§ Ú©Ù†Ø§Ø±Ù Ù‡Ù…Ø§Ù† ÙÛŒÙ„Ø¯ Ø¸Ø§Ù‡Ø± Ù…ÛŒâ€ŒÚ©Ù†Ø¯Ø› Â«Ø«Ø¨ØªÂ» Ú©Ù„Ù Ú©Ø§Ø±Øª Ø±Ø§ Ø°Ø®ÛŒØ±Ù‡ Ù…ÛŒâ€ŒÚ©Ù†Ø¯.        */
 .visit-draft-host:empty{display:none}
 .visit-draft-host{margin:0 0 14px}
 .study-draft-card{border:1px dashed var(--border,#cfe0ee);border-radius:12px;background:#f7fcfe;padding:12px 14px;box-shadow:var(--shadow,none)}
