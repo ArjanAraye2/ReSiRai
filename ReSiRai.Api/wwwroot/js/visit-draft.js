@@ -55,13 +55,16 @@
     async function loadTypes(specialtyID) {
         const url = specialtyID ? `/api/studytypes?specialtyID=${specialtyID}` : "/api/studytypes";
         try {
-            const x = await fetch(url, { cache: "no-store" }).then(readJson);
+            const r = await fetch(url, { cache: "no-store" });
+            let x = {};
+            try { x = await r.json(); } catch { }
+            if (!r.ok) { console.error('[مراجعه] «دلیل مراجعه»: HTTP ' + r.status, url); window.__lastTypeHTTP = r.status; return { items: [], http: r.status }; }
             const list = x.studyTypes || [];
             if (!list.length) console.warn('[مراجعه] فهرستِ «دلیل مراجعه» خالی:', url, x);
-            return list;
+            return { items: list, http: r.status };
         } catch (e) {
             console.error('[مراجعه] خواندنِ «دلیل مراجعه» شکست خورد:', url, e && (e.message || e));
-            return [];
+            return { items: [], http: 0 };
         }
     }
 
@@ -246,13 +249,13 @@
 
         // فهرستِ «دلیل مراجعه»: اگر پاسخِ فیلترشده بر طبقِ رشته خالی آمد، بی‌درنگ
         // کلِ فهرست را می‌گیریم تا کاربر هرگز با کشوی خالی گیر نکند.
-        let typeItems = await loadTypes(specialtyID);
+        let typeItems = (await loadTypes(specialtyID)).items;
         if (!typeItems.length && specialtyID) {
             console.warn("[مراجعه] فهرستِ رشته خالی؛ بدونِ فیلترِ رشته دوباره تلاش می‌شود.");
-            typeItems = await loadTypes();
+            typeItems = (await loadTypes()).items;
         }
         console.info("[مراجعه] hydrate: رشته=" + specialtyID + " دلیل مراجعه=" + typeItems.length + " پزشکان=" + ctx.doctors.length);
-        if (!typeItems.length) { const st = host.__state; if (st) st.textContent = "فهرستِ «دلیل مراجعه» نیامد — کنسولِ مرورگر (F12) را ببینید."; }
+        if (!typeItems.length) { const st = host.__state; if (st) st.textContent = "فهرستِ «دلیل مراجعه» نیامد — کنسولِ مرورگر (F12) را ببینید. (HTTP: " + (window.__lastTypeHTTP || "?") + ")"; }
         fillSelect(rows.type.input, typeItems.map(t => ({
             value: t.StudyTypeID, text: t.StudyTypeName
         })), study ? (study.studyTypeID ?? "") : "");
@@ -288,7 +291,9 @@
             const doc = ctx.doctors.find(d => Number(d.staffID) === Number(rows.doctorStaffID.input.value));
             const sid = (doc && doc.specialtyID) || ctx.specialtyID || 0;
             const keep = rows.type.input.value;
-            fillSelect(rows.type.input, (await loadTypes(sid)).map(t => ({ value: t.StudyTypeID, text: t.StudyTypeName })), keep);
+            fillSelect(rows.type.input, (await loadTypes(sid)).items.map(t => ({
+            value: t.StudyTypeID, text: t.StudyTypeName
+        })), keep);
             fillSelect(rows.waitStage.input, (await loadWaitStages(sid)).map(w => ({ value: w.waitStageID, text: w.name })), rows.waitStage.input.value);
             host.__syncConditionals && host.__syncConditionals();
         });
