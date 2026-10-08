@@ -128,7 +128,7 @@ public class VisitContextControllerTests
     }
 
     [Fact]
-    public async Task SuperAdmin_GetsTheOnlyClinic_AndMustPickADoctor()
+    public async Task SuperAdmin_WithNoRegisteredDoctor_HasNoDoctorAndHidesTheSelect()
     {
         var db = CreateDatabase();
         int clinicID = AddClinic(db);
@@ -136,6 +136,37 @@ public class VisitContextControllerTests
         var payload = await Get(db, User(userID: 1, staffID: 0, staffType: 0, superAdmin: true));
 
         Assert.Equal(clinicID, payload.GetProperty("clinicID").GetInt32());
+        Assert.True(payload.GetProperty("doctorStaffID").ValueKind == JsonValueKind.Null);
+        // پزشکی ثبت نشده ⇒ چیزی برای انتخاب نیست و سلکت هم نباید دیده شود.
+        Assert.False(payload.GetProperty("canPickDoctor").GetBoolean());
+    }
+
+    [Fact]
+    public async Task SingleRegisteredDoctor_IsAutoPicked_EvenForSuperAdmin()
+    {
+        // واحدِ ما «مطب» نیست، فقط یک پزشک است: تنها پزشکِ فعالِ سیستم باید
+        // خودکار انتخاب شود تا کارتِ مراجعه سلکتِ پزشک نشان ندهد.
+        var db = CreateDatabase();
+        AddClinic(db);
+        int doctorID = AddStaff(db, staffType: 2, specialtyID: 11);
+
+        var payload = await Get(db, User(userID: 1, staffID: 0, staffType: 0, superAdmin: true));
+
+        Assert.Equal(doctorID, payload.GetProperty("doctorStaffID").GetInt32());
+        Assert.Equal(11, payload.GetProperty("specialtyID").GetInt32());
+        Assert.False(payload.GetProperty("canPickDoctor").GetBoolean());
+    }
+
+    [Fact]
+    public async Task TwoRegisteredDoctors_LeaveTheChoiceToTheUser()
+    {
+        var db = CreateDatabase();
+        AddClinic(db);
+        AddStaff(db, staffType: 2);
+        AddStaff(db, staffType: 2);
+
+        var payload = await Get(db, User(userID: 1, staffID: 0, staffType: 0, superAdmin: true));
+
         Assert.True(payload.GetProperty("doctorStaffID").ValueKind == JsonValueKind.Null);
         Assert.True(payload.GetProperty("canPickDoctor").GetBoolean());
     }

@@ -77,6 +77,29 @@ namespace ReSiRai.Api.Controllers
                     .FirstOrDefaultAsync(cancellationToken)
                 : null;
 
+            // واحدِ ما فعلاً «مطب» نیست، فقط پزشک است: اگر در کلِ سیستم یک پزشکِ
+            // فعال بیشتر نباشد، همان خودکار انتخاب می‌شود و کارتِ مراجعه اصلاً
+            // سلکتِ پزشک را نشان نمی‌دهد. سلکت فقط با دو پزشک یا بیشتر برمی‌گردد.
+            // پزشکِ ثبت‌نشده (صفر ردیف) یعنی هنوز چیزی برای انتخاب نیست.
+            var doctors = await _db.Staff.AsNoTracking()
+                .Where(x => x.StaffType == 2 && (x.EndDate == null || x.EndDate >= DateTime.Now))
+                .Select(x => x.StaffID)
+                .OrderBy(x => x)
+                .ToListAsync(cancellationToken);
+            if (!doctorStaffID.HasValue && doctors.Count == 1)
+            {
+                doctorStaffID = doctors[0];
+                doctorName = await _db.Staff.AsNoTracking()
+                    .Where(x => x.StaffID == doctorStaffID.Value)
+                    .Select(x => x.FirstName + " " + x.LastName)
+                    .FirstOrDefaultAsync(cancellationToken);
+                if (specialtyID <= 0)
+                    specialtyID = await _db.Staff.AsNoTracking()
+                        .Where(x => x.StaffID == doctorStaffID.Value)
+                        .Select(x => x.SpecialtyID ?? 0)
+                        .FirstOrDefaultAsync(cancellationToken);
+            }
+
             return Ok(new
             {
                 success = true,
@@ -84,8 +107,8 @@ namespace ReSiRai.Api.Controllers
                 doctorStaffID,
                 doctorName,
                 specialtyID = specialtyID > 0 ? specialtyID : (int?)null,
-                // بدونِ پزشکِ قابلِ استخراج، کارت باید سلکتِ پزشک را نشان دهد.
-                canPickDoctor = superAdmin || !doctorStaffID.HasValue
+                // سلکتِ پزشک فقط وقتی باید دیده شود که واقعاً چیزی برای انتخاب هست.
+                canPickDoctor = !doctorStaffID.HasValue && doctors.Count >= 2
             });
         }
     }

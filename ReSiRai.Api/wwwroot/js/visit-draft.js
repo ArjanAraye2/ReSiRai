@@ -231,6 +231,10 @@
             text: `${d.firstName || ""} ${d.lastName || ""}`.trim() + (d.specialtyName ? ` — ${d.specialtyName}` : "")
         })), study ? (study.doctorStaffID ?? "") : (ctx.doctorStaffID ?? ""));
 
+        // واحدِ «فقط پزشک»: وقتی پزشک خودکار آمده (یا هنوز پزشکی ثبت نشده)،
+        // فیلدِ پزشک اصلاً دیده نمی‌شود — مقدار همچنان همان است و ارسال می‌شود.
+        rows.doctorStaffID.row.classList.toggle("hidden", !ctx.canPickDoctor);
+
         const chosenDoctor = ctx.doctors.find(d => Number(d.staffID) === Number(rows.doctorStaffID.input.value));
         const specialtyID = (chosenDoctor && chosenDoctor.specialtyID) || ctx.specialtyID || 0;
 

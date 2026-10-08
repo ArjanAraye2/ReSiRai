@@ -112,6 +112,9 @@
       $('[data-key="type"] select', card) && $('[data-key="type"] select', card).options.length);
     check("draft-doctor-auto", !!$('[data-key="doctorStaffID"] select', card) && $('[data-key="doctorStaffID"] select', card).value === "11",
       $('[data-key="doctorStaffID"] select', card) && $('[data-key="doctorStaffID"] select', card).value);
+    // واحدِ «فقط پزشک»: چون پزشک خودکار آمده، سلکتِ پزشک نباید دیده شود.
+    check("doctor-row-hidden-when-auto", $('[data-key="doctorStaffID"]', card) &&
+      $('[data-key="doctorStaffID"]', card).classList.contains("hidden"));
     check("draft-date-filled", !!$('[data-key="studyDate"] input', card) && $('[data-key="studyDate"] input', card).value.length > 0,
       $('[data-key="studyDate"] input', card) && $('[data-key="studyDate"] input', card).value);
     check("save-hidden-until-change", Array.from(card.querySelectorAll(".visit-field-save")).every(function (b) { return b.classList.contains("hidden"); }));
