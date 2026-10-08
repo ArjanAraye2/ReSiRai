@@ -90,7 +90,7 @@
       studyID: 42, patientID: 1, studyTypeID: 1, studyTypeName: "ویزیت عمومی",
       studyDate: "2026-10-08T09:00:00", bodyPart: "گلو",
       description: "توضیح آزمایشی", diagnosis: "تشخیص آزمایشی",
-      workEndDate: "2026-10-08T10:30:00", status: 1, toothNumbers: []
+      workEndDate: "2026-10-08T10:30:00", status: 1, toothNumbers: [11, 16]
     };
     var openError = "";
     try { await openStudyDetails(study); } catch (e) { openError = (e && e.message) || String(e); }
@@ -109,6 +109,17 @@
       JSON.stringify(window.__puts.map(function (p) { return p.url; })));
     check("workend-field-updated", !!workEndInput && !!workEndInput.value && workEndInput.value !== before,
       before + " -> " + (workEndInput && workEndInput.value));
+
+    /* ---------- ۵) کارتِ مراجعه: نمودارِ دندان برایِ فازِ عمومی دیده نمی‌شود ---------- */
+    check("teeth-flag-exists-and-off", /const SHOW_TEETH_CHART\s*=\s*false/.test(appJs));
+    renderStudiesSafe([study]);
+    var card = document.querySelector(".study-scroll-card");
+    check("card-rendered", !!card);
+    var openBtn = card ? Array.from(card.querySelectorAll("button")).filter(function (b) { return b.textContent.trim() === "نمایش"; })[0] : null;
+    if (openBtn) openBtn.click();
+    check("card-has-no-teeth-section", !!card && !card.querySelector(".study-scroll-chart"));
+    check("card-summary-has-no-teeth", !!card && card.textContent.indexOf("نمودار دندان") < 0,
+      card && card.textContent.slice(0, 160));
   } catch (e) {
     results.push({ name: "exception", ok: false, extra: (e && e.message) || String(e) });
   }

@@ -18,6 +18,10 @@ let studyDetailsSaveInProgress=false;
 // «view»/«edit» (مراجعهٔ موجود). کلاسِ study-mode-new رویِ بخش، حالت را برای CSS
 // (دکمه‌های تصویر، فیلدِ اسکنِ کارت) هم اعلام می‌کند.
 let studyFormMode="view";
+// فازِ پزشکِ عمومی: نمودارِ دندان در کارتِ مراجعه دیده نشود. فیلدهایِ دندانی
+// «تعلیق» است — کد پابرجاست؛ برایِ برگرداندن فقط کافی است true شود.
+// مرجعِ تصمیم: docs/visit-fields.md (بخشِ ⏸ تعلیق).
+const SHOW_TEETH_CHART=false;
 function setStudyFormMode(mode){studyFormMode=mode;E.studyDetailsSection?.classList.toggle("study-mode-new",mode==="new");E.studyDetailsWorkEndButton?.classList.toggle("hidden",mode==="new");}
 
 const ids=["openStudiesOnly","dueFollowUpOnly","statPatientsWithOpenStudies","studyDetailsStatus2","studyDetailsWaitBox","studyDetailsWaitStage","studyDetailsFollowUpBox","studyDetailsFollowUpDate","studyDetailsFollowUpNote","studyDetailsDoctor","studyDetailsStatusBadge","patientsSection","patientStatistics","statTotalPatients","statActivePatients","statInactivePatients","statPatientsWithStudies","patientSearch","searchButton","clearSearchButton","includeInactivePatients","newPatientButton","patientsTableBody","statusMessage","patientDetailsSection","studyDetailsSection","studyImagesSection","backToPatientDetailsButton","backToStudyDetailsButton","studyDetailsTitle","studyDetailsDate","studyCreateActions","newStudySubmitButton","studyDetailsTeethChart","studyDetailsUploadButton","studyDetailsEditButton","studyDetailsImagesButton","studyDetailsSaveButton","studyDetailsCancelButton","studyImagesTitle","studyDetailsImagesStatus","studyDetailsImagesGrid","backToPatientsButton","editPatientButton","newStudyButton","printPatientButton","mergePatientButton","deactivatePatientButton","patientFullName","patientDisplayCode","patientNationalCode","patientStatusBadge","patientProfilePhoto","patientPhotoInput","patientPhotoButton","detailPatientCode","detailFirstName","detailLastName","detailNationalCode","detailMobile","detailBirthDate","detailGender","detailIsActive","detailAddress","detailDescription","studyCount","totalImageCount","studiesContainer","newPatientSection","newPatientForm","cancelNewPatientButton","cancelNewPatientButtonBottom","newFirstName","newLastName","newNationalCode","newMobile","newBirthDate","newGender","newAddress","newDescription","newPatientStatus","editPatientSection","editPatientForm","cancelEditPatientButton","cancelEditPatientButtonBottom","editFirstName","editLastName","editNationalCode","editMobile","editBirthDate","editGender","editAddress","editDescription","editPatientStatus","newStudyForm","cancelNewStudyButtonBottom","newStudyType","newBodyPart","newStudyDate","newStudyDescription","newStudyDiagnosis","studyDetailsWorkEndDate","studyDetailsWorkEndButton","uploadImageSection","uploadImageForm","cancelUploadImageButton","cancelUploadImageButtonBottom","uploadImageStudyInfo","uploadImageType","imageFileInput","cameraFileInput","cameraPreviewPanel","cameraPreviewImage","confirmCameraButton","retakeCameraButton","uploadImageStatus","mergePatientSection","mergePatientForm","cancelMergePatientButton","cancelMergePatientButtonBottom","mergeTargetNationalCode","mergePatientStatus","imageModal","closeImageModalButton","zoomOutImageButton","zoomInImageButton","rotateLeftImageButton","rotateRightImageButton","flipHorizontalImageButton","resetImageViewButton","largeImage","largeImageCaption","confirmModal","confirmTitle","confirmMessage","confirmYesButton","confirmNoButton","toastContainer"];
@@ -537,7 +541,7 @@ window.ReSiRaiMarkWorkEnd=event=>{event?.preventDefault?.();return markWorkEnd()
   // توضیحِ «سایر» هم بخشی از همان مراجعه است و در خلاصه دیده می‌شود.
   if(study.studyTypeNote)parts.push(`سایر: ${study.studyTypeNote}`);
   const toothCount=Array.isArray(study.toothNumbers)?study.toothNumbers.length:0;
-  if(toothCount)parts.push(`${toothCount} دندان`);
+  if(SHOW_TEETH_CHART&&toothCount)parts.push(`${toothCount} دندان`);
   if(study.imageCount)parts.push(`${study.imageCount} تصویر`);
   if(study.documentCount)parts.push(`${study.documentCount} سند`);
   if(study.diagnosis&&String(study.diagnosis).trim())parts.push("دارای تشخیص");
@@ -644,7 +648,9 @@ window.ReSiRaiMarkWorkEnd=event=>{event?.preventDefault?.();return markWorkEnd()
      // کارتِ سابقه: سندِ اسکن‌شدهٔ همین مراجعه — جدا از تصاویر رادیولوژی نشان داده می‌شود.
      const docsSection=document.createElement("section");docsSection.className="study-scroll-docs";
      docsSection.innerHTML='<div class="study-scroll-images-title">کارت سابقه</div><div class="images-grid docs-grid"></div>';
-     const chartSection=document.createElement("section");chartSection.className="study-scroll-chart is-collapsed";
+     let chartSection=null,chart=null;
+     if(SHOW_TEETH_CHART){
+     chartSection=document.createElement("section");chartSection.className="study-scroll-chart is-collapsed";
      // نمودار حدود ۲۸۵px جا می‌گیرد؛ پیش‌فرض بسته است و خلاصهٔ دندان‌ها در همان
      // یک سطر دیده می‌شود تا هنگام بستن چیزی از دست نرود؛ با کلیک باز می‌شود.
      const chartToggle=document.createElement("button");
@@ -654,12 +660,13 @@ window.ReSiRaiMarkWorkEnd=event=>{event?.preventDefault?.();return markWorkEnd()
      const chartTeeth=document.createElement("span");chartTeeth.className="study-chart-teeth";
      chartTeeth.textContent=toothLineText(study.toothNumbers);chartTeeth.title=chartTeeth.textContent;
      const chartTitle=document.createElement("strong");chartTitle.textContent="نمودار دندان‌های این مطالعه";
-     const chart=document.createElement("div");chart.className="study-card-teeth-chart study-chart-readonly";
+     chart=document.createElement("div");chart.className="study-card-teeth-chart study-chart-readonly";
      chartToggle.append(chartArrow,chartTitle,chartTeeth);
      chartSection.append(chartToggle,chart);
      const setChartOpen=open=>{chartSection.classList.toggle("is-collapsed",!open);chartToggle.setAttribute("aria-expanded",open?"true":"false");chartArrow.textContent=open?"⌃":"⌄";};
      chartToggle.addEventListener("click",()=>setChartOpen(chartSection.classList.contains("is-collapsed")));
-     body.append(details,docsSection,chartSection);
+     }
+     body.append(details,docsSection);if(chartSection)body.append(chartSection);
      window.ReSiRaiFactors?.renderCard(study, body);
      const imagesSection=document.createElement("section");imagesSection.className="study-scroll-images";
      const imagesTitle=document.createElement("div");imagesTitle.className="study-scroll-images-title";imagesTitle.textContent="تصاویر مطالعه";
@@ -751,10 +758,10 @@ async function hydrateStudyCard(study,chart,status,grid){
  const [imagesResult,studyResult]=await Promise.allSettled([fetch(`/api/radiologyimages/study/${study.studyID}`).then(async r=>({r,x:await readApiJson(r)})),fetch(`/api/radiologystudies/${study.studyID}`).then(async r=>({r,x:await readApiJson(r)}))]);
  let teeth=[];
  if(studyResult.status==="fulfilled"&&studyResult.value.r.ok){const x=studyResult.value.x;teeth=x.toothNumbers||x.study?.toothNumbers||[];}
- if(window.ReSiRaiTeethChart)window.ReSiRaiTeethChart.render(chart,teeth);
+ if(window.ReSiRaiTeethChart&&chart)window.ReSiRaiTeethChart.render(chart,teeth);
  // نمودار بسته است؛ خلاصهٔ دندان‌ها باید از همان سطر خوانده شود (در صورت خطا هم
  // همان render بالا با لیست خالی انجام شده است).
- const teethLine=chart.closest(".study-scroll-chart")?.querySelector(".study-chart-teeth");
+ const teethLine=chart?chart.closest(".study-scroll-chart")?.querySelector(".study-chart-teeth"):null;
  if(teethLine){teethLine.textContent=toothLineText(teeth);teethLine.title=teethLine.textContent;}
  if(imagesResult.status==="fulfilled"){const {r,x}=imagesResult.value;if(r.ok&&x.success){const all=x.images||[],docs=all.filter(isCardDocumentImage),xrays=all.filter(im=>!isCardDocumentImage(im));renderImagesInGrid(xrays,grid);if(docsSection){docsSection.classList.toggle("hidden",!docs.length);renderImagesInGrid(docs,docsSection.querySelector(".images-grid"),{docs:true});}const parts=[];if(xrays.length)parts.push(`${xrays.length} تصویر / فایل`);if(docs.length)parts.push(`${docs.length} سند`);status.textContent=parts.length?parts.join(" · "):"برای این مراجعه هنوز تصویری ثبت نشده است.";return;}status.textContent=getApiError(x,"تصاویر مطالعه دریافت نشد.");}
  else status.textContent="تصاویر مطالعه دریافت نشد.";status.classList.toggle("error",!imagesResult.value?.r?.ok);
