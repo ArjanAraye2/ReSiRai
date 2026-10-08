@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>smoke13</title>
+<style>body{font-family:Tahoma,Arial,sans-serif;background:#eef4f9;margin:0;padding:16px;color:#123}#log{font-size:12px;direction:ltr;white-space:pre-wrap;background:#fff;border:1px solid #dbe4ec;border-radius:12px;padding:12px}</style>
+</head>
+<body>
+<!-- نگهبانِ «مراجعه بدونِ ناوبری» (فازِ ۱، توافقِ ۱۴۰۵/۰۷/۱۶):
+     ۱) بالایِ لیستِ مراجعات ناحیهٔ پیش‌نویس هست (#visitDraftHost) و «+ مراجعهٔ جدید»
+        صفحه را عوض نمی‌کند (بخشِ فرم مخفی می‌ماند).
+     ۲) فیلدهایِ ثابت در کارت مستقیم‌ویرایش‌اند؛ هر تغییر «ثبت» را کنارِ همان فیلد
+        ظاهر می‌کند و «ثبت» کلِ کارت را می‌فرستد (POST برایِ پیش‌نویس، PUT برایِ موجود).
+     ۳) مقادیرِ پیش‌نویس در مرورگر می‌ماند و با موفقیتِ ثبت پاک می‌شود.
+     ۴) پنلِ «بخش‌های مراجعه» (تکی) به داخلِ کارت منتقل می‌شود و بعد از رندرِ دوباره
+        به خانه‌اش برمی‌گردد — پس هیچ صفحه‌ای برایِ دیدن یا ویرایشِ مراجعه باز نمی‌شود.
+     DOM از index.html واقعی و کدها از کپیِ تازهٔ verify.ps1 است. -->
+<script>
+  window.__posts = [];
+  window.__puts = [];
+  var realFetch = window.fetch.bind(window);
+  var TYPES = [{ StudyTypeID: 39, StudyTypeName: "ویزیت/معاینه" }, { StudyTypeID: 38, StudyTypeName: "سایر" }];
+  window.fetch = function (url, opts) {
+    var u = String(url), method = (opts && opts.method) || "GET";
+    var json = function (p) {
+      return Promise.resolve(new Response(JSON.stringify(p), { status: 200, headers: { "Content-Type": "application/json" } }));
+    };
+    if (u.indexOf("/api/visit-context") >= 0)
+      return json({ success: true, clinicID: 1, doctorStaffID: 11, doctorName: "علی رضایی", specialtyID: 11, canPickDoctor: false });
+    if (u.indexOf("/api/staff/doctors") >= 0)
+      return json({ success: true, doctors: [{ staffID: 11, firstName: "علی", lastName: "رضایی", specialtyID: 11, specialtyName: "پزشکی عمومی" }] });
+    if (u.indexOf("/api/studytypes") >= 0) return json({ success: true, studyTypes: TYPES });
+    if (u.indexOf("/api/waitstages") >= 0) return json({ success: true, waitStages: [{ waitStageID: 1, name: "جواب آزمایش" }] });
+    if (u.indexOf("/api/radiologystudies") >= 0 && method === "POST") {
+      var body = JSON.parse(opts.body);
+      window.__posts.push({ url: u, body: body });
+      return json({ success: true, study: Object.assign({ studyID: 7, status: 1, imageCount: 0, documentCount: 0 }, body) });
+    }
+    if (u.indexOf("/api/radiologystudies/5") >= 0 && method === "PUT") {
+      window.__puts.push({ url: u, body: JSON.parse(opts.body) });
+      return json({ success: true, study: Object.assign({ studyID: 5 }, JSON.parse(opts.body)) });
+    }
+    if (u.indexOf("/api/patients/1/details") >= 0)
+      return json({
+        success: true,
+        patient: { patientID: 1, firstName: "بیمار", lastName: "نمونه", gender: 1, isActive: true, nationalCode: "0000000001" },
+        studies: [{ studyID: 7, studyTypeID: 39, studyTypeName: "ویزیت/معاینه", studyDate: "2026-10-08T10:00:00", status: 1, imageCount: 0, documentCount: 0 }],
+        studyCount: 1, totalImageCount: 0
+      });
+    if (u.indexOf("/api/") >= 0)
+      return json({ success: true, sections: [], factors: [], values: [], history: [], toothNumbers: [], study: {}, studyTypes: TYPES, waitStages: [] });
+    return realFetch(url, opts);
+  };
+  window.confirm = function () { return true; };
+</script>
+<script>
+(async function () {
+  var results = [];
+  var check = function (name, cond, extra) {
+    results.push({ name: name, ok: !!cond, extra: extra == null ? "" : String(extra) });
+  };
+  var wait = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  var loadScript = function (src) {
+    return new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = src;
+      s.onload = function () { resolve(); };
+      s.onerror = function () { reject(new Error("load failed: " + src)); };
+      document.body.appendChild(s);
+    });
+  };
+  var $ = function (sel, root) { return (root || document).querySelector(sel); };
+
+  try {
+    /* ---------- ۱) DOM از index.htmlِ واقعی ---------- */
+    var html = "";
+    try { html = await (await fetch("index.html", { cache: "no-store" })).text(); }
+    catch (e) { document.title = "SMOKE-13-NEEDSSERVER (serve.ps1 را اجرا کن)"; return; }
+    var parsed = new DOMParser().parseFromString(html, "text/html");
+    parsed.querySelectorAll("script").forEach(function (n) { n.remove(); });
+    document.body.replaceChildren(...Array.from(parsed.body.childNodes).map(function (n) { return document.importNode(n, true); }));
+
+    /* ---------- ۲) قراردادِ HTML ---------- */
+    check("draft-host-exists", !!document.getElementById("visitDraftHost"));
+    check("draft-host-above-list",
+      !!document.getElementById("visitDraftHost") &&
+      !!(document.getElementById("visitDraftHost").compareDocumentPosition(document.getElementById("studiesContainer")) & Node.DOCUMENT_POSITION_FOLLOWING));
+    check("visit-draft-script-tagged", html.indexOf("/js/visit-draft.js") >= 0);
+    check("form-section-starts-hidden", document.getElementById("studyDetailsSection").classList.contains("hidden"));
+
+    var appJs = await (await fetch("app.js", { cache: "no-store" })).text();
+    check("no-view-edit-button", appJs.indexOf('edit.textContent="مشاهده / ویرایش"') < 0);
+    check("card-mounts-draft-module", appJs.indexOf("ReSiRaiVisitDraft.mount()") >= 0);
+    check("card-hosts-sections-panel", appJs.indexOf("ReSiRaiMoveSections") >= 0);
+
+    /* ---------- ۳) رفتار با کدهای واقعی ---------- */
+    await loadScript("app.js");
+    await loadScript("visit-draft.js");
+    await loadScript("study-sections.js");
+
+    // openPatient هم window.selectedPatientID و هم selectedPatientID (در scopeِ
+    // app.js) را تنظیم می‌کند؛ فقط publishSelectedPatient کافی نیست.
+    await openPatient(1);
+    await wait(500);
+
+    var draftHost = document.getElementById("visitDraftHost");
+    var card = draftHost.firstElementChild;
+    check("draft-card-built", !!card && card.classList.contains("study-draft-card"));
+    check("draft-has-fields", !!card && card.querySelectorAll(".visit-field-row").length >= 8,
+      card && card.querySelectorAll(".visit-field-row").length);
+    check("draft-type-list-loaded", !!$('[data-key="type"] select', card) && $('[data-key="type"] select', card).options.length >= 3,
+      $('[data-key="type"] select', card) && $('[data-key="type"] select', card).options.length);
+    check("draft-doctor-auto", !!$('[data-key="doctorStaffID"] select', card) && $('[data-key="doctorStaffID"] select', card).value === "11",
+      $('[data-key="doctorStaffID"] select', card) && $('[data-key="doctorStaffID"] select', card).value);
+    check("draft-date-filled", !!$('[data-key="studyDate"] input', card) && $('[data-key="studyDate"] input', card).value.length > 0,
+      $('[data-key="studyDate"] input', card) && $('[data-key="studyDate"] input', card).value);
+    check("save-hidden-until-change", Array.from(card.querySelectorAll(".visit-field-save")).every(function (b) { return b.classList.contains("hidden"); }));
+    check("sections-panel-moved-into-draft", !!card && !!card.contains(document.getElementById("studySectionsPanel")));
+
+    /* ---- تغییرِ یک فیلد ← «ثبت»ِ همان فیلد ← POST ---- */
+    var typeSel = $('[data-key="type"] select', card);
+    typeSel.value = "39";
+    typeSel.dispatchEvent(new Event("change", { bubbles: true }));
+    var bodyPart = $('[data-key="bodyPart"] input', card);
+    bodyPart.value = "گلو";
+    bodyPart.dispatchEvent(new Event("input", { bubbles: true }));
+    await wait(50);
+    check("save-visible-on-change", !$('[data-key="bodyPart"] .visit-field-save', card).classList.contains("hidden"));
+    check("other-rows-stay-clean", $('[data-key="diagnosis"] .visit-field-save', card).classList.contains("hidden"));
+    check("unsaved-badge-shown", ($(".visit-fields-state", card).textContent || "").indexOf("ذخیره‌نشده") >= 0,
+      $(".visit-fields-state", card).textContent);
+
+    /* ---- حفظ در مرورگر ---- */
+    var stored = null;
+    try { stored = localStorage.getItem("resirai-visit-draft-1"); } catch (e) { }
+    check("draft-persisted-in-browser", !!stored && stored.indexOf("گلو") >= 0, stored && stored.slice(0, 80));
+
+    await $('[data-key="bodyPart"] .visit-field-save', card).click();
+    await wait(200);
+
+    check("create-sent-as-post",
+      window.__posts.length === 1 && window.__posts[0].url === "/api/radiologystudies",
+      JSON.stringify(window.__posts.map(function (p) { return p.url; })));
+    var payload = window.__posts[0] ? window.__posts[0].body : {};
+    check("payload-has-required", !!payload.studyTypeID && !!payload.studyDate && payload.patientID === 1,
+      JSON.stringify({ t: payload.studyTypeID, d: !!payload.studyDate, p: payload.patientID }));
+    check("payload-has-clinic-doctor", payload.clinicID === 1 && payload.doctorStaffID === 11,
+      JSON.stringify({ c: payload.clinicID, d: payload.doctorStaffID }));
+    check("payload-has-fields", payload.bodyPart === "گلو" && payload.diagnosis === null, JSON.stringify({ b: payload.bodyPart, d: payload.diagnosis }));
+
+    var afterStore = null;
+    try { afterStore = localStorage.getItem("resirai-visit-draft-1"); } catch (e) { }
+    check("draft-cleared-after-save", afterStore === null, afterStore);
+
+    await wait(400);
+    check("workspace-reloaded-with-new-visit", !!document.querySelector('.study-scroll-card[data-study-id="7"]'),
+      document.querySelectorAll(".study-scroll-card").length);
+    check("draft-area-empty-after-save", !draftHost.firstElementChild);
+
+    /* ---- «+ مراجعهٔ جدید» دوباره پیش‌نویس می‌آورد، بدونِ عوض کردنِ صفحه ---- */
+    document.getElementById("studyDetailsSection").classList.add("hidden");
+    document.getElementById("newStudyButton").click();
+    await wait(300);
+    check("new-visit-button-builds-draft", !!draftHost.firstElementChild);
+    check("new-visit-button-keeps-page", document.getElementById("studyDetailsSection").classList.contains("hidden"));
+    check("new-visit-button-not-form", !document.querySelector("#visitDraftHost #newStudyForm"));
+
+    /* ---- کارتِ موجود: فیلدهایِ مستقیم‌ویرایش + PUT ---- */
+    renderStudiesSafe([{
+      studyID: 5, studyTypeID: 39, studyTypeName: "ویزیت/معاینه",
+      studyDate: "2026-10-07T09:30:00", status: 1, bodyPart: "شکم",
+      description: "توضیح قدیمی", diagnosis: "تشخیص قدیمی", toothNumbers: []
+    }]);
+    await wait(100);
+    var realCard = document.querySelector('.study-scroll-card[data-study-id="5"]');
+    check("real-card-rendered", !!realCard);
+    var openBtn = Array.from(realCard.querySelectorAll("button")).filter(function (b) { return b.textContent.trim() === "نمایش"; })[0];
+    if (openBtn) openBtn.click();
+    await wait(400);
+    check("real-card-has-inline-fields", !!realCard.querySelector(".visit-fields"));
+    check("real-card-shows-diagnosis", !!realCard.querySelector('[data-key="diagnosis"] textarea') &&
+      realCard.querySelector('[data-key="diagnosis"] textarea').value === "تشخیص قدیمی",
+      realCard.querySelector('[data-key="diagnosis"] textarea') && realCard.querySelector('[data-key="diagnosis"] textarea').value);
+    check("real-card-has-no-edit-button",
+      !Array.from(realCard.querySelectorAll("button")).some(function (b) { return b.textContent.indexOf("ویرایش") >= 0; }));
+    check("sections-panel-moved-into-card", realCard.contains(document.getElementById("studySectionsPanel")));
+
+    var dx = realCard.querySelector('[data-key="diagnosis"] textarea');
+    dx.value = "تشخیصِ تازه";
+    dx.dispatchEvent(new Event("input", { bubbles: true }));
+    await wait(50);
+    await realCard.querySelector('[data-key="diagnosis"] .visit-field-save').click();
+    await wait(200);
+    check("edit-sent-as-put",
+      window.__puts.length === 1 && window.__puts[0].url === "/api/radiologystudies/5",
+      JSON.stringify(window.__puts.map(function (p) { return p.url; })));
+    check("edit-payload-diagnosis", window.__puts[0] && window.__puts[0].body.diagnosis === "تشخیصِ تازه",
+      window.__puts[0] && window.__puts[0].body.diagnosis);
+
+    /* ---- بازگشتِ پنلِ بخش‌ها به خانه پیش از رندرِ تازه ---- */
+    renderStudiesSafe([]);
+    await wait(60);
+    check("sections-panel-restored-home",
+      !!document.getElementById("studySectionsPanel") &&
+      !document.getElementById("studySectionsPanel").closest(".study-scroll-card"),
+      document.getElementById("studySectionsPanel") ? document.getElementById("studySectionsPanel").parentElement.className : "gone");
+  } catch (e) {
+    results.push({ name: "exception", ok: false, extra: (e && e.message) || String(e) });
+  }
+
+  var failed = results.filter(function (r) { return !r.ok; });
+  var log = document.createElement("pre");
+  log.id = "log";
+  log.textContent = results.map(function (r) {
+    return (r.ok ? "PASS " : "FAIL ") + r.name + (r.extra ? " :: " + r.extra : "");
+  }).join("\n");
+  document.body.appendChild(log);
+  document.title = failed.length
+    ? "SMOKE-13-FAIL " + failed[0].name + " " + failed[0].extra
+    : "SMOKE-13-PASS (" + results.length + " checks)";
+})();
+</script>
+</body>
+</html>

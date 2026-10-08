@@ -29,6 +29,9 @@ Copy-Item (Join-Path $api 'wwwroot\js\study-sections.js') $smoke -Force
 Copy-Item (Join-Path $api 'wwwroot\js\study-type-ui.js') $smoke -Force
 # smoke11 (بارداری/شیردهی فقط برایِ زن) پنلِ «شرایط فعلی» را از همین فایل می‌آزماید.
 Copy-Item (Join-Path $api 'wwwroot\js\factors-ui.js') $smoke -Force
+# smoke13 (مراجعه بدونِ ناوبری) کارتِ پیش‌نویس و فیلدهایِ مستقیم‌ویرایش را از همین فایل می‌آزماید.
+Copy-Item (Join-Path $api 'wwwroot\js\visit-draft.js') $smoke -Force
+Copy-Item (Join-Path $api 'wwwroot\css\site.css') $smoke -Force
 # smoke2 قبلاً از یک مسیرِ مطلقِ قدیمی (که دیگر وجود ندارد) بارگذاری می‌شد؛ حالا
 # همین نسخه‌های تازه را می‌آزماید تا پنلِ فاکتورها واقعاً آزموده شود.
 Copy-Item (Join-Path $api 'wwwroot\js\lab-extract-ui.js') $smoke -Force
@@ -51,4 +54,4 @@ else {
 Write-Output ''
 Write-Output ('== verify summary: ' + $(if ($fail -eq 0) { 'BUILD + TESTS GREEN' } else { "$fail step(s) FAILED" }) + ' ==')
 Write-Output 'Next: powershell -File tests\ui-smoke\serve.ps1'
-Write-Output 'Then check titles of: smoke2, smoke3, smoke4, smoke5, smoke6, smoke7 (patients list offset), smoke8 (visit sections), smoke9 (ادغامِ فرمِ مراجعه), smoke10 (autocompleteِ نوعِ مراجعه + سایر), smoke11 (بارداری/شیردهی فقط برایِ زن), smoke12 (تشخیص + پایانِ کار)'
+Write-Output 'Then check titles of: smoke2, smoke3, smoke4, smoke5, smoke6, smoke7 (patients list offset), smoke8 (visit sections), smoke9 (ادغامِ فرمِ مراجعه), smoke10 (autocompleteِ نوعِ مراجعه + سایر), smoke11 (بارداری/شیردهی فقط برایِ زن), smoke12 (تشخیص + پایانِ کار), smoke13 (مراجعه بدونِ ناوبری)'

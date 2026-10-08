@@ -522,7 +522,8 @@ async function markWorkEnd(){
 }
 window.ReSiRaiMarkWorkEnd=event=>{event?.preventDefault?.();return markWorkEnd();};
 
- // Studies as collapsible rows.
+let sectionsHome=null;
+// Studies as collapsible rows.
  //
  // A study card used to render everything at once - details, a full odontogram and
  // an image grid - which made each row tall enough to need its own scrolling. Now
@@ -548,9 +549,32 @@ window.ReSiRaiMarkWorkEnd=event=>{event?.preventDefault?.();return markWorkEnd()
   if(Number(study.status)===3&&study.followUpDate)parts.push(`پیگیری ${formatPersianDate(study.followUpDate)}`);
   return parts.join(" · ")||"بدون جزئیات";
  }
+ function restoreSectionsPanel(){
+  // پنلِ تیک‌محور «تکی» است و به داخلِ کارتِ باز منتقل می‌شود؛ پیش از هر رندرِ
+  // تازه باید به خانه‌اش برگردد تا با پاک‌شدنِ لیست از بین نرود.
+  const p=document.getElementById("studySectionsPanel");
+  if(p&&sectionsHome&&p.parentNode!==sectionsHome.parent){
+   if(sectionsHome.next&&sectionsHome.next.parentNode===sectionsHome.parent)sectionsHome.parent.insertBefore(p,sectionsHome.next);
+   else sectionsHome.parent.appendChild(p);
+  }
+ }
+ function ReSiRaiMoveSections(host){
+  const p=document.getElementById("studySectionsPanel");
+  if(!p||!host)return;
+  if(!sectionsHome)sectionsHome={parent:p.parentNode,next:p.nextElementSibling};
+  if(p.parentNode!==host)host.appendChild(p);
+ }
+ function scrollToStudyCard(studyID){
+  const id=Number(studyID)||0;
+  const card=id?document.querySelector(`.study-scroll-card[data-study-id="${id}"]`):null;
+  if(card)card.scrollIntoView({behavior:"smooth",block:"center"});
+ }
  function renderStudiesSafe(studies){
+  restoreSectionsPanel();
   E.studiesContainer.replaceChildren();
   selectedStudyID=null;selectedStudy=null;
+  // ناحیهٔ «مراجعه» بالایِ لیست: پیش‌نویسِ محفوظ یا (در صورت نیاز) کارتِ تازه.
+  window.ReSiRaiVisitDraft&&window.ReSiRaiVisitDraft.mount();
   if(!studies?.length){E.studiesContainer.textContent="برای این بیمار هنوز مطالعه‌ای ثبت نشده است.";return;}
   const ordered=[...studies].sort((a,b)=>new Date(b.studyDate||0)-new Date(a.studyDate||0));
   // شمارهٔ سریالِ مراجعه: قدیمی‌ترین =۱، چون «مراجعهٔ ۱» یعنی اولین ویزیت بیمار.
@@ -602,8 +626,7 @@ window.ReSiRaiMarkWorkEnd=event=>{event?.preventDefault?.();return markWorkEnd()
     complete.title="علامت‌گذاری این مطالعه به‌عنوان تمام‌شده";complete.onclick=e=>{e.stopPropagation();completeStudyFromCard(study,complete);};
     actions.appendChild(complete);
    }
-   const edit=document.createElement("button");edit.type="button";edit.className="secondary-button";edit.textContent="مشاهده / ویرایش";
-   edit.onclick=e=>{e.stopPropagation();openStudyDetails(study);};
+   // دکمهٔ «ویرایش» حذف شد: فیلدهایِ ثابت در خودِ کارت مستقیم‌ویرایش‌اند.
    // --- کارهای تصویر زیر یک منوی «تصویر ▾» تا ردیف اکشن شلوغ نشود -----
    const imageMenuButton=document.createElement("button");
    imageMenuButton.type="button";imageMenuButton.className="secondary-button study-image-menu-button";
@@ -628,7 +651,7 @@ window.ReSiRaiMarkWorkEnd=event=>{event?.preventDefault?.();return markWorkEnd()
      closeStudyImageMenus();
      if(willOpen){imageMenuBox.classList.remove("hidden");imageMenuButton.setAttribute("aria-expanded","true");}
    };
-   actions.append(toggle,edit,imageMenuButton,imageMenuBox);
+   actions.append(toggle,imageMenuButton,imageMenuBox);
 
    // --- body: built on first open, so a closed study costs nothing ----------
    const body=document.createElement("div");
@@ -642,9 +665,10 @@ window.ReSiRaiMarkWorkEnd=event=>{event?.preventDefault?.();return markWorkEnd()
     card.classList.toggle("study-open",open);
     if(open&&!hydrated){
      hydrated=true;
-     const details=document.createElement("div");details.className="study-scroll-details";
-     details.append(createInfoLine("ناحیه",study.bodyPart||"-"),createInfoLine("توضیحات",study.description||"-"),createInfoLine("تشخیص",study.diagnosis||"-"));
-     details.querySelectorAll(":scope > div").forEach(x=>x.classList.add("info-line"));
+     // فیلدهایِ ثابتِ مراجعه به‌صورتِ مستقیم‌ویرایش؛ «ثبت» کنارِ همان فیلدِ
+     // تغییرکرده ظاهر می‌شود و کلِ همین کارت را ذخیره می‌کند (visit-draft.js).
+     const fields=window.ReSiRaiVisitDraft?window.ReSiRaiVisitDraft.buildFields(study):null;
+     const sectionsHost=document.createElement("div");sectionsHost.className="study-card-sections";
      // کارتِ سابقه: سندِ اسکن‌شدهٔ همین مراجعه — جدا از تصاویر رادیولوژی نشان داده می‌شود.
      const docsSection=document.createElement("section");docsSection.className="study-scroll-docs";
      docsSection.innerHTML='<div class="study-scroll-images-title">کارت سابقه</div><div class="images-grid docs-grid"></div>';
@@ -666,7 +690,10 @@ window.ReSiRaiMarkWorkEnd=event=>{event?.preventDefault?.();return markWorkEnd()
      const setChartOpen=open=>{chartSection.classList.toggle("is-collapsed",!open);chartToggle.setAttribute("aria-expanded",open?"true":"false");chartArrow.textContent=open?"⌃":"⌄";};
      chartToggle.addEventListener("click",()=>setChartOpen(chartSection.classList.contains("is-collapsed")));
      }
-     body.append(details,docsSection);if(chartSection)body.append(chartSection);
+     body.append(fields,sectionsHost,docsSection);if(chartSection)body.append(chartSection);
+     // بخش‌هایِ تیک‌محور (تکی) به داخلِ همین کارت می‌آیند تا هیچ صفحه‌ای باز نشود.
+     if(window.ReSiRaiMoveSections)window.ReSiRaiMoveSections(sectionsHost);
+     if(window.ReSiRaiStudySections&&window.ReSiRaiStudySections.render)window.ReSiRaiStudySections.render(study);
      window.ReSiRaiFactors?.renderCard(study, body);
      const imagesSection=document.createElement("section");imagesSection.className="study-scroll-images";
      const imagesTitle=document.createElement("div");imagesTitle.className="study-scroll-images-title";imagesTitle.textContent="تصاویر مطالعه";
@@ -754,7 +781,7 @@ const status=document.createElement("div");status.className="status-message";sta
    E.studiesContainer.appendChild(card);
   });
  }
-async function hydrateStudyCard(study,chart,status,grid){
+async function hydrateStudyCard(study,chart,status,grid,docsSection){
  const [imagesResult,studyResult]=await Promise.allSettled([fetch(`/api/radiologyimages/study/${study.studyID}`).then(async r=>({r,x:await readApiJson(r)})),fetch(`/api/radiologystudies/${study.studyID}`).then(async r=>({r,x:await readApiJson(r)}))]);
  let teeth=[];
  if(studyResult.status==="fulfilled"&&studyResult.value.r.ok){const x=studyResult.value.x;teeth=x.toothNumbers||x.study?.toothNumbers||[];}
@@ -977,6 +1004,9 @@ async function togglePatientActiveStatus(){
  try{const action=isDeactivating?"deactivate":"activate";const r=await fetch(`/api/patients/${selectedPatientID}/${action}`,{method:"PUT"}),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"عملیات انجام نشد."));await openPatient(selectedPatientID);showToast(isDeactivating?"بیمار غیرفعال شد.":"بیمار فعال شد.");}catch(e){showToast(e.message||"عملیات انجام نشد.","error");}
 }
 async function openNewStudyForm(){
+ // بدونِ ناوبری: اول پیش‌نویسِ کارتِ مراجعه (بالایِ لیست) ساخته می‌شود؛
+ // اگر ماژول در دسترس نباشد (دودهای قدیمی) به فرمِ قدیمی برمی‌گردیم.
+ if(window.ReSiRaiVisitDraft&&window.ReSiRaiVisitDraft.showNew())return;
  if(!Number.isInteger(Number(selectedPatientID))||Number(selectedPatientID)<=0){
   showToast("ابتدا یک بیمار را انتخاب کنید.","error");
   return;
@@ -1152,8 +1182,10 @@ async function createStudy(){
    imageCount:x.study?.imageCount||0,documentCount:x.study?.documentCount||0
   };
   const fresh=await fetchStudyFromWorkspace(savedStudyID);
-  // همان فرم، همان صفحه: حالا دکمهٔ «ویرایش» و «ذخیره تغییرات» دارد.
-  await openStudyDetails(fresh||saved);
+  // بدونِ ناوبری: پیش‌نویس جمع می‌شود و همین مراجعه در لیستِ همان صفحه دیده می‌شود.
+  if(window.ReSiRaiVisitDraft){window.ReSiRaiVisitDraft.forget();window.ReSiRaiVisitDraft.suppress();}
+  await openPatient(selectedPatientID);
+  scrollToStudyCard(savedStudyID);
   showToast("مراجعه ثبت شد.");
   // A study recorded for a future date is a booked visit, so a reminder makes sense.
   const shown=fresh||saved;
@@ -1227,6 +1259,26 @@ E.studyDetailsWorkEndButton?.addEventListener("click",()=>{markWorkEnd();});
 E.studyDetailsStatus2?.addEventListener("change",syncStudyDetailsStatusFields);
 E.studyDetailsDoctor?.addEventListener("change",()=>{fillWaitStageSelect(null);refilterStudyTypes();});
 E.newStudyButton?.addEventListener("click",e=>{e.preventDefault();openNewStudyForm();});
+// ثبتِ درجاییِ کارتِ مراجعه (بدونِ ناوبری): رکوردِ تازه کلِ لیست را تازه می‌کند و
+// اسکرول به همان مراجعه می‌رود؛ به‌روزرسانیِ یک کارتِ موجود فقط همان کارت را
+// اصلاح می‌کند تا بخش‌هایِ بازِ آن (تیک‌محور/فاکتورها) از بین نروند.
+window.addEventListener("resirai-visit-created",async e=>{
+ const d=e.detail||{},studyID=Number(d.studyID)||0,study=d.study||{};
+ try{await openPatient(selectedPatientID);}catch(err){console.warn("Patient workspace refresh failed:",err);}
+ scrollToStudyCard(studyID);
+ if(Number(study.status)===3&&study.followUpDate)offerPatientMessage(selectedPatientID,"برای نوبت پیگیری این مطالعه، به بیمار یادآوری بفرستیم؟","appointment-reminder");
+ else if(Number(study.status)===1)offerPatientMessage(selectedPatientID,"برای این مراجعه جدید به بیمار اطلاع بدهیم؟","images-ready");
+});
+window.addEventListener("resirai-visit-saved",e=>{
+ const s=(e.detail||{}).study||{};
+ if(!s.studyID)return;
+ const card=document.querySelector(`.study-scroll-card[data-study-id="${s.studyID}"]`);
+ if(!card)return;
+ const time=card.querySelector(".study-header-main time");
+ if(time)time.textContent=formatPersianDateTime(s.studyDate);
+ const sum=card.querySelector(".study-summary-line");
+ if(sum)sum.textContent=studySummary({imageCount:Number(card.dataset.imageCount)||0,documentCount:Number(card.dataset.documentCount)||0,...s});
+});
 E.studyDetailsUploadButton?.addEventListener("click",()=>{if(selectedStudy)openUploadImageForm(selectedStudy);});
 E.editPatientButton?.addEventListener("click",openEditPatientForm);
 E.printPatientButton?.addEventListener("click",printPatientInformation);

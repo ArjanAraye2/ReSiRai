@@ -81,7 +81,9 @@
     check("payload-sends-workend", appJs.indexOf("workEndDate:parsePersianDateForBackend(E.studyDetailsWorkEndDate.value,true)") >= 0);
     check("no-old-report-key", appJs.indexOf("newStudyReport") < 0 && appJs.indexOf("study.report") < 0);
     check("workend-handler-defined", /function markWorkEnd\s*\(/.test(appJs) && appJs.indexOf("work-end") >= 0);
-    check("diagnosis-shown-in-card", appJs.indexOf('createInfoLine("تشخیص"') >= 0);
+    // کارتِ مراجعه دیگر سطرِ فقط‌خواندنی ندارد؛ فیلدهایِ ثابت (با «تشخیص») از
+    // visit-draft ساخته می‌شوند — نگهبانِ رفتارِ خودِ کارت در smoke13 است.
+    check("diagnosis-shown-in-card", appJs.indexOf("ReSiRaiVisitDraft.buildFields(study)") >= 0);
 
     /* ---------- ۴) رفتار با app.jsِ واقعی ---------- */
     await loadScript("app.js");

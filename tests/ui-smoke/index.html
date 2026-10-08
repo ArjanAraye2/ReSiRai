@@ -36,7 +36,7 @@
 })();
 </script>
     <link rel="stylesheet" href="/css/fonts.css?v=20261001.19" />
-    <link rel="stylesheet" href="/css/site.css?v=20261007.1" />
+    <link rel="stylesheet" href="/css/site.css?v=20261008.1" />
     <link rel="stylesheet" href="/css/study-finance.css?v=20261001.19" />
 <link rel="stylesheet" href="/css/factors.css?v=20261007.1" />
 <link rel="stylesheet" href="/css/study-sections.css?v=20261007.2" />
@@ -137,7 +137,9 @@
     </section>
   </div>
   <div class="subsection-header study-list-header"><div><h3>مراجعات بیمار</h3><p>مرتب‌شده از جدیدترین به قدیمی‌ترین</p></div><button id="newStudyButton" type="button" class="primary-button">+ مراجعهٔ جدید</button></div>
-  <div id="studiesContainer" class="studies-container"></div>
+  <!-- ناحیهٔ «مراجعه» بدونِ ناوبری: پیش‌نویسِ بالایِ لیست (بدونِ رکورد) که با انتخابِ بیمار ساخته می‌شود و بعد از ثبت، جای خود را به مراجعهٔ واقعی می‌دهد. فیلدهایِ ثابت در هر کارت مستقیم‌قابلِ ویرایش‌اند (visit-draft.js). -->
+<div id="visitDraftHost" class="visit-draft-host"></div>
+<div id="studiesContainer" class="studies-container"></div>
 </section>
 <section id="studyDetailsSection" class="card hidden">
   <!-- فرمِ واحدِ مراجعه: «ثبتِ مراجعهٔ جدید» و «مشاهده/ویرایش مراجعه» هر دو همین یک بخش‌اند؛
@@ -315,6 +317,7 @@ window.addEventListener('DOMContentLoaded',function(){
 </script>
 <script src="/js/login-ui.js?v=20261004.6"></script>
 <script src="/js/app.js?v=20261008.2"></script>
+<script src="/js/visit-draft.js?v=20261008.1"></script>
 <script src="/js/study-delete.js?v=20261001.19"></script>
 <script src="/js/study-finance.js?v=20261001.19"></script>
 <script src="/js/study-lab-tests.js?v=20261001.19"></script>
