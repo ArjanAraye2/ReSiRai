@@ -370,6 +370,7 @@
         hostEl.replaceChildren();
         state.card = build();
         hostEl.appendChild(state.card);
+        window.ReSiRaiJalali && window.ReSiRaiJalali.enhanceAll(state.card); // تاریخِ تولد هم تقویم بگیرد
         loadContext().then(() => {
             refreshGenderOptions();
             onAnyChange("nationalCode");

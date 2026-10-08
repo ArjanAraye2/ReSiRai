@@ -5686,6 +5686,10 @@ body { line-height: 1.75; }
 .visit-field-label{font-size:13px;font-weight:600;color:#285b8f}
 .visit-field-input{min-width:0;display:flex;gap:6px;align-items:center}
 .visit-input{width:100%;box-sizing:border-box;border:1px solid var(--border,#cfe0ee);border-radius:8px;padding:6px 8px;font:inherit;font-size:13px;background:#fff;color:#123}
+/* فیلد مراجعه همیشه کلِ ستون را پُر کند — چه دیکته آن را پیچیده باشد چه نه؛ تأییدِ سطر را فشرد نکن (به‌جای width:100% از flex استفاده می‌شود تا ردیف‌های Verify با دکمه درهم نشکند: Elan، ثبت و ...) */
+.visit-field-input input,.visit-field-input textarea,.visit-field-input select{flex:1 1 0;min-width:0;width:auto;box-sizing:border-box}
+.visit-field-input .jalali-input-wrap{flex:1 1 0;min-width:0;width:auto}
+.visit-field-input .jalali-input-wrap input{flex:1 1 0;min-width:0;width:auto}
 textarea.visit-input{resize:vertical}
 .visit-field-save{border:1px solid #0f766e;background:#0f766e;color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
 .visit-field-save:hover{background:#0b5f59}

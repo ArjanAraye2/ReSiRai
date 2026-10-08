@@ -1,4 +1,4 @@
-// ReSiRai — کارتِ مراجعه بدونِ ناوبری
+﻿// ReSiRai — کارتِ مراجعه بدونِ ناوبری
 //
 // قرارداد (توافقِ ۱۴۰۵/۰۷/۱۶، فازِ پزشکِ عمومی):
 //  - بالایِ لیستِ مراجعات یک «پیش‌نویس» هست (بدونِ رکورد) که با انتخابِ بیمار
@@ -501,6 +501,8 @@
         draftPatientID = pid;
         host.dataset.patientId = String(pid);
         const card = createDraftCard();
+        // فیلدهای تاریخ/ساعت هم مثل بقیهٔ فرم‌ها تقویمِ شمسی بگیرند (jalali-picker).
+        window.ReSiRaiJalali && window.ReSiRaiJalali.enhanceAll(card);
         host.replaceChildren(card);
         wireDraft(card);
         card.scrollIntoView && card.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -528,6 +530,8 @@
         if (!stored && suppressed) { clearDraftHost(); return; } // بعد از ثبت، بدونِ کارتِ خالی
 
         const card = createDraftCard();
+        // فیلدهای تاریخ/ساعت هم مثل بقیهٔ فرم‌ها تقویمِ شمسی بگیرند (jalali-picker).
+        window.ReSiRaiJalali && window.ReSiRaiJalali.enhanceAll(card);
         host.replaceChildren(card);
         wireDraft(card);
     }
