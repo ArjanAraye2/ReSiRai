@@ -1310,6 +1310,7 @@ E.zoomInImageButton.onclick=()=>{imageViewScale=Math.min(5,imageViewScale+0.25);
 // after a successful sign-in (the gate flips to authed and this event fires).
 function loadApplicationData(){
   try{ loadPatients(); }catch(_){}
+  window.ReSiRaiPatientDraft&&window.ReSiRaiPatientDraft.mount(); // ناحیهٔ معرفیِ بیمار پس از ورود هم آماده باشد
   // If the dashboard is the visible page (the default after login), refresh it;
   // its own startup fetch ran while the gate was still guest.
   const dashboard=document.getElementById("dashboardSection");
