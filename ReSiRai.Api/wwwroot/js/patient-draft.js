@@ -121,8 +121,11 @@
 
         state.card = card;
         eachInput(code, "nationalCode");
-        [first, last, mobile, birth].forEach(input => eachInput(input));
-        genderChange(gender);
+        eachInput(first, "firstName");
+        eachInput(last, "lastName");
+        eachInput(gender, "gender");
+        eachInput(mobile, "mobile");
+        eachInput(birth, "birthDate");
         [first, last, gender, mobile, birth].forEach(input => { input.readOnly = true; });
 
         // ثبتِ بیمار تازه: با کلیکِ ثبتِ هر فیلد، همه با هم می‌روند.
@@ -139,16 +142,13 @@
         return card;
     }
 
-    // گوش دادن به تغییرِ هر فیلد: قفل/باز بود نشانیده شود.
+    // گوش دادن به تغییرِ هر فیلد: قفل/باز و «ثبت» کنارِ همان فیلد (حتی بدونِ کرسر —
+    // مثل وقتی که با دیکته متن اضافه می‌شود و کرسر رویِ دکمهٔ میکروفن است).
     function eachInput(input, key) {
         const handler = () => onAnyChange(key);
         input.addEventListener("input", handler);
         input.addEventListener("change", handler);
         input.addEventListener("focus", handler);
-    }
-    function genderChange(select) {
-        select.addEventListener("change", () => onAnyChange("gender"));
-        select.addEventListener("focus", () => onAnyChange("gender"));
     }
 
     function refreshGenderOptions() {
@@ -174,16 +174,18 @@
         return code;
     }
 
+    // حداقلِ ظاهرشدنِ «ثبت»: کدِ ملی + نام + نامِ خانوادگی (جنسیت هنگامِ کلیکِ ثبت
+    // چک می‌شود تا کلید گم نشود — ناقص را خودِ ستون اعلان می‌کند).
     function minimumComplete() {
         const v = k => state.rows[k] ? String(state.rows[k].input.value || "").trim() : "";
-        return !!validCode() && v("firstName") && v("lastName") && v("gender");
+        return !!validCode() && v("firstName") && v("lastName");
     }
 
     function onAnyChange(key) {
         refreshGenderOptions();
         const unlocked = !!state.found || !!state.notFoundCode;
         const code = validCode();
-        const complete = unlocked;
+        const complete = unlocked && minimumComplete();
         // قفل/بازِ فیلدهای بعد از کد ملی
         Object.keys(state.rows).forEach(k => {
             if (k === "nationalCode") return;
@@ -191,7 +193,7 @@
         });
         Object.keys(state.rows).forEach(k => {
             const r = state.rows[k];
-            const isCurrent = (k === key) || (document.activeElement === r.input);
+            const isCurrent = k === key; // فیلدِ جاری = فیلدی که همین حالا تغییر/فوکوس شد
             if (k === "nationalCode") { r.save.classList.add("hidden"); return; }
             if (!isCurrent || !complete) { r.save.classList.add("hidden"); return; }
             r.save.classList.remove("hidden");
@@ -285,7 +287,7 @@
         // اعتبارسنجیِ حداقل
         if (!payload.firstName) { hintError(state.rows.firstName.row, "نام را وارد کنید."); return; }
         if (!payload.lastName) { hintError(state.rows.lastName.row, "نام خانوادگی را وارد کنید."); return; }
-        if (!payload.gender) { hintError(state.rows.gender.row, "جنسیت را انتخاب کنید."); return; }
+        if (!payload.gender) { hintError(state.rows.gender.row, "جنسیت را انتخاب کنید."); state.rows.gender.input.focus(); return; }
 
         hint("", "در حال ثبت…");
         try {
@@ -365,5 +367,5 @@
         });
     }
 
-    window.ReSiRaiPatientDraft = { mount, reset };
+    window.ReSiRaiPatientDraft = { mount, reset, __state: state }; // __state فقط برایِ عیب‌یابی/دود
 })();

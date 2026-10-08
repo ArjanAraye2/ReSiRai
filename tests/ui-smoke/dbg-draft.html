@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><title>dbg-draft</title>
+<link rel="stylesheet" href="study-finance.css?v=20261008.3">
+<style>body{font-family:Tahoma;padding:16px;background:#eef4f9}</style></head>
+<body>
+<script>
+  var realFetch = window.fetch.bind(window);
+  window.fetch = function (url, opts) {
+    var u = String(url), method = (opts && opts.method) || "GET";
+    var json = function (p) { return Promise.resolve(new Response(JSON.stringify(p), { status: 200, headers: { "Content-Type": "application/json" } })); };
+    if (u.indexOf("/api/patients?") >= 0 && method === "GET") return json({ success: true, patients: [], statistics: {}, count: 0, totalCount: 0, hasMore: false });
+    if (u.indexOf("/api/visit-context") >= 0) return json({ success: true, clinicID: 1, doctorStaffID: null, specialtyID: 11, canPickDoctor: false });
+    if (u.indexOf("/api/") >= 0) return json({ success: true, sections: [], factors: [], values: [], history: [], studyTypes: [], waitStages: [], insuranceTypes: [] });
+    return realFetch(url, opts);
+  };
+  window.reSiRaiCurrentUser = { userName: "dbg" };
+</script>
+<div id="patientsSection"><div id="statusMessage" class="status-message"></div><div id="patientDraftHost"></div><div class="table-container"><table><tbody id="patientsTableBody"></tbody></table></div></div>
+<script src="app.js"></script>
+<script src="patient-draft.js"></script>
+<script src="dictation.js"></script>
+</body>
+</html>

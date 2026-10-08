@@ -63,6 +63,11 @@
     parsed.querySelectorAll("script").forEach(function (n) { n.remove(); });
     document.body.replaceChildren(...Array.from(parsed.body.childNodes).map(function (n) { return document.importNode(n, true); }));
 
+    /* ---- CSS واقعی محصول (study-finance.css) تا چیدمانِ میکروفن/شکستِ خط همان‌طور که در صفحهٔ اصلی است بسنجیم ---- */
+    var css = document.createElement("link");
+    css.rel = "stylesheet"; css.href = "study-finance.css?v=20261008.3";
+    document.head.appendChild(css);
+
     /* ---- ۱) قراردادِ HTML: ناحیه بالای فهرست، بدونِ دکمه و بدونِ فرمِ جدا ---- */
     check("patient-draft-host-exists", !!document.getElementById("patientDraftHost"));
     check("host-inside-patients-section",
@@ -99,15 +104,40 @@
 
     /* ---- حداقلِ لازم را کامل کن و روی همان فیلد بمان: ثبت ظاهر می‌شود ---- */
     var lIn = $(".patient-draft-body [data-key='lastName'] input", card);
-    lIn.focus();
     lIn.value = "آزمونی";
     lIn.dispatchEvent(new Event("input", { bubbles: true }));
     var gIn = $(".patient-draft-body [data-key='gender'] select", card);
     gIn.value = "1";
     gIn.dispatchEvent(new Event("change", { bubbles: true }));
-    lIn.focus(); // کرسر رویِ همان فیلد، پس «ثبت» کنارِ آن ظاهر می‌شود
+    lIn.dispatchEvent(new Event("input", { bubbles: true })); // فیلدِ جاری دوباره بسنجید (رویدادِ تغییر، نه فوکوس — تمرکز در محیطِ اتومات دیسپچ نمی‌شود)
     await wait(60);
     check("save-key-visible-on-last-name", !$(".patient-draft-body [data-key='lastName'] .visit-field-save", card).classList.contains("hidden"));
+
+    /* ---- دیکته (بدونِ کرسر): «ثبت» باید کنارِ همان فیلدِ ویرایش‌شده بماند ---- */
+    document.body.focus(); // از فیلد خارج؛ مثل وقتی که کاربر کلیکِ میکروفنِ فیلدِ دیگر را زده
+    fIn.dispatchEvent(new Event("input", { bubbles: true })); // متنِ دیکته‌شده در «نام»
+    await wait(120);
+    check("save-key-follows-edited-field-without-focus",
+      (function(){ var fv=!$(".patient-draft-body [data-key='firstName'] .visit-field-save", card).classList.contains("hidden");
+        var lh=$(".patient-draft-body [data-key='lastName'] .visit-field-save", card).classList.contains("hidden");
+        return fv && lh ? true : "first=" + fv + " lastHidden=" + lh; })());
+
+    /* ---- نشانِ «در حال گوش دادن» نباید رویِ متنِ فیلد بیفتد ---- */
+    await loadScript("dictation.js"); // همان نسخهٔ تازه؛ wrap می‌سازد
+    var listenWrap = fIn.closest(".dictate-wrap");
+    check("listening-hint-not-covering-input",
+      (function () {
+        var wrap = fIn.closest(".dictate-wrap");
+        if (!wrap) return "no-wrap";
+        var h = wrap.querySelector(".dictate-hint");
+        if (!h) return "no-hint";
+        var r1 = fIn.getBoundingClientRect();
+        h.textContent = "در حال گوش دادن…";
+        var r2 = h.getBoundingClientRect();
+        h.textContent = "";
+        var overlap = r2.top < r1.bottom && r2.bottom > r1.top && r2.height > 0;
+        return overlap ? "overlap top=" + Math.round(r2.top) + " inBottom=" + Math.round(r1.bottom) : true;
+      })());
 
     /* ---- ۴) ثبت بیمار تازه: POST و باز شدنِ پرونده در همان صفحه ---- */
     await $(".patient-draft-body [data-key='lastName'] .visit-field-save", card).click();

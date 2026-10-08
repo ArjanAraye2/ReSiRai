@@ -163,12 +163,12 @@
 .dictate-wrap { position: relative; display: block; min-width: 0; }
 .dictate-wrap input,
 .dictate-wrap textarea { width: 100%; padding-inline-end: 64px; }
-/* نشانگرِ کوچکِ کنارِ دکمه: در حالِ گوش دادن / متنِ موقت */
+/* نشانگرِ «در حالِ گوش دادن / متنِ موقت»: **زیرِ فیلد** می‌نشیند — رویِ متنِ
+   واردشده نمی‌افتد (کاربر صحنهٔ ناخوانا گزارش کرد). خالی = بدونِ ارتفاع. */
 .dictate-hint {
-    position: absolute;
-    inset-inline-end: 62px;
-    top: 6px;
-    max-width: calc(100% - 70px);
+    display: block;
+    min-height: 0;
+    margin-top: 2px;
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -177,6 +177,7 @@
     font-weight: 600;
     pointer-events: none;
 }
+.dictate-hint:empty { display: none; }
 .dictate-btn {
     position: absolute;
     inset-inline-end: 4px;
