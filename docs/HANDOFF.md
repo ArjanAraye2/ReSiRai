@@ -29,5 +29,6 @@
 - دودِ UI: `tests/verify.ps1` (کپیِ تازه به `tests/ui-smoke`) + `tests/ui-smoke/serve.ps1` سپس عنوانِ هر `smokeN.html` باید `SMOKE-N-PASS` باشد (هر باگِ UI یک نگهبان دارد).
 - اصولِ UX همیشگی: `docs/design-principles.md` (کمترین کلیک/اسکرول، بازشونده‌ها، دیکته، لغوِ انتخاب، «هیچکدام» آخر).
 
-## پیشنهادِ سرعت
-هر مورد = شروعِ فوری ← اجرا در همان پاسخ ← گزارشِ کوتاه؛ بدونِ سلسله‌سؤال مگر تصمیمِ واقعاً مالِ کاربر باشد.
+## اتصال و ارسال مراجعه
+- پیش‌نویسِ آزمایشی: `tests\ui-smoke\serve.ps1` سپس آدرس‌ها http://localhost:8765/smoke2.html تا smoke15.html
+- سرورِ اصلی: Visual Studio  Ctrl+F5 یا `dotnet run --project ReSiRai.Api` — سپس http://localhost:5202/
