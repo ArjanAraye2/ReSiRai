@@ -60,9 +60,15 @@
   btn.title = on ? "در حال گوش دادن — کلیک یا Esc برای توقف" : "دیکته (کلیک برای شروع · Esc برای توقف)";
  }
 
+ // پیامِ وضعیت هرگزereço نمی‌ماند: چند ثانیه بعد از آخرین رویداد خودش پاک می‌شود
+ // (پیش‌تر «در حال گوش دادن…» بعد از قطعِ جلسه باقی می‌ماند و کاربر گیج می‌شد).
+ const HINT_TTL = 6000;
  function hint(el, text) {
   const h = hintOf(el);
-  if (h) h.textContent = text || "";
+  if (!h) return;
+  h.textContent = text || "";
+  clearTimeout(el.__hintTimer);
+  if (text) el.__hintTimer = setTimeout(() => { h.textContent = ""; }, HINT_TTL);
  }
 
  // دکمه (میکروفن) داخلِ خودِ فیلد پیچیده می‌شود تا چیدمانِ فرم به‌هم نریزد و ✕

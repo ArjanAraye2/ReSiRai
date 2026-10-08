@@ -186,14 +186,18 @@
         const unlocked = !!state.found || !!state.notFoundCode;
         const code = validCode();
         const complete = unlocked && minimumComplete();
+        if (key) state.lastKey = key; // «فیلدِ جاری» برای پاسخِ دیرهنگامِ جست‌وجو
         // قفل/بازِ فیلدهای بعد از کد ملی
         Object.keys(state.rows).forEach(k => {
             if (k === "nationalCode") return;
             state.rows[k].input.readOnly = !unlocked ? true : false;
         });
+        // «ثبت» کنارِ فیلدِ جاری؛ اگر رویداد بدونِ کلید آمد (پاسخِ جست‌وجو)،
+        // کنارِ آخرین فیلدِ ویرایش‌شده بماند — نه اینکه کلید غیب شود.
+        const target = key || state.lastKey || null;
         Object.keys(state.rows).forEach(k => {
             const r = state.rows[k];
-            const isCurrent = k === key; // فیلدِ جاری = فیلدی که همین حالا تغییر/فوکوس شد
+            const isCurrent = k !== null && k === target;
             if (k === "nationalCode") { r.save.classList.add("hidden"); return; }
             if (!isCurrent || !complete) { r.save.classList.add("hidden"); return; }
             r.save.classList.remove("hidden");
@@ -239,7 +243,7 @@
             state.notFoundCode = code;
             if (state.hint) state.hint.textContent = "بیمار نیست — فیلدها باز شد؛ حداقلِ اطلاعات لازم و «ثبت» را بزن";
         }
-        onAnyChange(key === undefined ? "nationalCode" : key);
+        onAnyChange(state.lastKey); // با فیلدِ جاری ادامه بده تا «ثبت» غیب نشود
     }
 
 
