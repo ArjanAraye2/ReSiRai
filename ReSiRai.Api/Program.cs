@@ -1,4 +1,4 @@
-using ReSiRai.Api.Data;
+﻿using ReSiRai.Api.Data;
 using ReSiRai.Api.Models;
 using ReSiRai.Api.Services;
 using ReSiRai.Api.Services.Pos;
@@ -6,8 +6,15 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ReSiRai stores wall-clock clinic time (DateTime with Kind=Local) everywhere,
+// mirroring SQL Server's datetime. PostgreSQL's newest format (timestamptz)
+// refuses local values, so opt into the legacy mapping: DateTime becomes
+// `timestamp without time zone` — same semantic as SQL Server.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddWindowsService(options => { options.ServiceName = "ReSiRai"; });
 
@@ -15,6 +22,18 @@ string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.Com
 string reSiRaiConfigDirectory = Path.Combine(programDataPath, "ReSiRai");
 string reSiRaiConfigFile = Path.Combine(reSiRaiConfigDirectory, "ReSiRai.config.json");
 builder.Configuration.AddJsonFile(reSiRaiConfigFile, optional: true, reloadOnChange: true);
+// The ProgramData file is appended after the built-in sources, which would make
+// it silently win over environment variables and command-line arguments. Push
+// those back on top so diagnostics can still override the installed config.
+{
+    var sources = (IList<IConfigurationSource>)builder.Configuration.Sources;
+    foreach (var s in sources.Where(s => s.GetType().Name.Contains("CommandLine") ||
+                                         s.GetType().Name.Contains("EnvironmentVariables")).ToList())
+    {
+        sources.Remove(s);
+        sources.Add(s);
+    }
+}
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<RadiologyStorageService>();
@@ -88,10 +107,38 @@ builder.Services.Configure<RadiologyStorageOptions>(builder.Configuration.GetSec
 // The connection string key used to be "ReSiRai". Existing installations still
 // carry that key in their config file, so both names are accepted; "ReSiRai" wins
 // when present.
+// Provider: desktop installs run SQL Server (Windows default); the hosted
+// server runs PostgreSQL. Selection order:
+//   1. "Database:Provider" app setting ("Postgres" | "SqlServer")
+//   2. "Provider" key inside the connection strings section
+//   3. automatic: on Linux it is Postgres, on Windows SQL Server — and a
+//      connection string that clearly is PostgreSQL ("Host=...") decides for
+//      Postgres regardless of the platform.
+string dbProvider =
+    (builder.Configuration["Database:Provider"]
+     ?? builder.Configuration.GetConnectionString("Provider")
+     ?? (OperatingSystem.IsWindows() ? "SqlServer" : "Postgres")).Trim();
+bool usePostgres = dbProvider.Equals("Postgres", StringComparison.OrdinalIgnoreCase);
+DbRuntime.IsPostgres = usePostgres;
+
+// Legacy desktop installs keep their "ReSiRai" connection string; the hosted
+// server supplies "Postgres". Anything else falls back to the same key name.
+string ReSiRaiConnectionKey() =>
+    !string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("ReSiRai"))
+        ? "ReSiRai"
+        : usePostgres ? "Postgres" : "SqlServer";
+
 builder.Services.AddDbContext<ReSiRaiDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("ReSiRai")
-        ?? builder.Configuration.GetConnectionString("ReSiRai")));
+{
+    string connectionString =
+        builder.Configuration.GetConnectionString(ReSiRaiConnectionKey())
+        ?? throw new InvalidOperationException(
+            $"No database connection string found for provider {dbProvider}.");
+    if (usePostgres)
+        options.UseNpgsql(connectionString);
+    else
+        options.UseSqlServer(connectionString);
+});
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -99,182 +146,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ReSiRaiDbContext>();
-    try { await db.Database.ExecuteSqlRawAsync("IF COL_LENGTH('tblUsers', 'RecoveryMobile') IS NULL ALTER TABLE tblUsers ADD RecoveryMobile nvarchar(30) NULL"); } catch { }
-    // دسترسیِ «گزارش‌ها»: برای کاربرانِ عادی یک پرچمِ جدا تا حسابدار/منشیٔ مالی
-    // بتواند گزارش ببیند بی‌آنکه مدیرِ سیستم شود.
-    try { await db.Database.ExecuteSqlRawAsync("IF COL_LENGTH('tblUsers', 'ViewReports') IS NULL ALTER TABLE tblUsers ADD ViewReports bit NOT NULL CONSTRAINT DF_tblUsers_ViewReports DEFAULT (0)"); } catch { }
-
-    // ---- پروندهٔ بیمار: «اطلاعات تکمیلی» (همه اختیاری) ---------------------
-    // یک‌بار ساخته می‌شود؛ نصب‌های موجود هم بدون مهاجرت دستی به‌روز می‌شوند.
-    try
-    {
-        await db.Database.ExecuteSqlRawAsync("""
-            IF COL_LENGTH('tblPatients', 'BloodType') IS NULL ALTER TABLE tblPatients ADD BloodType nvarchar(5) NULL;
-            IF COL_LENGTH('tblPatients', 'Mobile2') IS NULL ALTER TABLE tblPatients ADD Mobile2 nvarchar(30) NULL;
-            IF COL_LENGTH('tblPatients', 'EmergencyContactName') IS NULL ALTER TABLE tblPatients ADD EmergencyContactName nvarchar(100) NULL;
-            IF COL_LENGTH('tblPatients', 'EmergencyContactRelation') IS NULL ALTER TABLE tblPatients ADD EmergencyContactRelation nvarchar(50) NULL;
-            IF COL_LENGTH('tblPatients', 'EmergencyContactPhone') IS NULL ALTER TABLE tblPatients ADD EmergencyContactPhone nvarchar(30) NULL;
-            IF COL_LENGTH('tblPatients', 'BaseInsuranceTypeID') IS NULL ALTER TABLE tblPatients ADD BaseInsuranceTypeID int NULL;
-            IF COL_LENGTH('tblPatients', 'BaseInsuranceNo') IS NULL ALTER TABLE tblPatients ADD BaseInsuranceNo nvarchar(50) NULL;
-            IF COL_LENGTH('tblPatients', 'Supp1InsuranceTypeID') IS NULL ALTER TABLE tblPatients ADD Supp1InsuranceTypeID int NULL;
-            IF COL_LENGTH('tblPatients', 'Supp1InsuranceNo') IS NULL ALTER TABLE tblPatients ADD Supp1InsuranceNo nvarchar(50) NULL;
-            IF COL_LENGTH('tblPatients', 'Supp2InsuranceTypeID') IS NULL ALTER TABLE tblPatients ADD Supp2InsuranceTypeID int NULL;
-            IF COL_LENGTH('tblPatients', 'Supp2InsuranceNo') IS NULL ALTER TABLE tblPatients ADD Supp2InsuranceNo nvarchar(50) NULL;
-            IF COL_LENGTH('tblPatients', 'FileNumber') IS NULL ALTER TABLE tblPatients ADD FileNumber nvarchar(50) NULL;
-            IF COL_LENGTH('tblPatients', 'ContactPreference') IS NULL ALTER TABLE tblPatients ADD ContactPreference nvarchar(20) NULL;
-            """);
-    }
-    catch { }
-
-    // ---- دیکشنری بیمه + دیتای اولیهٔ کامل ---------------------------------
-    // پایه و تکمیلی در یک جدول‌اند و با IsSupplementary تفکیک می‌شوند. نگهداری
-    // فقط در اختیار مدیر سیستم است. درجِ هر ردیف «فقط در نبودِ همان نام و نوع»
-    // انجام می‌شود؛ پس نصب‌های موجود و ردیف‌های اضافه‌شدهٔ مدیر تکرار یا حذف نمی‌شوند.
-    try
-    {
-        await db.Database.ExecuteSqlRawAsync("""
-            IF OBJECT_ID(N'dbo.tblInsuranceTypes', N'U') IS NULL
-            BEGIN
-                CREATE TABLE dbo.tblInsuranceTypes (
-                    InsuranceTypeID int IDENTITY(1,1) NOT NULL CONSTRAINT PK_tblInsuranceTypes PRIMARY KEY,
-                    InsuranceTypeName nvarchar(100) NOT NULL,
-                    IsSupplementary bit NOT NULL CONSTRAINT DF_tblInsuranceTypes_IsSupplementary DEFAULT (0),
-                    IsActive bit NOT NULL CONSTRAINT DF_tblInsuranceTypes_IsActive DEFAULT (1)
-                );
-                CREATE UNIQUE INDEX UX_tblInsuranceTypes_Name_Kind ON dbo.tblInsuranceTypes (InsuranceTypeName, IsSupplementary);
-            END;
-            INSERT INTO dbo.tblInsuranceTypes (InsuranceTypeName, IsSupplementary)
-            SELECT v.Name, v.IsSupp
-            FROM (VALUES
-                /* بیمه‌های پایه */
-                (N'آزاد / بدون بیمه', 0),
-                (N'تأمین اجتماعی', 0),
-                (N'تأمین اجتماعی (طرح روستایی و عشایری)', 0),
-                (N'تأمین اجتماعی صنعت نفت', 0),
-                (N'خدمات درمانی', 0),
-                (N'نیروهای مسلح', 0),
-                (N'بیمه سلامت', 0),
-                (N'کمیته امداد امام خمینی (ره)', 0),
-                (N'بهزیستی', 0),
-                (N'بنیاد شهید و امور ایثارگران', 0),
-                (N'بیمه اتباع', 0),
-                /* شرکت‌های بیمهٔ تکمیلی */
-                (N'آسیا', 1),
-                (N'آتیه‌سازان', 1),
-                (N'آسماری', 1),
-                (N'پاسارگاد', 1),
-                (N'پارسیان', 1),
-                (N'ایران معین', 1),
-                (N'تجارت نو', 1),
-                (N'توسعه', 1),
-                (N'دانا', 1),
-                (N'البرز', 1),
-                (N'سامان', 1),
-                (N'سرمد', 1),
-                (N'حافظ', 1),
-                (N'ما', 1),
-                (N'معلم', 1),
-                (N'ملت', 1),
-                (N'دی', 1),
-                (N'رازی', 1),
-                (N'سینا', 1),
-                (N'نوین', 1),
-                (N'تعاون', 1),
-                (N'خاور', 1),
-                (N'کوثر', 1),
-                (N'کارآفرین', 1),
-                (N'میهن', 1),
-                (N'آریا', 1),
-                (N'آنکارا', 1),
-                (N'امید (تأمین اجتماعی)', 1),
-                (N'پاسار', 1),
-                (N'پیشرو', 1),
-                (N'ایران', 1),
-                (N'صادرات', 1),
-                (N'فولاد', 1),
-                /* بیمه‌های گروهی کارکنان (بانک‌ها و سازمان‌ها) */
-                (N'بانک ملی', 1),
-                (N'بانک صادرات', 1),
-                (N'بانک ملت', 1),
-                (N'بانک سپه', 1),
-                (N'بانک تجارت', 1),
-                (N'بانک رفاه کارگران', 1),
-                (N'بانک شهر', 1),
-                (N'بانک پاسارگاد', 1),
-                (N'بانک مسکن', 1),
-                (N'بانک کشاورزی', 1),
-                (N'شرکت ملی نفت ایران', 1),
-                (N'فولاد مبارکه', 1),
-                (N'ذوب‌آهن اصفهان', 1),
-                (N'خودگردان نیروهای مسلح', 1),
-                (N'شهرداری', 1),
-                (N'وزارت بهداشت و آموزش پزشکی', 1)
-            ) AS v (Name, IsSupp)
-            WHERE NOT EXISTS (
-                SELECT 1 FROM dbo.tblInsuranceTypes t
-                WHERE t.InsuranceTypeName = v.Name AND t.IsSupplementary = v.IsSupp);
-            """);
-    }
-    catch { }
-    // نتیجهٔ تحلیلِ AI تصویر، تا تصویرِ بیمار فقط یک بار از مطب خارج شود و
-    // بازدیدهای بعدی بدون هزینه و بدونِ ارسالِ دوباره انجام شود.
-    try
-    {
-        await db.Database.ExecuteSqlRawAsync("""
-            IF OBJECT_ID(N'dbo.tblAIImageAnalyses', N'U') IS NULL
-            BEGIN
-                CREATE TABLE dbo.tblAIImageAnalyses (
-                    AIImageAnalysisID bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_tblAIImageAnalyses PRIMARY KEY,
-                    ImageID bigint NOT NULL,
-                    Kind tinyint NOT NULL CONSTRAINT DF_tblAIImageAnalyses_Kind DEFAULT (1),
-                    Model nvarchar(120) NOT NULL CONSTRAINT DF_tblAIImageAnalyses_Model DEFAULT (N''),
-                    PromptVersion int NOT NULL CONSTRAINT DF_tblAIImageAnalyses_PromptVersion DEFAULT (0),
-                    AnalysisJson nvarchar(max) NOT NULL,
-                    AnalyzedAt datetime2 NOT NULL CONSTRAINT DF_tblAIImageAnalyses_AnalyzedAt DEFAULT (SYSUTCDATETIME()),
-                    AnalyzedByUserID int NULL,
-                    CONSTRAINT FK_tblAIImageAnalyses_RadiologyImages
-                        FOREIGN KEY (ImageID) REFERENCES dbo.tblRadiologyImages (ImageID) ON DELETE CASCADE
-                );
-                CREATE UNIQUE INDEX IX_tblAIImageAnalyses_ImageID_Kind
-                    ON dbo.tblAIImageAnalyses (ImageID, Kind);
-            END
-            """);
-    }
-    catch { }
-
-    // «کارت سابقه» نوعِ ثابتِ سند است: عکسِ کارتِ دستنویس که هنگامِ ثبتِ مراجعه
-    // گرفته می‌شود، در گریدِ تصاویر دیده نمی‌شود و جزءِ شمارشِ تصاویر نیست.
-    try
-    {
-        await db.Database.ExecuteSqlRawAsync(
-            "IF NOT EXISTS (SELECT 1 FROM dbo.tblImageTypes WHERE ImageTypeName = N'کارت سابقه') " +
-            "INSERT INTO dbo.tblImageTypes (ImageTypeName, IsActive) VALUES (N'کارت سابقه', 1)");
-    }
-    catch { }
-
-    // لاگِ رویدادها: ورود، پیامک، تحلیل AI، پشتیبان و شروعِ برنامه — برایِ پیگیری
-    // در مطب. رکوردها ۱۸۰ روز نگه داشته و در هر اجرای پشتیبان پاک می‌شوند.
-    try
-    {
-        await db.Database.ExecuteSqlRawAsync("""
-            IF OBJECT_ID(N'dbo.tblAppEvents', N'U') IS NULL
-            BEGIN
-                CREATE TABLE dbo.tblAppEvents (
-                    EventID bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_tblAppEvents PRIMARY KEY,
-                    EventAt datetime2 NOT NULL CONSTRAINT DF_tblAppEvents_EventAt DEFAULT (GETDATE()),
-                    Kind nvarchar(40) NOT NULL,
-                    Outcome nvarchar(20) NOT NULL CONSTRAINT DF_tblAppEvents_Outcome DEFAULT (N'ok'),
-                    Detail nvarchar(500) NOT NULL CONSTRAINT DF_tblAppEvents_Detail DEFAULT (N''),
-                    UserID int NULL,
-                    UserName nvarchar(64) NULL,
-                    DurationMs int NULL
-                );
-                CREATE INDEX IX_tblAppEvents_EventAt ON dbo.tblAppEvents (EventAt DESC);
-                CREATE INDEX IX_tblAppEvents_Kind_EventAt ON dbo.tblAppEvents (Kind, EventAt DESC);
-            END
-            """);
-    }
-    catch { }
+    // راه‌اندازی دیتابیس — دودله: SQL Server (نصب دسکتاپی) / PostgreSQL (سرور)
+    await DbBootstrap.RunAsync(db, usePostgres);
 
     // شروعِ برنامه هم یک رویداد است تا بتوان گفت سامانه کی بالا آمده.
     try

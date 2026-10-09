@@ -125,7 +125,7 @@ namespace ReSiRai.Api.Data
                 .HasForeignKey(x => x.StudyID).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<StudySection>().HasIndex(x => new { x.StudyID, x.SectionCode }).IsUnique();
             modelBuilder.Entity<StudySection>().Property(x => x.RecordedAt)
-                .HasDefaultValueSql("SYSDATETIME()");
+                .HasDefaultValueSql(DbRuntime.IsPostgres ? "now()" : "SYSDATETIME()");
         }
     }
 }
