@@ -323,6 +323,9 @@ window.addEventListener('DOMContentLoaded',function(){
   },2000);
 });
 </script>
+
+<!-- لینکِ مستقلِ ثبتنامِ پزشک (خارج از JS: همیشه، حتی با کشِ قدیمی اسکریپتها) -->
+<div id="loginSignupLink" style="display:none;position:fixed;bottom:14px;left:0;right:0;text-align:center;z-index:1040;font:600 14px/1.9 Tahoma,Arial"><a href="/signup.html" style="color:#0f766e;text-decoration:none;background:#fff;border:1px solid #0f766e;border-radius:999px;padding:6px 18px">ثبت‌نام پزشک جدید — خرید حساب</a></div>
 <script src="/js/login-ui.js?v=20261008.7"></script>
 <script src="/js/app.js?v=20261008.4"></script>
 <script src="/js/visit-draft.js?v=20261008.5"></script>
@@ -356,5 +359,5 @@ window.addEventListener('DOMContentLoaded',function(){
 <script src="/js/first-run-tour.js?v=20261001.19"></script>
 <script src="/js/voice-control.js?v=20261001.19"></script>
 <script src="/js/toolbar-more.js?v=20261001.19"></script>
-</body>
+<script>(document.addEventListener("DOMContentLoaded",function(){if(!window.reSiRaiCurrentUser){var e=document.getElementById("loginSignupLink");if(e)e.style.display="block";}}));</script></body>
 </html>

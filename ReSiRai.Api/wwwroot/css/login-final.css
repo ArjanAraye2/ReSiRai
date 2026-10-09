@@ -481,3 +481,34 @@ url('/images/login-hero-final.svg?v=1') center 56%/100% auto no-repeat,#e6f6fc}
 #reSiRaiLoginScreen .login-feedback-text{min-width:0;flex:1}
 #reSiRaiLoginScreen .login-feedback-emoji{flex:0 0 auto;font-family:"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif;font-size:20px;line-height:1;margin-top:1px}
 #reSiRaiLoginScreen .login-feedback-emoji[hidden]{display:none}
+
+/* ===== طرحِ «فیش‌دستمزد» (2026-10-09): تصویرِ تمام‌صفحهٔ شفاف، فرمِ ورود در مرکز.
+   روی نوشته‌های رویِ تصویر (لوگو/عنوان/نوارِ ویژگی‌ها) پوشانده نمی‌شویم —
+   خودِ تصویر برند را در دل خود دارد، پس فقط تصویر می‌ماند. ===== */
+@media(min-width:951px){
+  #reSiRaiLoginScreen.login-screen{display:block!important;background:#dff0fa!important}
+  #reSiRaiLoginScreen .login-shell{display:block!important;width:100%!important;height:100vh!important;padding:0!important}
+  #reSiRaiLoginScreen .login-brand-panel{
+    position:absolute!important;inset:0!important;
+    width:100%!important;height:100vh!important;min-height:100vh!important;max-height:none!important;
+    padding:0!important;
+    background:url('/images/design50-hero.jpg?v=51') center center/cover no-repeat!important
+  }
+  /* نوشته‌ها و نوارِ ویژگی‌ها حذف تا تصویر شفاف و تمام‌صفحه بماند */
+  #reSiRaiLoginScreen .login-brand-logo,
+  #reSiRaiLoginScreen .login-brand-title,
+  #reSiRaiLoginScreen .login-brand-subtitle,
+  #reSiRaiLoginScreen .login-features,
+  #reSiRaiLoginScreen .login-version{display:none!important}
+  /* فرم در مرکزِ صفحه */
+  #reSiRaiLoginScreen .login-form-panel{
+    position:absolute!important;top:50%!important;left:50%!important;
+    transform:translate(-50%,-50%)!important;
+    grid-column:auto!important;width:min(520px,92vw)!important;max-width:none!important;
+    height:auto!important;max-height:88vh!important;overflow:auto!important;
+    padding:26px 34px!important;margin:0!important;
+    background:rgba(255,255,255,.93)!important;
+    border-radius:24px!important;
+    box-shadow:0 30px 90px rgba(10,60,90,.30)!important
+  }
+}
