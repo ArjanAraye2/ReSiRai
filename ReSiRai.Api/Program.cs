@@ -18,9 +18,13 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddWindowsService(options => { options.ServiceName = "ReSiRai"; });
 
-string programDataPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData);
-string reSiRaiConfigDirectory = Path.Combine(programDataPath, "ReSiRai");
-string reSiRaiConfigFile = Path.Combine(reSiRaiConfigDirectory, "ReSiRai.config.json");
+// Config lives in ProgramData on desktop; on the hosted server the container
+// mounts a config file and points at it via the "ReSiRaiConfig" env variable.
+string reSiRaiConfigOverride = builder.Configuration["ReSiRaiConfig"] ?? string.Empty;
+string reSiRaiConfigFile = string.IsNullOrWhiteSpace(reSiRaiConfigOverride)
+    ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                   "ReSiRai", "ReSiRai.config.json")
+    : reSiRaiConfigOverride.Trim();
 builder.Configuration.AddJsonFile(reSiRaiConfigFile, optional: true, reloadOnChange: true);
 // The ProgramData file is appended after the built-in sources, which would make
 // it silently win over environment variables and command-line arguments. Push
