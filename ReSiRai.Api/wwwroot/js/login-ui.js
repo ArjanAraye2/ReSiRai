@@ -129,7 +129,7 @@
             <div id="loginStatus" class="login-status login-feedback" role="status" aria-live="polite" aria-atomic="true"><span id="loginFeedbackEmoji" class="login-feedback-emoji" aria-hidden="true" hidden></span><span id="loginFeedbackText" class="login-feedback-text"></span></div>
             <button id="loginSubmit" class="login-submit" type="submit"><span>ورود</span><span class="login-submit-arrow">←</span></button>
           </form>
-          <p class="login-footer"><span class="login-shield">${iconSvg('shield')}</span>ورود امن به سامانه ReSiRai</p>
+          <p class="login-footer"><span class="login-shield">${iconSvg('shield')}</span>حساب نداری؟ <a href="/signup.html" style="color:#0f766e;font-weight:700;text-decoration:none">ثبت‌نام پزشک جدید</a></p>
         </section>
 
         <section class="login-brand-panel" aria-label="ReSiRai">

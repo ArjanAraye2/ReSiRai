@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ثبت‌نام پزشک — رسیرای</title>
+<link rel="stylesheet" href="/css/site.css?v=20261008.4">
+<style>
+  body{font-family:Tahoma,Arial,sans-serif;background:#eef4f9;margin:0}
+  .signup-box{max-width:520px;margin:40px auto;background:#fff;border:1px solid #cfe0ee;border-radius:14px;padding:24px;box-shadow:0 4px 18px rgba(16,60,90,.08)}
+  .signup-box h1{font-size:20px;color:#123;margin:0 0 4px}
+  .signup-box p.hint{color:#5a7f96;font-size:13px;margin:0 0 16px}
+  .signup-box .form-field{margin-bottom:12px}
+  .signup-box label{display:block;font-size:13px;font-weight:600;color:#285b8f;margin-bottom:4px}
+  .signup-box input,.signup-box select{width:100%;box-sizing:border-box;border:1px solid #cfe0ee;border-radius:8px;padding:8px;font:inherit;font-size:14px}
+  .signup-box .primary-btn{width:100%;padding:10px;border:none;border-radius:8px;background:#0f766e;color:#fff;font:inherit;font-weight:700;cursor:pointer;font-size:15px;margin-top:4px}
+  .signup-box .primary-btn:disabled{opacity:.55;cursor:default}
+  .signup-box .error{color:#b42318;font-size:13px;margin:8px 0;font-weight:600}
+  .signup-box .ok{color:#0f766e;font-size:13px;margin:8px 0;font-weight:600}
+  .signup-steps{display:flex;gap:8px;margin-bottom:18px}
+  .signup-steps span{flex:1;text-align:center;font-size:12px;color:#888;border-bottom:3px solid #e6eef4;padding-bottom:6px}
+  .signup-steps span.on{color:#0f766e;border-color:#0f766e;font-weight:700}
+  .pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;background:#f7fbfd;border:1px dashed #cfe0ee;border-radius:10px;padding:10px;margin-bottom:12px}
+  .pros-cons b{display:block;color:#285b8f;margin-bottom:4px}
+  #resultBox{display:none;padding:10px;border-radius:8px;margin-bottom:12px;font-weight:700;font-size:14px}
+</style>
+</head>
+<body>
+<div class="signup-box">
+  <h1>ثبت‌نام پزشک در رسیرای</h1>
+  <p class="hint">با ثبت‌نام، نام کاربری شما کد ملی‌تان است و رمز را خودتان انتخاب می‌کنید. بعد از پرداختِ موفق، حساب ساخته می‌شود و پیامک می‌رسد.</p>
+  <div id="resultBox"></div>
+  <div class="signup-steps" id="stepsBar"><span class="on">۱. موبایل</span><span>۲. مشخصات</span><span>۳. پرداخت</span></div>
+
+  <div id="step1">
+    <div class="form-field"><label>شماره موبایل</label><input id="mobile" inputmode="tel" placeholder="09…"></div>
+    <button class="primary-btn" id="otpBtn">دریافت کد تأیید</button>
+    <div id="otpRow" style="display:none">
+      <div class="form-field" style="margin-top:12px"><label>کد تأیید (پیامک‌شده)</label><input id="otp" inputmode="numeric" maxlength="6"></div>
+      <button class="primary-btn" id="verifyBtn">تأیید کد</button>
+    </div>
+    <div id="msg1"></div>
+  </div>
+
+  <div id="step2" style="display:none">
+    <div class="form-field"><label>نام</label><input id="firstName"></div>
+    <div class="form-field"><label>نام خانوادگی</label><input id="lastName"></div>
+    <div class="form-field"><label>کد ملی (۱۰ رقم — همان نام کاربری شما)</label><input id="nationalCode" inputmode="numeric" maxlength="10"></div>
+    <div class="form-field"><label>رشته</label><select id="specialty"></select></div>
+    <div class="form-field"><label>رمز عبور (دست‌کم ۸ نویسه)</label><input id="password" type="password" autocomplete="new-password"></div>
+
+    <label style="margin-top:10px">تصاویر کجا نگه داشته شوند؟</label>
+    <div class="pros-cons">
+      <div><b>روی سرور (پیشنهادی)</b>مزایا: از هر دستگاه باز می‌شود، پشتیبان‌گیری با رسیرای است، اشتراک‌گذاری ساده.<br>معایب: نگه‌داری روی فضای سرور.</div>
+      <div><b>روی کامپیوتر خودم</b>مزایا: داده در دست خودم است، هزینه ذخیره ندارد.<br>معایب: فقط از همان دستگاه در دسترس است، پشتیبان‌گیری با خودم است؛ در نسخه وب فقط «ترجیح» ثبت می‌شود و برای اجرای خودکار، نسخه نصب‌شده لازم است.</div>
+    </div>
+    <label><input type="radio" name="storage" value="Server" checked> روی سرور</label>
+    <label style="display:block;margin:6px 0 12px"><input type="radio" name="storage" value="Local"> روی کامپیوتر خودم</label>
+
+    <button class="primary-btn" id="saveBtn">ذخیره و رفتن به پرداخت</button>
+    <div id="msg2"></div>
+  </div>
+
+  <div id="step3" style="display:none">
+    <p class="hint">همه‌چیز آماده است. با دکمهٔ زیر به درگاه پرداخت می‌روید؛ بعد از پرداختِ موفق، حساب ساخته و فعال می‌شود.</p>
+    <button class="primary-btn" id="payBtn">رفتن به درگاه پرداخت</button>
+    <div id="msg3"></div>
+  </div>
+</div>
+<script>
+(() => {
+  "use strict";
+  let signupToken = "", signature = "";
+  const $ = id => document.getElementById(id);
+  const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) })
+    .then(r => r.json().catch(() => ({})).then(x => ({ status: r.status, ok: r.ok, x })));
+  const show = (el, on) => { el.style.display = on ? "" : "none"; };
+  const msg = (el, text, ok) => { el.textContent = text || ""; el.className = text ? (ok ? "ok" : "error") : ""; };
+  const gotoStep = n => {
+    for (let i = 0; i < 3; i++) { $("stepsBar").children[i].classList.toggle("on", i === n - 1); show($("step" + (i + 1)), i === n - 1); }
+  };
+
+  // نتیجهٔ بازگشت از درگاه
+  const st = new URLSearchParams(location.search).get("status");
+  if (st) {
+    const m = {
+      success: ["پرداخت موفق بود — حساب شما ساخته شد؛ با نام کاربری (کد ملی) و رمزی که انتخاب کردید وارد شوید.", true],
+      already_done: ["این پرداخت قبلاً تأیید و حساب ساخته شده است.", true],
+      failed: ["پرداخت در درگاه تأیید نشد. می‌توانید دوباره تلاش کنید.", false],
+      verify_failed: ["درگاه پرداخت را تأیید نکرد؛ اگر پول رفته باشد به‌زودی برمی‌گردد.", false],
+      amount_mismatch: ["مبلغ پرداخت با مبلغ ثبت‌شده مطابقت ندارد؛ با پشتیبانی تماس بگیرید.", false],
+      missing_params: ["اطلاعات بازگشتِ درگاه ناقص بود.", false],
+      unknown_record: ["پرداخت برای این درخواست یافت نشد.", false],
+      error: ["ساخت حساب با مشکل روبه‌رو شد؛ پشتیبانی رسیرا پیگیری می‌کند.", false]
+    }[st];
+    const rb = $("resultBox");
+    if (m) { rb.textContent = m[0]; rb.style.display = "block"; rb.style.background = m[1] ? "#e9f7f5" : "#fdecec"; rb.style.color = m[1] ? "#0f766e" : "#b42318"; }
+  }
+
+  // رشته‌ها
+  fetch("/api/specialties/public", { credentials: "omit" }).then(r => r.json()).then(x => {
+    const list = (x && (x.specialties || x.items)) || [];
+    $("specialty").replaceChildren(...[[0, "پزشکی عمومی (پیش‌فرض)"], ...list.map(s => [s.specialtyID || s.SpecialtyID || s.SpecialtyID, s.specialtyName || s.SpecialtyName])]
+      .map(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; return o; }));
+  }).catch(() => { });
+
+  $("otpBtn").onclick = async () => {
+    msg($("msg1"), "");
+    $("otpBtn").disabled = true;
+    const r = await post("/api/signup/otp/request", { mobile: $("mobile").value });
+    $("otpBtn").disabled = false;
+    if (r.ok && r.x.success) { show($("otpRow"), true); $("otp").focus(); msg($("msg1"), "کد ارسال شد — پیامک را ببینید.", true); }
+    else msg($("msg1"), r.x.message || "ارسال کد نشد.", false);
+  };
+
+  $("verifyBtn").onclick = async () => {
+    msg($("msg1"), "در حال بررسی…", true);
+    const r = await post("/api/signup/otp/verify", {
+      mobile: $("mobile").value, code: $("otp").value,
+      firstName: $("firstName").value || "-", lastName: $("lastName").value || "-",
+      nationalCode: "0000000000", password: "-" // در گامِ اول فقط کد — صفحه دوم اطلاعات را کامل می‌کند
+    });
+    if (r.ok && r.x.success) { signupToken = r.x.signupToken; signature = r.x.signature || ""; gotoStep(2); msg($("msg1"), ""); }
+    else msg($("msg1"), r.x.message || "کد نادرست است.", false);
+  };
+
+  $("saveBtn").onclick = async () => {
+    msg($("msg2"), "");
+    const payload = {
+      signupToken, signature,
+      firstName: $("firstName").value.trim(), lastName: $("lastName").value.trim(),
+      nationalCode: $("nationalCode").value.trim(), password: $("password").value,
+      storagePreference: (document.querySelector("input[name=storage]:checked") || { value: "Server" }).value
+    };
+    if (!payload.firstName || !payload.lastName) { msg($("msg2"), "نام و نام خانوادگی را کامل کنید.", false); return; }
+    if (!/^\d{10}$/.test(payload.nationalCode)) { msg($("msg2"), "کد ملی ۱۰ رقمی را کامل بزنید.", false); return; }
+    if (payload.password.length < 8) { msg($("msg2"), "رمز باید دست‌کم ۸ نویسه باشد.", false); return; }
+    const r = await post("/api/signup/patient-details", payload);
+    if (r.ok && r.x.success) gotoStep(3);
+    else msg($("msg2"), r.x.message || r.x.result || "ذخیره نشد.", false);
+  };
+
+  $("payBtn").onclick = async () => {
+    msg($("msg3"), "در حال اتصال به درگاه…", true);
+    $("payBtn").disabled = true;
+    const r = await post("/api/signup/payment/start", { signupToken });
+    $("payBtn").disabled = false;
+    if (r.ok && r.x.success && r.x.payUrl) location.href = r.x.payUrl;
+    else msg($("msg3"), r.x.message || "شروع پرداخت نشد؛ کمی بعد دوباره تلاش کنید.", false);
+  };
+})();
+</script>
+</body>
+</html>

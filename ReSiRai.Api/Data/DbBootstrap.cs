@@ -146,6 +146,50 @@ public static class DbBootstrap
             }
         }
         catch { }
+
+        // ---- ثبت‌نامِ عمومیِ پزشک (پوستگریس) -----------------------------------
+        try
+        {
+            await db.Database.ExecuteSqlRawAsync("""
+                CREATE TABLE IF NOT EXISTS "tblSignupOtps" (
+                    "SignupOtpID" bigserial PRIMARY KEY,
+                    "Mobile" text NOT NULL,
+                    "Code" text NOT NULL,
+                    "RequestedAt" timestamp without time zone NOT NULL DEFAULT now(),
+                    "ExpiresAt" timestamp without time zone NOT NULL,
+                    "Used" boolean NOT NULL DEFAULT false
+                );
+                CREATE INDEX IF NOT EXISTS "IX_tblSignupOtps_Mobile_At" ON "tblSignupOtps" ("Mobile", "RequestedAt" DESC);
+
+                CREATE TABLE IF NOT EXISTS "tblSignupPendings" (
+                    "SignupPendingID" serial PRIMARY KEY,
+                    "Mobile" text NOT NULL,
+                    "FirstName" text NOT NULL,
+                    "LastName" text NOT NULL,
+                    "NationalCode" text NOT NULL,
+                    "PasswordHash" text NOT NULL,
+                    "SpecialtyID" integer NOT NULL DEFAULT 0,
+                    "CreatedAt" timestamp without time zone NOT NULL DEFAULT now(),
+                    "ConfirmToken" text NOT NULL DEFAULT '',
+                    "StoragePreference" text NOT NULL DEFAULT 'Server'
+                );
+
+                CREATE TABLE IF NOT EXISTS "tblSignupPayments" (
+                    "SignupPaymentID" bigserial PRIMARY KEY,
+                    "SignupPendingID" integer NOT NULL REFERENCES "tblSignupPendings" ("SignupPendingID") ON DELETE CASCADE,
+                    "ResNum" text NOT NULL,
+                    "SepToken" text NOT NULL DEFAULT '',
+                    "RefNum" text NOT NULL DEFAULT '',
+                    "Amount" integer NOT NULL DEFAULT 0,
+                    "CreatedAt" timestamp without time zone NOT NULL DEFAULT now(),
+                    "CompletedAt" timestamp without time zone NULL,
+                    "SuccessProcessedAt" timestamp without time zone NULL,
+                    "FailureReason" text NULL
+                );
+                CREATE UNIQUE INDEX IF NOT EXISTS "UX_tblSignupPayments_ResNum" ON "tblSignupPayments" ("ResNum");
+                """);
+        }
+        catch { }
     }
 
     // ------------------------------------------------------------------ SQL Server
@@ -256,6 +300,59 @@ public static class DbBootstrap
                     );
                     CREATE INDEX IX_tblAppEvents_EventAt ON dbo.tblAppEvents (EventAt DESC);
                     CREATE INDEX IX_tblAppEvents_Kind_EventAt ON dbo.tblAppEvents (Kind, EventAt DESC);
+                END
+                """);
+        }
+        catch { }
+
+        // ---- ثبت‌نامِ عمومیِ پزشک (کد تأیید، اطلاعاتِ منتظر، پرداختِ درگاه) ----
+        try
+        {
+            await db.Database.ExecuteSqlRawAsync("""
+                IF OBJECT_ID(N'dbo.tblSignupOtps', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE dbo.tblSignupOtps (
+                        SignupOtpID bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_tblSignupOtps PRIMARY KEY,
+                        Mobile nvarchar(20) NOT NULL,
+                        Code nvarchar(6) NOT NULL,
+                        RequestedAt datetime2 NOT NULL CONSTRAINT DF_tblSignupOtps_RequestedAt DEFAULT (SYSUTCDATETIME()),
+                        ExpiresAt datetime2 NOT NULL,
+                        Used bit NOT NULL CONSTRAINT DF_tblSignupOtps_Used DEFAULT (0)
+                    );
+                    CREATE INDEX IX_tblSignupOtps_Mobile_At ON dbo.tblSignupOtps (Mobile, RequestedAt DESC);
+                END
+                IF OBJECT_ID(N'dbo.tblSignupPendings', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE dbo.tblSignupPendings (
+                        SignupPendingID int IDENTITY(1,1) NOT NULL CONSTRAINT PK_tblSignupPendings PRIMARY KEY,
+                        Mobile nvarchar(20) NOT NULL,
+                        FirstName nvarchar(100) NOT NULL,
+                        LastName nvarchar(100) NOT NULL,
+                        NationalCode nvarchar(10) NOT NULL,
+                        PasswordHash nvarchar(500) NOT NULL,
+                        SpecialtyID int NOT NULL CONSTRAINT DF_tblSignupPendings_Specialty DEFAULT (0),
+                        CreatedAt datetime2 NOT NULL CONSTRAINT DF_tblSignupPendings_CreatedAt DEFAULT (SYSUTCDATETIME()),
+                        ConfirmToken nvarchar(64) NOT NULL CONSTRAINT DF_tblSignupPendings_Token DEFAULT (N''),
+                        StoragePreference nvarchar(16) NOT NULL CONSTRAINT DF_tblSignupPendings_Storage DEFAULT (N'Server')
+                    );
+                END
+                IF OBJECT_ID(N'dbo.tblSignupPayments', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE dbo.tblSignupPayments (
+                        SignupPaymentID bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_tblSignupPayments PRIMARY KEY,
+                        SignupPendingID int NOT NULL,
+                        ResNum nvarchar(64) NOT NULL,
+                        SepToken nvarchar(128) NOT NULL CONSTRAINT DF_tblSignupPayments_Token DEFAULT (N''),
+                        RefNum nvarchar(64) NOT NULL CONSTRAINT DF_tblSignupPayments_RefNum DEFAULT (N''),
+                        Amount int NOT NULL CONSTRAINT DF_tblSignupPayments_Amount DEFAULT (0),
+                        CreatedAt datetime2 NOT NULL CONSTRAINT DF_tblSignupPayments_CreatedAt DEFAULT (SYSUTCDATETIME()),
+                        CompletedAt datetime2 NULL,
+                        SuccessProcessedAt datetime2 NULL,
+                        FailureReason nvarchar(64) NULL,
+                        CONSTRAINT FK_tblSignupPayments_Pending
+                            FOREIGN KEY (SignupPendingID) REFERENCES dbo.tblSignupPendings (SignupPendingID) ON DELETE CASCADE
+                    );
+                    CREATE UNIQUE INDEX UX_tblSignupPayments_ResNum ON dbo.tblSignupPayments (ResNum);
                 END
                 """);
         }

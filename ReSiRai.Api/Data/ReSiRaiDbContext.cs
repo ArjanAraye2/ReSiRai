@@ -40,6 +40,9 @@ namespace ReSiRai.Api.Data
         public DbSet<LabReportExtraction> LabReportExtractions { get; set; }
         public DbSet<InsuranceType> InsuranceTypes { get; set; }
         public DbSet<StudySection> StudySections { get; set; }
+        public DbSet<SignupOtp> SignupOtps { get; set; }
+        public DbSet<SignupPending> SignupPendings { get; set; }
+        public DbSet<SignupPayment> SignupPayments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -126,6 +129,14 @@ namespace ReSiRai.Api.Data
             modelBuilder.Entity<StudySection>().HasIndex(x => new { x.StudyID, x.SectionCode }).IsUnique();
             modelBuilder.Entity<StudySection>().Property(x => x.RecordedAt)
                 .HasDefaultValueSql(DbRuntime.IsPostgres ? "now()" : "SYSDATETIME()");
+
+            // ثبت‌نامِ عمومی: کد تأیید، اطلاعاتِ منتظر و پرداخت‌های درگاه.
+            modelBuilder.Entity<SignupOtp>().HasIndex(x => new { x.Mobile, x.RequestedAt });
+            modelBuilder.Entity<SignupPending>().HasIndex(x => x.NationalCode).IsUnique();
+            modelBuilder.Entity<SignupPayment>().HasIndex(x => x.ResNum).IsUnique();
+            modelBuilder.Entity<SignupPayment>().HasIndex(x => x.SepToken).IsUnique();
+            modelBuilder.Entity<SignupPayment>().HasOne<SignupPending>().WithMany()
+                .HasForeignKey(x => x.SignupPendingID).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
