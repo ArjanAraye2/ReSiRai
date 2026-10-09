@@ -73,7 +73,7 @@
 
   function ensureLoginStyles(){
     if(document.getElementById('reSiRaiFinalLoginCss'))return;
-    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.3';document.head.appendChild(l);
+    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.4';document.head.appendChild(l);
   }
 
   function updateLoginViewport(){
@@ -286,4 +286,55 @@
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize);else initialize();
+
+  // ---- جابجاییِ کارتِ ورود با موس (طرحِ فیش‌دستمزد) --------------------------------
+  // همهٔ کارت قابل کشیدن است به‌جز فیلدها و دکمه‌ها. جای کارت در پنل ذخیره می‌شود.
+  document.addEventListener("pointerdown", function (e) {
+    var card = e.target.closest && e.target.closest(".login-form-panel");
+    if (!card || e.button !== 0 || e.pointerType !== "mouse") return;
+    if (e.target.closest("input,button,select,textarea,label,a,.login-id-tabs")) return;
+    e.preventDefault();
+    var r = card.getBoundingClientRect();
+    var dx = e.clientX - r.left, dy = e.clientY - r.top;
+    card.style.left = r.left + "px";
+    card.style.top = r.top + "px";
+    card.style.right = "auto"; card.style.bottom = "auto";
+    card.style.transform = "none";
+    card.style.cursor = "grabbing";
+    var move = function (ev) {
+      var x = Math.max(4, Math.min(window.innerWidth - 80, ev.clientX - dx));
+      var y = Math.max(4, Math.min(window.innerHeight - 40, ev.clientY - dy));
+      card.style.left = x + "px"; card.style.top = y + "px";
+      try { localStorage.setItem("resiraiLoginCardPos", JSON.stringify({ x: x, y: y })); } catch (_) {}
+    };
+    var up = function () {
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      card.style.cursor = "";
+    };
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  });
+
+  // جایِ ذخیره‌شدهٔ کارت: بعد از ساختِ صفحهٔ ورود اعمال می‌شود.
+  (function restoreCardPos() {
+    var apply = function () {
+      var card = document.querySelector(".login-form-panel");
+      if (!card) return false;
+      var p = null;
+      try { p = JSON.parse(localStorage.getItem("resiraiLoginCardPos") || "null"); } catch (_) {}
+      if (p && typeof p.x === "number" && typeof p.y === "number") {
+        card.style.left = Math.min(p.x, window.innerWidth - 80) + "px";
+        card.style.top = Math.min(p.y, window.innerHeight - 40) + "px";
+        card.style.right = "auto"; card.style.bottom = "auto";
+        card.style.transform = "none";
+        return true;
+      }
+      return false;
+    };
+    if (!apply()) {
+      var obs = new MutationObserver(function () { if (apply()) obs.disconnect(); });
+      obs.observe(document.documentElement, { childList: true, subtree: true });
+    }
+  })();
 })();
