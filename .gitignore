@@ -76,3 +76,4 @@ ReSiRai.config.json
 **/build/
 **/dist/
 hs_err_pid*.log
+_deploy/resirai-*.tar*
