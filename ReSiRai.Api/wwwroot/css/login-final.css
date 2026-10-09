@@ -1,4 +1,4 @@
-/* ReSiRai Login — Design 50 clean implementation */
+﻿/* ReSiRai Login — Design 50 clean implementation */
 *{box-sizing:border-box}
 body.resirai-login-active{overflow:hidden;background:#e9f6fc}
 .login-app-hidden{display:none!important}
@@ -489,7 +489,7 @@ url('/images/login-hero-final.svg?v=1') center 56%/100% auto no-repeat,#e6f6fc}
   #reSiRaiLoginScreen.login-screen{display:block!important;background:#dff0fa!important}
   #reSiRaiLoginScreen .login-shell{display:block!important;width:100%!important;height:100vh!important;padding:0!important}
   #reSiRaiLoginScreen .login-brand-panel{
-    position:absolute!important;inset:0!important;
+    position:absolute!important;inset:0!important;z-index:1!important;
     width:100%!important;height:100vh!important;min-height:100vh!important;max-height:none!important;
     padding:0!important;
     background:url('/images/design50-hero.jpg?v=51') center center/cover no-repeat!important
@@ -502,7 +502,7 @@ url('/images/login-hero-final.svg?v=1') center 56%/100% auto no-repeat,#e6f6fc}
   #reSiRaiLoginScreen .login-version{display:none!important}
   /* فرم در مرکزِ صفحه */
   #reSiRaiLoginScreen .login-form-panel{
-    position:absolute!important;top:50%!important;left:50%!important;
+    position:absolute!important;top:50%!important;left:50%!important;z-index:5!important;
     transform:translate(-50%,-50%)!important;
     grid-column:auto!important;width:min(520px,92vw)!important;max-width:none!important;
     height:auto!important;max-height:88vh!important;overflow:auto!important;
