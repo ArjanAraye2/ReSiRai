@@ -493,10 +493,11 @@ url('/images/login-hero-final.svg?v=1') center 56%/100% auto no-repeat,#e6f6fc}
     width:100%!important;height:100vh!important;min-height:100vh!important;max-height:none!important;
     padding:0!important;
     background:
-      linear-gradient(to right, rgba(223,242,251,0) 46%, rgba(223,242,251,.72) 55%),
+      linear-gradient(to right, rgba(223,242,251,0) 51%, rgba(223,242,251,.70) 60%),
       url('/images/design50-hero.jpg?v=51') left top/auto 100% no-repeat,
-      url('/images/login-hero-bg.jpg?v=1') center center/cover no-repeat,
-      #dff2fb!important
+      linear-gradient(rgba(223,242,251,.28), rgba(223,242,251,.28)),
+      url('/images/login-hero-bg.jpg?v=2') center center/cover no-repeat,
+      #eaf5fb!important
   }
   /* نوشته‌ها و نوارِ ویژگی‌ها حذف تا تصویر شفاف و تمام‌صفحه بماند */
   #reSiRaiLoginScreen .login-brand-logo,
