@@ -44,9 +44,8 @@ builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddSingleton<LoginAttemptLimiter>();
 builder.Services.AddScoped<BackupService>();
 builder.Services.AddHostedService<BackupScheduler>();
-// تبدیلِ PDF فقط روی ویندوز ممکن است (و برنامه هم ویندوزی است)؛ روی سیستمِ
-// دیگر، سرویس ثبت نمی‌شود و آپلودِ PDF همان‌طور PDF می‌ماند.
-if (OperatingSystem.IsWindows()) builder.Services.AddScoped<PdfToImageService>();
+// تبدیلِ PDF با SkiaSharp است و رویِ همهٔ سیستمها (مطب ویندوزی و سرور لینوکس) کار میکند.
+builder.Services.AddScoped<PdfToImageService>();
 // POS terminals: the registry resolves the protocol named in the settings, so a
 // new vendor only needs a new IPosProtocol implementation registered here.
 builder.Services.AddSingleton<IPosProtocol, GenericTcpPosProtocol>();

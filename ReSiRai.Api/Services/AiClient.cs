@@ -240,54 +240,10 @@ public sealed class AiClient
     private const int CompactMaxSide = 1024;
     private const long CompactMaxBytes = 320L * 1024;
 
-    // فقط ویندوز؛ گاردِ زمانِ اجرا هم داخلش هست ولی تحلیل‌گرِ CA1416 آن را
-    // کافی نمی‌داند، پس سطحِ متد را هم صریح می‌گوییم.
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private static (string Mime, byte[] Bytes) PrepareForAi(string mime, byte[] bytes, bool compact)
     {
-        int maxSide = compact ? CompactMaxSide : MaxSide;
-        long maxBytes = compact ? CompactMaxBytes : MaxBytes;
-        if (!OperatingSystem.IsWindows()) return (mime, bytes);
-        if (bytes is not { Length: > 0 }) return (mime, bytes);
-        try
-        {
-            using var input = new MemoryStream(bytes);
-            using var source = System.Drawing.Image.FromStream(input, false, false);
-            int longest = Math.Max(source.Width, source.Height);
-            if (longest <= maxSide && bytes.Length <= maxBytes) return (mime, bytes);
-
-            double scale = Math.Min(1d, (double)maxSide / longest);
-            int width = Math.Max(1, (int)Math.Round(source.Width * scale));
-            int height = Math.Max(1, (int)Math.Round(source.Height * scale));
-
-            using var bitmap = new System.Drawing.Bitmap(width, height);
-            using (var graphics = System.Drawing.Graphics.FromImage(bitmap))
-            {
-                graphics.CompositingQuality = System.Drawing.Drawing2D.CompositingQuality.HighQuality;
-                graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-                graphics.DrawImage(source, 0, 0, width, height);
-            }
-
-            using var output = new MemoryStream();
-            var codec = System.Drawing.Imaging.ImageCodecInfo.GetImageEncoders()
-                .First(c => c.FormatID == System.Drawing.Imaging.ImageFormat.Jpeg.Guid);
-            using var parameters = new System.Drawing.Imaging.EncoderParameters(1);
-            parameters.Param[0] = new System.Drawing.Imaging.EncoderParameter(
-                System.Drawing.Imaging.Encoder.Quality, 82L);
-            bitmap.Save(output, codec, parameters);
-            var result = output.ToArray();
-
-            Console.WriteLine(
-                $"[ReSiRai AI] image {bytes.Length / 1024}KB {source.Width}x{source.Height} -> {result.Length / 1024}KB {width}x{height}");
-            return ("image/jpeg", result);
-        }
-        catch (Exception e)
-        {
-            // هر خطایی در پردازش ⇒ همان نسخهٔ اصلی ارسال می‌شود؛ تحلیل مهم‌تر است.
-            Console.WriteLine($"[ReSiRai AI] resize skipped: {e.Message}");
-            return (mime, bytes);
-        }
+        return ImageOps.Resize(mime, bytes, compact ? CompactMaxSide : MaxSide, compact ? CompactMaxBytes : MaxBytes);
     }
 
     private object BuildBody(string prompt, IReadOnlyList<(string Mime, byte[] Bytes)> images, string? model,
@@ -533,35 +489,15 @@ public sealed class AiClient
     public async Task<string> OcrTsvTurnedAsync(byte[] bytes, CancellationToken cancellationToken)
     {
         if (!OperatingSystem.IsWindows() || TesseractExe.Length == 0) return string.Empty;
-        byte[] turned = Turn180(bytes);
+        byte[] turned = ImageOps.RotateJpeg(bytes, 180);
         return await OcrTsvAsync(turned, cancellationToken);
-    }
-
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    private static byte[] Turn180(byte[] bytes)
-    {
-        using var ms = new MemoryStream();
-        using (var img = System.Drawing.Image.FromStream(new MemoryStream(bytes)))
-        {
-            img.RotateFlip(System.Drawing.RotateFlipType.Rotate180FlipNone);
-            img.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-        }
-        return ms.ToArray();
     }
 
     // فقط ویندوز (System.Drawing)؛ مانندِ PrepareForAi صریح می‌گوییم.
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     private static void RotateToUpright(string path, int rotate)
     {
-        if (rotate is not (90 or 180 or 270)) return;
-        using var img = System.Drawing.Image.FromFile(path);
-        img.RotateFlip(rotate switch
-        {
-            90 => System.Drawing.RotateFlipType.Rotate90FlipNone,
-            180 => System.Drawing.RotateFlipType.Rotate180FlipNone,
-            _ => System.Drawing.RotateFlipType.Rotate270FlipNone
-        });
-        img.Save(path, System.Drawing.Imaging.ImageFormat.Jpeg);
+        ImageOps.RotateFileJpeg(path, rotate);
     }
 
     private static async Task<string?> RunTesseractAsync(string exe, string imagePath, string args,

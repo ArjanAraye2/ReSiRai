@@ -719,25 +719,7 @@ Return ONLY valid JSON with this exact shape:
     /// </summary>
     private static byte[] MagnifyForModel(byte[] jpeg)
     {
-        if (!OperatingSystem.IsWindows()) return jpeg;
-        try
-        {
-            using var src = System.Drawing.Image.FromStream(new MemoryStream(jpeg));
-            if (src.Height >= 300 || src.Width < 800) return jpeg;
-            double scale = Math.Min(2.2, 360.0 / src.Height);
-            int w = (int)(src.Width * scale), h = (int)(src.Height * scale);
-            using var bmp = new System.Drawing.Bitmap(w, h);
-            using (var g = System.Drawing.Graphics.FromImage(bmp))
-            {
-                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                g.Clear(System.Drawing.Color.White);
-                g.DrawImage(src, 0, 0, w, h);
-            }
-            using var ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-            return ms.ToArray();
-        }
-        catch { return jpeg; }
+        return ImageOps.Magnify(jpeg) ?? jpeg;
     }
 
     /// <summary>
@@ -746,44 +728,17 @@ Return ONLY valid JSON with this exact shape:
     /// </summary>
     private static byte[]? CropRows(byte[] image, List<(LabSheetParser.Row Row, int Index)> missing)
     {
-        if (!OperatingSystem.IsWindows()) return null;
         try
         {
-            using var src = System.Drawing.Image.FromStream(new MemoryStream(image));
             var bands = new List<(int Top, int Bottom)>();
             foreach (var x in missing)
             {
                 if (x.Row.PixelTop < 0 || x.Row.PixelHeight <= 0) return null;
                 int top = Math.Max(0, x.Row.PixelTop - 30);
-                int bottom = Math.Min(src.Height, x.Row.PixelTop + x.Row.PixelHeight + 30);
+                int bottom = Math.Min(int.MaxValue, x.Row.PixelTop + x.Row.PixelHeight + 30);
                 bands.Add((top, bottom));
             }
-            bands.Sort((a, b) => a.Top.CompareTo(b.Top));
-            var merged = new List<(int Top, int Bottom)>();
-            foreach (var b in bands)
-            {
-                if (merged.Count > 0 && b.Top <= merged[^1].Bottom)
-                    merged[^1] = (merged[^1].Top, Math.Max(merged[^1].Bottom, b.Bottom));
-                else merged.Add(b);
-            }
-            int stripHeight = merged.Sum(b => b.Bottom - b.Top);
-            if (stripHeight <= 0 || stripHeight > src.Height) return null;
-            using var bmp = new System.Drawing.Bitmap(src.Width, stripHeight);
-            using (var g = System.Drawing.Graphics.FromImage(bmp))
-            {
-                g.Clear(System.Drawing.Color.White);
-                int y = 0;
-                foreach (var b in merged)
-                {
-                    var dest = new System.Drawing.Rectangle(0, y, src.Width, b.Bottom - b.Top);
-                    var from = new System.Drawing.Rectangle(0, b.Top, src.Width, b.Bottom - b.Top);
-                    g.DrawImage(src, dest, from, System.Drawing.GraphicsUnit.Pixel);
-                    y += b.Bottom - b.Top;
-                }
-            }
-            using var ms = new MemoryStream();
-            bmp.Save(ms, System.Drawing.Imaging.ImageFormat.Jpeg);
-            return ms.ToArray();
+            return ImageOps.CropBands(image, bands);
         }
         catch { return null; }
     }
