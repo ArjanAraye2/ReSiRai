@@ -38,14 +38,21 @@ public sealed class BackupService
         _events = events;
     }
 
+    /// <summary>
+    /// مسیرِ پشتیبان — پیشفرض: ویندوز D:\ReSiRaiBackup / لینوکس /var/lib/ReSiRaiBackup.
+    /// </summary>
     public string RootPath
     {
         get
         {
             var configured = _configuration["Backup:RootPath"];
-            return string.IsNullOrWhiteSpace(configured) ? @"D:\ReSiRaiBackup" : configured.Trim();
+            return string.IsNullOrWhiteSpace(configured) ? DefaultRootPath() : configured.Trim();
         }
     }
+
+    private static string DefaultRootPath() => OperatingSystem.IsWindows()
+        ? @"D:\ReSiRaiBackup"
+        : Path.Combine("/var", "lib", "ReSiRaiBackup");
 
     public int KeepBackups
     {
@@ -155,11 +162,20 @@ public sealed class BackupService
         Directory.CreateDirectory(DbFolder);
         Directory.CreateDirectory(ImagesFolder);
 
+        bool pg = Data.DbRuntime.IsPostgres;
+
         // ۱) دیتابیس
         string bak = Path.Combine(DbFolder, $"resirai_{DateTime.Now:yyyyMMdd_HHmmss}.bak");
-        // بدونِ رشتهٔ درون‌کاشته (EF1002)؛ مسیر فقط از کانفیگ می‌آید و ' هم گریخته شده.
-        string backupSql = "BACKUP DATABASE [ReSiRai] TO DISK = '" + bak.Replace("'", "''") + "' WITH INIT, COMPRESSION";
-        await _db.Database.ExecuteSqlRawAsync(backupSql, cancellationToken);
+        if (pg)
+        {
+            DumpPostgresAsync(bak, cancellationToken).GetAwaiter().GetResult();
+        }
+        else
+        {
+            // بدونِ رشتهٔ درون‌کاشته (EF1002)؛ مسیر فقط از کانفیگ می‌آید و ' هم گریخته شده.
+            string backupSql = "BACKUP DATABASE [ReSiRai] TO DISK = '" + bak.Replace("'", "''") + "' WITH INIT, COMPRESSION";
+            await _db.Database.ExecuteSqlRawAsync(backupSql, cancellationToken);
+        }
 
         // نگه‌داشتنِ فقط N نسخهٔ آخر
         var old = Directory.GetFiles(DbFolder, "resirai_*.bak")
@@ -169,24 +185,73 @@ public sealed class BackupService
 
         // ۲) تصاویر: کپیِ تکمیلی بدونِ حذف (فایل‌ها تغییرناپذیرند؛ فقط اضافه می‌شوند)
         string source = _storage.GetRootPath();
-        if (Directory.Exists(source))
+        if (!Directory.Exists(source)) return;
+
+        ProcessStartInfo psi;
+        if (pg)
         {
-            var psi = new ProcessStartInfo
+            // rsync --update: فقط جدیدترها و جاهای خالی، مثل /E /XO
+            psi = new ProcessStartInfo
+            {
+                FileName = "rsync",
+                Arguments = $"-a --update \"{source}/\" \"{ImagesFolder}/\"",
+            };
+        }
+        else
+        {
+            psi = new ProcessStartInfo
             {
                 FileName = "robocopy",
                 Arguments = $"\"{source}\" \"{ImagesFolder}\" /E /XO /R:1 /W:1 /NP /NDL /NJH /NFL /BYTES",
-                CreateNoWindow = true,
-                UseShellExecute = false
             };
-            using var proc = Process.Start(psi);
-            if (proc is not null)
-            {
-                await proc.WaitForExitAsync(cancellationToken);
-                // robocopy: 0 تا 7 یعنی موفق
-                if (proc.ExitCode >= 8)
-                    throw new InvalidOperationException($"robocopy با کد {proc.ExitCode} خطا داد.");
-            }
         }
+        psi.CreateNoWindow = true;
+        psi.UseShellExecute = false;
+        using var proc = Process.Start(psi);
+        if (proc is not null)
+        {
+            await proc.WaitForExitAsync(cancellationToken);
+            bool ok = pg ? proc.ExitCode == 0 : proc.ExitCode < 8;
+            if (!ok)
+                throw new InvalidOperationException(
+                    $"{(pg ? "rsync" : "robocopy")} با کد {proc.ExitCode} خطا داد.");
+        }
+    }
+
+    /// <summary>pg_dump با فرمتِ فشردهٔ Custom (-Fc) — رویِ مسیرِ PSQL داده میشود.</summary>
+    private async Task DumpPostgresAsync(string outputFile, CancellationToken cancellationToken)
+    {
+        string? cs = _db.Database.GetConnectionString();
+        if (string.IsNullOrWhiteSpace(cs))
+            throw new InvalidOperationException("رشتهٔ اتصالِ PostgreSQL برای پشتیبان پیدا نشد.");
+        var builder = new Npgsql.NpgsqlConnectionStringBuilder(cs);
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = "pg_dump",
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+        };
+        psi.ArgumentList.Add("--format=custom");
+        psi.ArgumentList.Add("--no-owner");
+        psi.ArgumentList.Add("--host");
+        psi.ArgumentList.Add(builder.Host ?? "localhost");
+        psi.ArgumentList.Add("--port");
+        psi.ArgumentList.Add(builder.Port.ToString());
+        psi.ArgumentList.Add("--username");
+        psi.ArgumentList.Add(builder.Username ?? "postgres");
+        psi.ArgumentList.Add("--file");
+        psi.ArgumentList.Add(outputFile);
+        psi.ArgumentList.Add(builder.Database ?? "resirai");
+        if (!string.IsNullOrEmpty(builder.Password))
+            psi.Environment["PGPASSWORD"] = builder.Password;
+
+        using var proc = Process.Start(psi)
+            ?? throw new InvalidOperationException("اجرای pg_dump ممکن نشد — postgresql-client نصب نیست.");
+        string err = await proc.StandardError.ReadToEndAsync(cancellationToken);
+        await proc.WaitForExitAsync(cancellationToken);
+        if (proc.ExitCode != 0)
+            throw new InvalidOperationException($"pg_dump با کد {proc.ExitCode} خطا داد: {err}");
     }
 
     /// <summary>یک فایلِ BAK قابلِ انتخاب برای بازگردانی.</summary>
@@ -204,13 +269,88 @@ public sealed class BackupService
     }
 
     /// <summary>
-    /// دیتابیس را از یکی از همان فایل‌های BAK برمی‌گرداند.
+    /// دیتابیس را از یکی از همان فایل‌های پشتیبان برمی‌گرداند.
     ///
-    /// دو قاعدهٔ ایمنی: فقط نامِ فایل پذیرفته می‌شود و فایل باید در پوشهٔ خودِ
-    /// پشتیبان باشد (هیچ مسیرِ بیرونی خوانده نمی‌شود)؛ و اتصال به master می‌رود
-    /// چون برنامه نمی‌تواند وسطِ جایگزینیِ دیتابیسِ خودش باشد.
+    /// دو قاعدهٔ ایمنی: فقط نامِ فایل پذیرفته میشود و فایل باید در پوشهٔ خودِ
+    /// پشتیبان باشد (هیچ مسیرِ بیرونی خوانده نمیشود)؛
+    /// SQL Server: اتصال به master و RESTORE WITH REPLACE.
+    /// PostgreSQL: به "database" postgres وصل میشود، اتصالهای دیتابیس را
+    /// خاتم میدهد، DROP WITH (FORCE) + CREATE و سپس pg_restore.
     /// </summary>
     public async Task RestoreDatabaseAsync(string? fileName, CancellationToken cancellationToken = default)
+    {
+        if (Data.DbRuntime.IsPostgres)
+        {
+            await RestorePostgresAsync(fileName, cancellationToken);
+            Npgsql.NpgsqlConnection.ClearAllPools();
+            return;
+        }
+        await RestoreSqlServerAsync(fileName, cancellationToken);
+        Microsoft.Data.SqlClient.SqlConnection.ClearAllPools();
+    }
+
+    private async Task RestorePostgresAsync(string? fileName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(fileName) ||
+            fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
+            fileName.Contains('\\') || fileName.Contains('/'))
+            throw new ArgumentException("نامِ فایلِ پشتیبان نامعتبر است.");
+        string dump = Path.Combine(DbFolder, fileName);
+        if (!File.Exists(dump))
+            throw new FileNotFoundException("فایلِ پشتیبان پیدا نشد.", fileName);
+
+        string? cs = _db.Database.GetConnectionString();
+        if (string.IsNullOrWhiteSpace(cs))
+            throw new InvalidOperationException("رشتهٔ اتصالِ PostgreSQL برای بازگردانی پیدا نشد.");
+        var builder = new Npgsql.NpgsqlConnectionStringBuilder(cs);
+        string dbName = builder.Database ?? "resirai";
+
+        // ۱) به دیتابیسِ سیستمی postgres وصل میشویم (خودِ دیتابیس را نمیتواند وسطِ
+        // جایگزینی عوض کند) و همهٔ جلساتِ باز را میبندیم.
+        var sys = new Npgsql.NpgsqlConnectionStringBuilder(cs) { Database = "postgres" };
+        await using (var conn = new Npgsql.NpgsqlConnection(sys.ConnectionString))
+        {
+            await conn.OpenAsync(cancellationToken);
+            await ExecuteNpgsqlAsync(conn,
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity " +
+                "WHERE datid IS NOT NULL AND datname = '" + dbName.Replace("'", "''") + "' " +
+                "AND pid <> pg_backend_pid()", cancellationToken);
+            await ExecuteNpgsqlAsync(conn,
+                "DROP DATABASE IF EXISTS \"" + dbName.Replace("\"", "\"\"") + "\" WITH (FORCE)", cancellationToken);
+            await ExecuteNpgsqlAsync(conn,
+                "CREATE DATABASE \"" + dbName.Replace("\"", "\"\"") + "\" ENCODING 'UTF8'", cancellationToken);
+        }
+
+        // ۲) بارگذاریِ فایلِ Custom با pg_restore
+        var psi = new ProcessStartInfo { FileName = "pg_restore", RedirectStandardError = true };
+        psi.ArgumentList.Add("--no-owner");
+        psi.ArgumentList.Add("--host"); psi.ArgumentList.Add(builder.Host ?? "localhost");
+        psi.ArgumentList.Add("--port"); psi.ArgumentList.Add(builder.Port.ToString());
+        psi.ArgumentList.Add("--username"); psi.ArgumentList.Add(builder.Username ?? "postgres");
+        psi.ArgumentList.Add("--dbname"); psi.ArgumentList.Add(dbName);
+        if (!string.IsNullOrEmpty(builder.Password))
+            psi.Environment["PGPASSWORD"] = builder.Password;
+        using (var proc = Process.Start(psi)
+               ?? throw new InvalidOperationException("اجرای pg_restore ممکن نشد — postgresql-client نصب نیست."))
+        {
+            string err = await proc.StandardError.ReadToEndAsync(cancellationToken);
+            await proc.WaitForExitAsync(cancellationToken);
+            if (proc.ExitCode != 0)
+                throw new InvalidOperationException($"pg_restore با کد {proc.ExitCode} خطا داد: {err}");
+        }
+
+        _logger.LogInformation("[ReSiRai پشتیبان] بازگردانیِ PostgreSQL انجام شد ← {Db}", dbName);
+    }
+
+    private static async Task ExecuteNpgsqlAsync(
+        Npgsql.NpgsqlConnection connection, string sql, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        await command.ExecuteNonQueryAsync(cancellationToken);
+    }
+
+    private async Task RestoreSqlServerAsync(string? fileName, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(fileName) ||
             fileName.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0 ||
