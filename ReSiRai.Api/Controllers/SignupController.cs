@@ -75,16 +75,13 @@ public class SignupController : ControllerBase
         _db.SignupOtps.Add(new SignupOtp { Mobile = mobile, Code = code, RequestedAt = DateTime.UtcNow, ExpiresAt = DateTime.UtcNow.AddMinutes(5), Used = false });
         await _db.SaveChangesAsync(ct);
 
-        try
-        {
-            await _sms.SendSmsAsync(mobile, $"کد ثبت نام رسیرای: {code}\nاعتبار: ۵ دقیقه");
-        }
-        catch (Exception ex)
-        {
-            _log.LogError(ex, "ارسال کد ثبت‌نام شکست خورد: {Mobile}", mobile);
-            return StatusCode(503, new { success = false, message = "ارسال پیامک ممکن نشد؛ کمی بعد تلاش کنید." });
-        }
-        return Ok(new { success = true, message = "کد ارسال شد." });
+            var (smsOk, smsMsg) = await _sms.SendSmsAsync(mobile, $"کد ثبت نام رسیرای: {code}\nاعتبار: ۵ دقیقه");
+            if (!smsOk)
+            {
+                _log.LogError("ارسال کد ثبت‌نام مرسید نشد: {Mobile} — {Reason}", mobile, smsMsg);
+                return StatusCode(503, new { success = false, message = smsMsg });
+            }
+            return Ok(new { success = true, message = "کد ارسال شد." });
     }
 
     // ==== ۲) تأیید کد + ثبت موقت اطلاعات پزشک ===================================

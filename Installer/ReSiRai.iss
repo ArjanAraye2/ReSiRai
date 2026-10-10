@@ -328,7 +328,7 @@ begin
         '  },' + CRLF +
         '  "SuperAdmin": {' + CRLF +
         '    "UserName": "1860271855",' + CRLF +
-        '    "PasswordHash": "AQAAAAEAAYagAAAAEG7Oi/6B39IO+XiCracx12UnBh2+vjhJ0pj/v679WLEluY4Yrs9UFO9UAsVaia74SA=="' + CRLF +
+        '    "PasswordHash": "AQAAAAIAAYagAAAAELnpwIvALl43U+yMRAPtilnf87rZu7NznzoL/HIk1pwf1zROREXx6SyZ6fIQ0XHdTg=="' + CRLF +
         '  },' + CRLF +
         '  "Urls": "http://0.0.0.0:5202",' + CRLF +
         '  "RemoteAccess": {' + CRLF +
