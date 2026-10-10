@@ -73,7 +73,7 @@
 
   function ensureLoginStyles(){
     if(document.getElementById('reSiRaiFinalLoginCss'))return;
-    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.9';document.head.appendChild(l);
+    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.10';document.head.appendChild(l);
   }
 
   function updateLoginViewport(){
@@ -129,6 +129,7 @@
             <div id="loginStatus" class="login-status login-feedback" role="status" aria-live="polite" aria-atomic="true"><span id="loginFeedbackEmoji" class="login-feedback-emoji" aria-hidden="true" hidden></span><span id="loginFeedbackText" class="login-feedback-text"></span></div>
             <button id="loginSubmit" class="login-submit" type="submit"><span>ورود</span><span class="login-submit-arrow">←</span></button>
           </form>
+          <p id="loginSignupInline" style="text-align:center;margin:10px 0 2px"><a href="/signup.html" style="color:#0f766e;font-weight:700;font-size:14px;text-decoration:none;background:#e9f7f5;border:1px solid #0f766e;border-radius:999px;padding:7px 22px;display:inline-block">ثبت‌نام پزشک جدید — خرید حساب</a></p>
           <p class="login-footer"><span class="login-shield">${iconSvg('shield')}</span>حساب نداری؟ <a href="/signup.html" style="color:#0f766e;font-weight:700;text-decoration:none">ثبت‌نام پزشک جدید</a></p>
         </section>
 
@@ -296,15 +297,18 @@
     e.preventDefault();
     var r = card.getBoundingClientRect();
     var dx = e.clientX - r.left, dy = e.clientY - r.top;
-    card.style.left = r.left + "px";
-    card.style.top = r.top + "px";
-    card.style.right = "auto"; card.style.bottom = "auto";
-    card.style.transform = "none";
+    // CSS با !important بالای inline می‌نشیند → با setPropertyای مهم ببَریم
+    card.style.setProperty("left", r.left + "px", "important");
+    card.style.setProperty("top", r.top + "px", "important");
+    card.style.setProperty("right", "auto", "important");
+    card.style.setProperty("bottom", "auto", "important");
+    card.style.setProperty("transform", "none", "important");
     card.style.cursor = "grabbing";
     var move = function (ev) {
       var x = Math.max(4, Math.min(window.innerWidth - 80, ev.clientX - dx));
       var y = Math.max(4, Math.min(window.innerHeight - 40, ev.clientY - dy));
-      card.style.left = x + "px"; card.style.top = y + "px";
+      card.style.setProperty("left", x + "px", "important");
+      card.style.setProperty("top", y + "px", "important");
       try { localStorage.setItem("resiraiLoginCardPos", JSON.stringify({ x: x, y: y })); } catch (_) {}
     };
     var up = function () {
@@ -324,10 +328,11 @@
       var p = null;
       try { p = JSON.parse(localStorage.getItem("resiraiLoginCardPos") || "null"); } catch (_) {}
       if (p && typeof p.x === "number" && typeof p.y === "number") {
-        card.style.left = Math.min(p.x, window.innerWidth - 80) + "px";
-        card.style.top = Math.min(p.y, window.innerHeight - 40) + "px";
-        card.style.right = "auto"; card.style.bottom = "auto";
-        card.style.transform = "none";
+        card.style.setProperty("left", Math.min(p.x, window.innerWidth - 80) + "px", "important");
+        card.style.setProperty("top", Math.min(p.y, window.innerHeight - 40) + "px", "important");
+        card.style.setProperty("right", "auto", "important");
+        card.style.setProperty("bottom", "auto", "important");
+        card.style.setProperty("transform", "none", "important");
         return true;
       }
       return false;
