@@ -147,6 +147,10 @@
             <div class="login-feature"><strong>پشتیبانی تصمیم‌گیری</strong><span>گزارش‌های ساخت‌یافته و پیشنهادات هوشمند</span></div>
             <div class="login-feature"><strong>امن و قابل اعتماد</strong><span>حفظ محرمانگی و رعایت استانداردها</span></div>
           </div>
+          <div class="login-qr-box" style="margin-top:24px;background:#fff;border-radius:12px;padding:8px 8px 5px;width:104px;text-align:center;display:inline-block;">
+            <div id="loginQr"></div>
+            <div style="font-size:10.5px;line-height:1.6;color:var(--brand-dark,#0b3d4f);margin-top:4px;">برای اجرا با موبایل<br>اسکن کنید</div>
+          </div>
           <span class="login-version">نسخه 20261005.2</span>
         </section>
       </div>`;
@@ -158,6 +162,16 @@
     screen.scrollTop=0;
     document.documentElement.scrollTop=0;
     document.body.scrollTop=0;
+    // کیوآرکد ورود: اسکن با موبایل → باز شدن ReSiRai
+    try {
+      if (typeof qrcode === "function") {
+        var q = qrcode(0, "M");
+        q.addData(window.location.origin);
+        q.make();
+        document.getElementById("loginQr").innerHTML =
+          q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+      }
+    } catch (_) {}
     const form=document.getElementById('reSiRaiLoginForm'),userName=document.getElementById('loginUserName'),password=document.getElementById('loginPassword');
     const toggle=document.getElementById('toggleLoginPassword'),status=document.getElementById('loginStatus'),submit=document.getElementById('loginSubmit');
     const label=document.getElementById('loginIdentifierLabel'),icon=document.getElementById('loginIdentifierIcon'),remember=document.getElementById('loginRememberMe');

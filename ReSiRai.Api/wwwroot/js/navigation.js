@@ -41,16 +41,6 @@
         <section class="dashboard-panel"><div class="dashboard-panel-title"><strong>آخرین مطالعات</strong><span>۵ مورد اخیر</span></div><div id="dashboardRecentStudies" class="dashboard-recent-list"></div></section>
         <section class="dashboard-panel"><div class="dashboard-panel-title"><strong>آخرین تصاویر</strong><span>۵ مورد اخیر</span></div><div id="dashboardRecentImages" class="dashboard-recent-list"></div></section>
       </div>
-      <section class="dashboard-network-panel">
-        <div class="dashboard-panel-title"><strong>دسترسی شبکه</strong><button type="button" class="secondary-button dashboard-network-settings-button" data-open-nav="settings" data-settings-focus="network">تنظیمات دسترسی شبکه</button></div>
-        <div class="dashboard-network-grid">
-          <div><span>نام کامپیوتر سرور</span><strong id="dashboardServerName">-</strong></div>
-          <div><span>IP محلی</span><strong id="dashboardLocalIp">-</strong></div>
-          <div><span>IP عمومی / استاتیک</span><strong id="dashboardPublicIp">-</strong></div>
-        </div>
-        <div class="dashboard-access-links"><strong>لینک اجرای برنامه در دستگاه‌های دیگر</strong><div id="dashboardLanLinks"></div><div id="dashboardPublicLink"></div></div>
-        <p id="dashboardNetworkNote" class="dashboard-network-note"></p>
-      </section>
       <section class="dashboard-system-panel"><div><strong>وضعیت سامانه</strong><span id="dashboardGeneratedAt">-</span></div><div class="dashboard-system-items"><span id="dashboardDatabaseStatus">پایگاه‌داده: در حال بررسی</span><span id="dashboardStorageStatus">فضای تصاویر: در حال بررسی</span></div></section>`;
     main.appendChild(dashboard);
 
@@ -59,20 +49,6 @@
     settings.className = "card hidden shell-page";
     settings.innerHTML = `
       <div class="section-header"><div><h2>تنظیمات و مدیریت سیستم</h2><p>تعاریف پایه و دسترسی‌های مدیریتی ReSiRai</p></div></div>
-      <section id="networkAccessSettings" class="network-settings-card">
-        <div class="dashboard-panel-title"><strong>تنظیمات دسترسی شبکه</strong><span>اجرای ReSiRai در کامپیوتر و موبایل</span></div>
-        <div class="network-settings-steps">
-          <div><strong>۱. آدرس برنامه</strong><span>برای دستگاه‌های شبکه از لینک نام سرور یا IP محلی استفاده کنید.</span></div>
-          <div><strong>۲. Windows Firewall</strong><span>پورت TCP شماره 5202 باید برای شبکه Private باز باشد.</span><code>netsh advfirewall firewall add rule name="ReSiRai Port 5202" dir=in action=allow protocol=TCP localport=5202 profile=private</code></div>
-          <div><strong>۳. IP استاتیک اینترنت</strong><span>PublicHost را در فایل پیکربندی ReSiRai تنظیم و Port Forwarding روتر را به سرور هدایت کنید.</span></div>
-        </div>
-        <div id="settingsNetworkLinks" class="dashboard-access-links"></div>
-      </section>
-      <section id="posSettingsEntry" class="network-settings-card">
-        <div class="dashboard-panel-title"><strong>دستگاه پوز (کارتخوان)</strong><span>ارسال مبلغ دریافت به پوز</span></div>
-        <p class="pos-note">آدرس و پورت پوز را ثبت کنید و با «تست اتصال» بررسی کنید دستگاه در شبکه در دسترس است یا نه.</p>
-        <div class="pos-actions"><button type="button" id="openPosSettingsButton">مدیریت پوز</button></div>
-      </section>
       <div id="settingsAdminActions" class="settings-admin-actions"></div>`;
     main.appendChild(settings);
 
@@ -239,27 +215,12 @@
 
     function renderNetworkAccess(network) {
         latestNetwork = network;
-        document.getElementById("dashboardServerName").textContent = network.hostName || "-";
-        document.getElementById("dashboardLocalIp").textContent = (network.localIps || []).join(" ، ") || "شناسایی نشد";
-        const publicIp = document.getElementById("dashboardPublicIp");
-        publicIp.textContent = network.publicConfigured ? network.publicHost : "تنظیم نشده";
-        publicIp.className = network.publicConfigured ? "network-configured" : "network-not-configured";
-        const lanRoot = document.getElementById("dashboardLanLinks"); lanRoot.replaceChildren();
-        if (network.serverNameUrl) lanRoot.appendChild(createAccessLink(network.serverNameUrl, "نام سرور"));
-        (network.localUrls || []).forEach(url => lanRoot.appendChild(createAccessLink(url, "شبکه محلی")));
-        if (!network.serverNameUrl && !(network.localUrls || []).length) lanRoot.textContent = "لینک شبکه محلی شناسایی نشد.";
-        const publicRoot = document.getElementById("dashboardPublicLink"); publicRoot.replaceChildren();
-        if (network.publicUrl) publicRoot.appendChild(createAccessLink(network.publicUrl, "اینترنت / IP استاتیک"));
-        else publicRoot.textContent = "برای لینک اینترنتی، PublicHost را در فایل پیکربندی ReSiRai تنظیم کنید.";
-        document.getElementById("dashboardNetworkNote").textContent = network.note || "";
+        // ReSiRai اکنون روی سرور ابری اجرا می‌شود؛ بخش دسترسی شبکه حذف شده است.
     }
     function renderSettingsNetworkLinks(network) {
-        const root = document.getElementById("settingsNetworkLinks"); if (!root) return; root.replaceChildren();
-        const heading = document.createElement("strong"); heading.textContent = "لینک‌های آماده استفاده"; root.appendChild(heading);
+        latestNetwork = network;
         if (network.serverNameUrl) root.appendChild(createAccessLink(network.serverNameUrl, "نام سرور"));
-        (network.localUrls || []).forEach(url => root.appendChild(createAccessLink(url, "IP محلی")));
         if (network.publicUrl) root.appendChild(createAccessLink(network.publicUrl, "IP استاتیک"));
-        root.appendChild(createPublicIpRow());
     }
 
     // IP عمومی همان عددی است که کاوه‌نگار هنگام ارسال پیامک می‌بیند. چون IP
@@ -514,8 +475,7 @@
     function openSettings(focus) {
         hidePages(); settings.classList.remove("hidden"); setActive("settings");
         renderSettingsNetworkLinks(latestNetwork);
-        if (focus === "network") document.getElementById("networkAccessSettings")?.scrollIntoView({ behavior: "smooth", block: "start" });
-        else window.scrollTo(0, 0);
+        window.scrollTo(0, 0);
     }
 
     function openPlaceholder(name) {
