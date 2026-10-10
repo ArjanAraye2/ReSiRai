@@ -15,6 +15,9 @@ namespace ReSiRai.Api.Models
         // فقط برای نمایش به منشی است؛ ارسال از همان مسیر پیامک انجام می‌شود.
         public string ClinicMobile { get; set; } = string.Empty;
 
+        public string SepTerminalId { get; set; } = string.Empty;
+        public bool SepEnabled { get; set; }
+
         public bool PushEnabled { get; set; }
         public bool EmailEnabled { get; set; }
         public bool WhatsAppEnabled { get; set; }

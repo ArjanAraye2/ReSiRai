@@ -127,6 +127,65 @@ namespace ReSiRai.Api.Controllers
             return result.Success ? Ok(new { success = true, message = result.Message }) : BadRequest(new { success = false, message = result.Message });
         }
 
+        [HttpPost("sep/test")]
+        public async Task<IActionResult> TestSepGateway()
+        {
+            if (!IsSuperAdmin()) return Forbid();
+            var settings = _communication.GetSettings();
+            var terminal = string.IsNullOrWhiteSpace(settings.SepTerminalId)
+                ? string.Empty
+                : settings.SepTerminalId.Trim();
+
+            var result = new Dictionary<string, object> { ["terminal"] = terminal };
+
+            if (string.IsNullOrEmpty(terminal))
+            {
+                result["ok"] = false;
+                result["detail"] = "شناسه ترمینال سپ ثبت نشده است.";
+            }
+            else
+            {
+                var client = _httpClientFactory.CreateClient();
+                client.Timeout = TimeSpan.FromSeconds(15);
+                var resNum = "RSITEST-" + Guid.NewGuid().ToString("N")[..8].ToUpper();
+                var payload = new
+                {
+                    action = "token",
+                    TerminalId = int.Parse(terminal),
+                    Amount = 1000,          // آزمایشی — فقط برای ساخت توکن، پولی جابجا نمی‌شود
+                    ResNum = resNum,
+                    RedirectUrl = $"{Request.Scheme}://{Request.Host}/api/communications/sep/callback",
+                    CellNumber = "",
+                };
+                try
+                {
+                    var response = await client.PostAsJsonAsync("https://sep.shaparak.ir/onlinepg/onlinepg", payload);
+                    var json = await response.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+                    result["status"] = json.GetProperty("status").GetInt32();
+                    if (json.TryGetProperty("errorDesc", out var ed))
+                        result["detail"] = ed.GetString() ?? "نامشخص";
+                    else if (json.TryGetProperty("token", out var tk))
+                    {
+                        result["ok"] = true;
+                        result["detail"] = "اتصال موفق — درگاه توکن را صادر کرد.";
+                        result["token_head"] = tk.GetString()![..Math.Min(24, tk.GetString()!.Length)] + "…";
+                        result["res_num"] = resNum;
+                    }
+                    else
+                    {
+                        result["detail"] = "پاسخ نامشخص از درگاه.";
+                    }
+                }
+                catch (Exception ex)
+                {
+                    result["ok"] = false;
+                    result["detail"] = "خطا در اتصال به درگاه: " + ex.Message;
+                }
+            }
+
+            return Ok(result);
+        }
+
         private bool IsSuperAdmin() => string.Equals(User.FindFirst("IsSuperAdmin")?.Value, "true", StringComparison.OrdinalIgnoreCase);
     }
 }

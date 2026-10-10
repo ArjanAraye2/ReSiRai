@@ -44,6 +44,15 @@
           <div class="checkbox-row"><input id="commSmsEnabled" type="checkbox"><span>ارسال پیامک فعال باشد</span></div>
           <div class="communication-settings-actions"><button id="commSaveButton" type="button">ذخیره تنظیمات</button><button id="commTestButton" type="button" class="secondary-button">تست ارسال</button></div>
           <div id="commStatus" class="status-message"></div>
+
+          <div class="section-header" style="margin-top:28px"><div><h3>درگاه پرداخت سپ (Shaparak SEP)</h3><p>پرداخت بیماران و اشتراک‌ها از طریق درگاه سپ انجام می‌شود.</p></div></div>
+          <div class="form-grid">
+            <div class="form-field"><label>شناسه ترمینال سپ (Terminal ID)</label><input id="sepTerminalId" dir="ltr" placeholder="15511832" value="{{sepTerminalId}}" /></div>
+          </div>
+          <div class="checkbox-row"><input id="sepEnabled" type="checkbox"><span>درگاه سپ فعال باشد</span></div>
+          <div class="communication-settings-actions"><button id="sepSaveButton" type="button">ذخیره درگاه</button><button id="sepTestButton" type="button" class="btn btn-info">تست اتصال درگاه</button></div>
+          <div id="sepStatus" class="status-message"></div>
+
           <div class="section-header" style="margin-top:28px"><div><h3>شماره بازیابی رمز کارکنان</h3><p>برای هر کاربر می‌توان یک شماره تأییدشده برای بازیابی رمز ثبت کرد.</p></div></div>
           <div class="form-grid">
             <div class="form-field"><label>کد ملی کاربر</label><input id="commRecoveryNationalCode" maxlength="10" inputmode="numeric"></div>
@@ -64,6 +73,9 @@
             document.getElementById("commClinicMobile").value=s.clinicMobile||"";
             document.getElementById("commSmsEnabled").checked=!!s.smsEnabled;
             document.getElementById("commSmsStatus").textContent=s.smsEnabled?"فعال":"غیرفعال";
+            document.getElementById("sepTerminalId").value=s.sepTerminalId||"";
+            document.getElementById("sepEnabled").checked=!!s.sepEnabled;
+            document.getElementById("sepStatus").textContent=s.sepEnabled?"فعال":"غیرفعال";
         }
         async function saveSettings(){
             const status=document.getElementById("commStatus");
@@ -82,6 +94,8 @@
                 }
                 status.textContent=d.message||"تنظیمات ذخیره شد.";
                 document.getElementById("commSmsStatus").textContent=body.smsEnabled?"فعال":"غیرفعال";
+                document.getElementById("sepTerminalId").value=body.sepTerminalId||"";
+                document.getElementById("sepEnabled").checked=!!body.sepEnabled;
             }catch(e){
                 status.textContent="ارتباط با سرور برقرار نشد. دوباره تلاش کنید.";
                 status.classList.add("error");
@@ -90,6 +104,8 @@
         document.getElementById("commSaveButton").onclick=saveSettings;
         document.getElementById("commTestButton").onclick=async()=>{const mobile=prompt("شماره موبایل تست را وارد کنید:");if(!mobile)return;const status=document.getElementById("commStatus");status.classList.remove("error");status.textContent="در حال ارسال پیام تست...";try{const r=await fetch("/api/communications/sms/test",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mobile,message:"تست اتصال ReSiRai"})});let d={};try{d=await r.json();}catch{}status.textContent=d.message||"نتیجه تست دریافت نشد.";if(!r.ok||d.success===false)status.classList.add("error");}catch(e){status.textContent="ارتباط با سرور برقرار نشد.";status.classList.add("error");}};
         document.getElementById("commRecoverySave").onclick=async()=>{const nationalCode=document.getElementById("commRecoveryNationalCode").value.trim(),mobile=document.getElementById("commRecoveryMobile").value.trim();const r=await fetch("/api/communications/recovery-mobile",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({nationalCode,mobile})});const d=await r.json();document.getElementById("commRecoveryStatus").textContent=d.message||(r.ok?"شماره بازیابی ذخیره شد.":"ذخیره انجام نشد.");};
+        document.getElementById("sepSaveButton").onclick=async()=>{const status=document.getElementById("sepStatus");status.textContent="در حال ذخیره...";try{const r=await fetch("/api/communications/settings",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({sepTerminalId:document.getElementById("sepTerminalId").value.trim(),sepEnabled:document.getElementById("sepEnabled").checked})});let d={};try{d=await r.json();}catch{}status.textContent=d.message||(r.ok?"درگاه ذخیره شد.":"ذخیره نشد.");}catch(e){status.textContent="خطا در ذخیره.";status.classList.add("error");}};
+        document.getElementById("sepTestButton").onclick=async()=>{const status=document.getElementById("sepStatus");status.textContent="در حال تست درگاه...";try{const r=await fetch("/api/communications/sep/test",{method:"POST",headers:{"Content-Type":"application/json"}});let d={};try{d=await r.json();}catch{}status.textContent=d.detail||"نتیجه تست دریافت نشد.";if(d.ok)status.classList.remove("error");else status.classList.add("error");}catch(e){status.textContent="خطا در تست درگاه.";status.classList.add("error");}};
         link.addEventListener("click",e=>{e.preventDefault();document.querySelectorAll(".page-container > section").forEach(x=>x.classList.add("hidden"));section.classList.remove("hidden");document.querySelectorAll(".sidebar-link").forEach(x=>x.classList.toggle("active",x===link));loadSettings();window.scrollTo(0,0);});
     }
     if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
