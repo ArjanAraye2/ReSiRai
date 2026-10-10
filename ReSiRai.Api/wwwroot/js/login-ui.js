@@ -163,15 +163,19 @@
     document.documentElement.scrollTop=0;
     document.body.scrollTop=0;
     // کیوآرکد ورود: اسکن با موبایل → باز شدن ReSiRai
-    try {
-      if (typeof qrcode === "function") {
-        var q = qrcode(0, "M");
-        q.addData(window.location.origin);
-        q.make();
-        document.getElementById("loginQr").innerHTML =
-          q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
-      }
-    } catch (_) {}
+    var qrScript=document.createElement("script");
+    qrScript.src="/js/qrcode.min.js";
+    qrScript.onload=function(){
+      try {
+        if (typeof qrcode==="function") {
+          var q=qrcode(0,"M");
+          q.addData(window.location.origin);
+          q.make();
+          document.getElementById("loginQr").innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true});
+        }
+      } catch(_) {}
+    };
+    document.head.appendChild(qrScript);
     const form=document.getElementById('reSiRaiLoginForm'),userName=document.getElementById('loginUserName'),password=document.getElementById('loginPassword');
     const toggle=document.getElementById('toggleLoginPassword'),status=document.getElementById('loginStatus'),submit=document.getElementById('loginSubmit');
     const label=document.getElementById('loginIdentifierLabel'),icon=document.getElementById('loginIdentifierIcon'),remember=document.getElementById('loginRememberMe');
