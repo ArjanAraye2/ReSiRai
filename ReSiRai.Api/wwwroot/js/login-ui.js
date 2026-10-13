@@ -73,7 +73,7 @@
 
   function ensureLoginStyles(){
     if(document.getElementById('reSiRaiFinalLoginCss'))return;
-    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.10';document.head.appendChild(l);
+    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.11';document.head.appendChild(l);
   }
 
   function updateLoginViewport(){
@@ -149,7 +149,7 @@
           </div>
           <div class="login-qr-box" style="margin-top:24px;background:#fff;border-radius:12px;padding:8px 8px 5px;width:104px;text-align:center;display:inline-block;">
             <div id="loginQr"></div>
-            <div style="font-size:10.5px;line-height:1.6;color:var(--brand-dark,#0b3d4f);margin-top:4px;">برای اجرا با موبایل<br>اسکن کنید</div>
+            <div class="login-qr-caption" style="font-size:10.5px;line-height:1.6;color:var(--brand-dark,#0b3d4f);margin-top:4px;">برای اجرا با موبایل<br>اسکن کنید</div>
           </div>
           <span class="login-version">نسخه 20261005.2</span>
         </section>

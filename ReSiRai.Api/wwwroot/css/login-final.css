@@ -515,4 +515,23 @@ url('/images/login-hero-final.svg?v=1') center 56%/100% auto no-repeat,#e6f6fc}
     box-shadow:0 30px 90px rgba(10,60,90,.30)!important;
     cursor:grab!important
   }
+}/* ===== کیو‌آرِ گوشهٔ چپ: دایرهٔ کوچک؛ با بردنِ موس، کامل و آمادهٔ اسکن ===== */
+#reSiRaiLoginScreen .login-qr-box{
+  position:fixed!important;left:18px!important;right:auto!important;bottom:18px!important;top:auto!important;
+  z-index:60!important;margin:0!important;
+  width:64px!important;height:64px!important;padding:7px!important;border-radius:50%!important;
+  background:#fff!important;box-shadow:0 8px 22px rgba(8,50,80,.28)!important;
+  overflow:hidden!important;cursor:zoom-in!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  transition:width .18s ease,height .18s ease,border-radius .18s ease,box-shadow .18s ease!important;
 }
+#reSiRaiLoginScreen .login-qr-box #loginQr,
+#reSiRaiLoginScreen .login-qr-box #loginQr svg{width:50px!important;height:50px!important;display:block!important}
+#reSiRaiLoginScreen .login-qr-caption{display:none!important}
+#reSiRaiLoginScreen .login-qr-box:hover{
+  width:200px!important;height:auto!important;border-radius:16px!important;padding:10px 10px 6px!important;
+  cursor:zoom-out!important;box-shadow:0 14px 40px rgba(8,50,80,.32)!important;
+}
+#reSiRaiLoginScreen .login-qr-box:hover #loginQr,
+#reSiRaiLoginScreen .login-qr-box:hover #loginQr svg{width:178px!important;height:178px!important}
+#reSiRaiLoginScreen .login-qr-box:hover .login-qr-caption{display:block!important;text-align:center!important}
