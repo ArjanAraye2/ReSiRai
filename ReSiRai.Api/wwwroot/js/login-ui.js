@@ -73,7 +73,7 @@
 
   function ensureLoginStyles(){
     if(document.getElementById('reSiRaiFinalLoginCss'))return;
-    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.11';document.head.appendChild(l);
+    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.14';document.head.appendChild(l);
   }
 
   function updateLoginViewport(){
@@ -156,6 +156,37 @@
       </div>`;
 
     document.body.prepend(screen);
+    // کیو‌آرِ ورود: دایرهٔ کوچکِ گوشهٔ چپ؛ با بردنِ موس کامل و آمادهٔ اسکن می‌شود.
+    (function(){
+      try {
+        var qb = screen.querySelector(".login-qr-box");
+        if (!qb) return;
+        document.body.appendChild(qb);
+        var S = function(prop, val, imp){ qb.style.setProperty(prop, val, imp === false ? "" : "important"); };
+        S("position","fixed"); S("left","18px"); S("right","auto"); S("bottom","18px"); S("top","auto");
+        S("width","64px"); S("height","64px"); S("padding","7px"); S("border-radius","50%");
+        S("background","#fff"); S("display","flex"); S("flex-direction","column");
+        S("align-items","center"); S("justify-content","center");
+        S("z-index","10050"); S("overflow","hidden"); S("cursor","zoom-in");
+        S("box-shadow","0 8px 22px rgba(8,50,80,.28)");
+        S("transition","width .18s ease,height .18s ease,border-radius .18s ease");
+        var qr = qb.querySelector("#loginQr, svg");
+        var cap = qb.querySelector(".login-qr-caption");
+        var small = function(){
+          S("width","64px"); S("height","64px"); S("padding","7px"); S("border-radius","50%"); S("cursor","zoom-in");
+          if (qr) { qr.style.setProperty("width","50px","important"); qr.style.setProperty("height","50px","important"); }
+          if (cap) cap.style.setProperty("display","none","important");
+        };
+        var big = function(){
+          S("width","200px"); S("height","auto"); S("padding","10px 10px 6px"); S("border-radius","16px"); S("cursor","zoom-out");
+          if (qr) { qr.style.setProperty("width","178px","important"); qr.style.setProperty("height","178px","important"); }
+          if (cap) cap.style.setProperty("display","block","important");
+        };
+        small();
+        qb.addEventListener("mouseenter", big);
+        qb.addEventListener("mouseleave", small);
+      } catch (_) {}
+    })();
     updateLoginViewport();
     // Always open the authentication screen at its real top; the application may have been scrolled before login.
     window.scrollTo(0,0);
@@ -203,7 +234,7 @@
     // Clear the previous reaction as the user starts correcting the password;
     // the authoritative attempt count remains on the server.
     password.addEventListener('input',()=>setFeedback());
-    toggle.onclick=()=>{const show=password.type==='password';password.type=show?'text':'password';toggle.setAttribute('aria-label',show?'پنهان کردن رمز عبور':'نمایش رمز عبور');};
+    toggle.onclick=()=>{const show=password.type==='password';password.type=show?'text':'password';toggle.classList.toggle('is-on',show);toggle.setAttribute('aria-pressed',show?'true':'false');toggle.setAttribute('aria-label',show?'پنهان کردن رمز عبور':'نمایش رمز عبور');};
     form.onsubmit=async e=>{
       e.preventDefault(); if(submit.disabled)return;
       const identifier=userName.value.trim();

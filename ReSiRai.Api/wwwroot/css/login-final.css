@@ -1,4 +1,7 @@
-﻿/* ReSiRai Login — Design 50 clean implementation */
+﻿/* پیش‌فرض پنهان؛ فقط روی صفحهٔ ورود دیده شود */
+.login-qr-box{display:none!important;z-index:10050!important}
+body.resirai-login-active .login-qr-box{display:flex!important}
+/* ReSiRai Login — Design 50 clean implementation */
 *{box-sizing:border-box}
 body.resirai-login-active{overflow:hidden;background:#e9f6fc}
 .login-app-hidden{display:none!important}
@@ -516,7 +519,7 @@ url('/images/login-hero-final.svg?v=1') center 56%/100% auto no-repeat,#e6f6fc}
     cursor:grab!important
   }
 }/* ===== کیو‌آرِ گوشهٔ چپ: دایرهٔ کوچک؛ با بردنِ موس، کامل و آمادهٔ اسکن ===== */
-#reSiRaiLoginScreen .login-qr-box{
+.login-qr-box{
   position:fixed!important;left:18px!important;right:auto!important;bottom:18px!important;top:auto!important;
   z-index:60!important;margin:0!important;
   width:64px!important;height:64px!important;padding:7px!important;border-radius:50%!important;
@@ -525,13 +528,23 @@ url('/images/login-hero-final.svg?v=1') center 56%/100% auto no-repeat,#e6f6fc}
   display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
   transition:width .18s ease,height .18s ease,border-radius .18s ease,box-shadow .18s ease!important;
 }
-#reSiRaiLoginScreen .login-qr-box #loginQr,
-#reSiRaiLoginScreen .login-qr-box #loginQr svg{width:50px!important;height:50px!important;display:block!important}
-#reSiRaiLoginScreen .login-qr-caption{display:none!important}
-#reSiRaiLoginScreen .login-qr-box:hover{
+.login-qr-box #loginQr,
+.login-qr-box #loginQr svg{width:50px!important;height:50px!important;display:block!important}
+.login-qr-caption{display:none!important}
+.login-qr-box:hover{
   width:200px!important;height:auto!important;border-radius:16px!important;padding:10px 10px 6px!important;
   cursor:zoom-out!important;box-shadow:0 14px 40px rgba(8,50,80,.32)!important;
 }
-#reSiRaiLoginScreen .login-qr-box:hover #loginQr,
-#reSiRaiLoginScreen .login-qr-box:hover #loginQr svg{width:178px!important;height:178px!important}
-#reSiRaiLoginScreen .login-qr-box:hover .login-qr-caption{display:block!important;text-align:center!important}
+.login-qr-box:hover #loginQr,
+.login-qr-box:hover #loginQr svg{width:178px!important;height:178px!important}
+.login-qr-box:hover .login-qr-caption{display:block!important;text-align:center!important}
+/* گِیتِ نهایی (بعد از همه): فقط روی صفحهٔ ورود دیده شود */
+body:not(.resirai-login-active) .login-qr-box{display:none!important}
+
+/* چشمِ رمز: حالتِ «نمایش» قابل تشخیص باشد */
+.login-password-toggle{position:relative}
+.login-password-toggle.is-on{color:#0f766e!important;background:rgba(15,118,110,.10)!important;border-radius:8px}
+.login-password-toggle.is-on::after{
+  content:"";position:absolute;left:6px;right:6px;top:50%;height:2px;margin-top:-1px;
+  background:currentColor;transform:rotate(-38deg);border-radius:2px
+}
