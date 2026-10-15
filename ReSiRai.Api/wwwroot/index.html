@@ -380,6 +380,8 @@ window.addEventListener('DOMContentLoaded',function(){
     new MutationObserver(function(){syncSignupBar();clearOwnCodeFromPatientSearch();}).observe(document.body,{attributes:true,attributeFilter:["class"],subtree:true});
     var ps0=document.getElementById("patientSearch");
     if(ps0){["focus","input","pointerdown","keydown"].forEach(function(ev){ps0.addEventListener(ev,clearOwnCodeFromPatientSearch,true);});}
+    // نگهبانِ دوره‌ای: autofillِ مرورگر ممکن است با تأخیر (وقتی فیلد نمایان می‌شود) بنویسد.
+    setInterval(clearOwnCodeFromPatientSearch,500);
   });
 })();</script></body>
 </html>
