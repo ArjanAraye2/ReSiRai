@@ -379,7 +379,13 @@ window.addEventListener('DOMContentLoaded',function(){
     document.addEventListener("resirai-auth-changed",function(){syncSignupBar();clearOwnCodeFromPatientSearch();});
     new MutationObserver(function(){syncSignupBar();clearOwnCodeFromPatientSearch();}).observe(document.body,{attributes:true,attributeFilter:["class"],subtree:true});
     var ps0=document.getElementById("patientSearch");
-    if(ps0){["focus","input","pointerdown","keydown"].forEach(function(ev){ps0.addEventListener(ev,clearOwnCodeFromPatientSearch,true);});}
+    if(ps0){
+      ["focus","input","pointerdown","keydown"].forEach(function(ev){ps0.addEventListener(ev,clearOwnCodeFromPatientSearch,true);});
+      // ریشه‌ای: تا لحظهٔ فوکوس، فیلد readonly است تا autofillِ مرورگر اصلاً داخلش ننویسد.
+      ps0.setAttribute("readonly","readonly");
+      var __unlock=function(){ps0.removeAttribute("readonly");};
+      ["focus","pointerdown","mousedown","touchstart"].forEach(function(ev){ps0.addEventListener(ev,__unlock,true);});
+    }
     // نگهبانِ دوره‌ای: autofillِ مرورگر ممکن است با تأخیر (وقتی فیلد نمایان می‌شود) بنویسد.
     setInterval(clearOwnCodeFromPatientSearch,500);
   });
