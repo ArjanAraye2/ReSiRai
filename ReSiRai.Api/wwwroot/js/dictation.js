@@ -163,14 +163,14 @@
   rec.continuous = true;
   rec.interimResults = true;
 
-  rec.onstart = () => {
+  rec.onstart = () => { if (recognition !== rec) return;
    listening = true;
    lastActivity = Date.now();
    paint(currentBtn, true);
    hint(input, "در حال گوش دادن…");
   };
 
-  rec.onresult = (event) => {
+  rec.onresult = (event) => { if (recognition !== rec) return;
    let interim = "";
    for (let i = event.resultIndex; i < event.results.length; i++) {
     const res = event.results[i];
@@ -181,7 +181,7 @@
    hint(input, interim ? "می‌شنوم: " + interim.trim() : "در حال گوش دادن…");
   };
 
-  rec.onerror = (e) => {
+  rec.onerror = (e) => { if (recognition !== rec) return;
    if (e.error === "not-allowed" || e.error === "service-not-allowed") {
     hardStop();
     hint(input, "دسترسی به میکروفن داده نشد؛ از نوارِ آدرس مرورگر مجوز بدهید.");
@@ -194,7 +194,7 @@
 
   // مرورگر بعد از چند ثانیهِ سکوت جلسه را می‌بندد؛ اگر کاربر هنوز حرف می‌زند
   // دوباره وصل می‌شویم تا وسطِ جمله قطع نشود.
-  rec.onend = () => {
+  rec.onend = () => { if (recognition !== rec) return;
    if (!listening) { paint(currentBtn, false); return; }
    // شروعِ همزمان با onend در بعضی نسخه‌های کروم خطا می‌دهد ⇒ کمی تأخیر.
    setTimeout(() => {

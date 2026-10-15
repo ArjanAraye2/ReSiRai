@@ -72,10 +72,10 @@ public class SignupController : ControllerBase
         if (recent >= 5) return StatusCode(429, new { success = false, message = "کد زیاد درخواست شده؛ کمی بعد دوباره تلاش کنید." });
 
         var code = Random.Shared.Next(100000, 999999).ToString();
-        _db.SignupOtps.Add(new SignupOtp { Mobile = mobile, Code = code, RequestedAt = DateTime.UtcNow, ExpiresAt = DateTime.UtcNow.AddMinutes(5), Used = false });
+        _db.SignupOtps.Add(new SignupOtp { Mobile = mobile, Code = code, RequestedAt = DateTime.UtcNow, ExpiresAt = DateTime.UtcNow.AddMinutes(30), Used = false });
         await _db.SaveChangesAsync(ct);
 
-            var (smsOk, smsMsg) = await _sms.SendSmsAsync(mobile, $"کد ثبت نام رسیرای: {code}\nاعتبار: ۵ دقیقه");
+            var (smsOk, smsMsg) = await _sms.SendSmsAsync(mobile, $"کد ثبت نام رسیرای: {code}\nاعتبار: ۳۰ دقیقه");
             if (!smsOk)
             {
                 _log.LogError("ارسال کد ثبت‌نام مرسید نشد: {Mobile} — {Reason}", mobile, smsMsg);
