@@ -57,16 +57,34 @@ namespace ReSiRai.Api.Controllers
                 // A DbContext cannot run several commands concurrently, so the counts
                 // are awaited sequentially. recentStudies/recentImages are plain
                 // projections so they stay cheap.
-                totalPatients = await _context.Patients.AsNoTracking().CountAsync();
-                activePatients = await _context.Patients.AsNoTracking().CountAsync(p => p.IsActive);
-                totalStudies = await _context.RadiologyStudies.AsNoTracking().CountAsync();
+                // پزشک فقط آمارِ خودش را می‌بیند: بیمارانی که برایشان مراجعه‌ای با
+                // DoctorStaffID همین پزشک ثبت شده است (و مطالعاتِ همان پزشک).
+                byte.TryParse(User.FindFirst("StaffType")?.Value, out byte dashStaffType);
+                int.TryParse(User.FindFirst("StaffID")?.Value, out int dashStaffID);
+                bool dashSuper = string.Equals(User.FindFirst("IsSuperAdmin")?.Value, "true", StringComparison.OrdinalIgnoreCase);
+                bool dashIsDoctor = !dashSuper && dashStaffType == 2 && dashStaffID > 0;
+
+                var studiesQ = _context.RadiologyStudies.AsNoTracking().AsQueryable();
+                var patientsQ = _context.Patients.AsNoTracking().AsQueryable();
+                if (dashIsDoctor)
+                {
+                    studiesQ = studiesQ.Where(s => s.DoctorStaffID == dashStaffID);
+                    var myPatientIds = _context.RadiologyStudies.AsNoTracking()
+                        .Where(s => s.DoctorStaffID == dashStaffID)
+                        .Select(s => s.PatientID);
+                    patientsQ = patientsQ.Where(p => myPatientIds.Contains(p.PatientID));
+                }
+
+                totalPatients = await patientsQ.CountAsync();
+                activePatients = await patientsQ.CountAsync(p => p.IsActive);
+                totalStudies = await studiesQ.CountAsync();
                 totalImages = await _context.RadiologyImages.AsNoTracking().CountAsync();
 
-                newPatientsToday = await _context.Patients.AsNoTracking()
+                newPatientsToday = await patientsQ
                     .CountAsync(p => p.CreatedDate >= today && p.CreatedDate < tomorrow);
-                studiesToday = await _context.RadiologyStudies.AsNoTracking()
+                studiesToday = await studiesQ
                     .CountAsync(s => s.StudyDate >= today && s.StudyDate < tomorrow);
-                patientsToday = await _context.RadiologyStudies.AsNoTracking()
+                patientsToday = await studiesQ
                     .Where(s => s.StudyDate >= today && s.StudyDate < tomorrow)
                     .Select(s => s.PatientID).Distinct().CountAsync();
                 imagesToday = await _context.RadiologyImages.AsNoTracking()
