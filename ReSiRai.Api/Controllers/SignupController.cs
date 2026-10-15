@@ -194,6 +194,34 @@ public class SignupController : ControllerBase
         pending.SpecialtyID = specialtyID;
         pending.StoragePreference = request.StoragePreference == "Local" ? "Local" : "Server";
         await _db.SaveChangesAsync(ct);
+
+        // حالتِ تست: بدونِ گامِ پرداخت، همین‌جا حسابِ پزشک ساخته و ذخیره می‌شود.
+        if (string.Equals(_config["Payments:SignupTestMode"], "true", StringComparison.OrdinalIgnoreCase))
+        {
+            var staff = new Staff
+            {
+                NationalCode = nc,
+                FirstName = firstName,
+                LastName = lastName,
+                StaffType = 2, // پزشک
+                SpecialtyID = specialtyID,
+                StartDate = DateTime.UtcNow,
+            };
+            _db.Staff.Add(staff);
+            await _db.SaveChangesAsync(ct);
+            _db.Users.Add(new User
+            {
+                StaffID = staff.StaffID,
+                UserName = nc,
+                IsActive = true,
+                StartDate = DateTime.UtcNow,
+                PasswordHash = pending.PasswordHash,
+            });
+            _db.SignupPendings.Remove(pending);
+            await _db.SaveChangesAsync(ct);
+            return Ok(new { success = true, registered = true });
+        }
+
         return Ok(new { success = true });
     }
 
