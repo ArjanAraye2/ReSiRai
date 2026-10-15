@@ -197,19 +197,27 @@
     document.documentElement.scrollTop=0;
     document.body.scrollTop=0;
     // کیوآرکد ورود: اسکن با موبایل → باز شدن ReSiRai
-    var qrScript=document.createElement("script");
-    qrScript.src="/js/qrcode.min.js";
-    qrScript.onload=function(){
+    // از همان qrcode.js که خودِ صفحه لود کرده استفاده می‌کنیم (نه qrcode.min.js
+    // که ممکن است تابعِ سراسریِ qrcode را نسازد) و فقط در نبودش همان را می‌آوریم.
+    function renderLoginQr(){
       try {
-        if (typeof qrcode==="function") {
+        if (typeof qrcode === "function") {
           var q=qrcode(0,"M");
           q.addData(window.location.origin);
           q.make();
-          document.getElementById("loginQr").innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true});
+          var el=document.getElementById("loginQr");
+          if (el) el.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true});
+          return true;
         }
       } catch(_) {}
-    };
-    document.head.appendChild(qrScript);
+      return false;
+    }
+    if (!renderLoginQr()) {
+      var qrScript=document.createElement("script");
+      qrScript.src="/js/qrcode.js?v=1.4.5";
+      qrScript.onload=renderLoginQr;
+      document.head.appendChild(qrScript);
+    }
     const form=document.getElementById('reSiRaiLoginForm'),userName=document.getElementById('loginUserName'),password=document.getElementById('loginPassword');
     const toggle=document.getElementById('toggleLoginPassword'),status=document.getElementById('loginStatus'),submit=document.getElementById('loginSubmit');
     const label=document.getElementById('loginIdentifierLabel'),icon=document.getElementById('loginIdentifierIcon'),remember=document.getElementById('loginRememberMe');
