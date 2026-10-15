@@ -377,7 +377,9 @@ window.addEventListener('DOMContentLoaded',function(){
     clearOwnCodeFromPatientSearch();
     setTimeout(clearOwnCodeFromPatientSearch,600);
     document.addEventListener("resirai-auth-changed",function(){syncSignupBar();clearOwnCodeFromPatientSearch();});
-    new MutationObserver(function(){syncSignupBar();clearOwnCodeFromPatientSearch();}).observe(document.body,{attributes:true,attributeFilter:["class"]});
+    new MutationObserver(function(){syncSignupBar();clearOwnCodeFromPatientSearch();}).observe(document.body,{attributes:true,attributeFilter:["class"],subtree:true});
+    var ps0=document.getElementById("patientSearch");
+    if(ps0){["focus","input","pointerdown","keydown"].forEach(function(ev){ps0.addEventListener(ev,clearOwnCodeFromPatientSearch,true);});}
   });
 })();</script></body>
 </html>
