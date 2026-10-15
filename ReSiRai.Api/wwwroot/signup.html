@@ -165,6 +165,22 @@
   };
 })();
 </script>
+<script>
+/* ارقامِ فارسی/عربی (از دیکته یا کیبورد فارسی) را همان‌جا به لاتین تبدیل می‌کند */
+(function(){
+  var ids=['otp','mobile','nationalCode'];
+  function toLatin(s){return s
+    .replace(/[\u06F0-\u06F9]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0x06F0+48);})
+    .replace(/[\u0660-\u0669]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0x0660+48);});}
+  ids.forEach(function(id){
+    var el=document.getElementById(id); if(!el) return;
+    el.addEventListener('input',function(){
+      var v=toLatin(el.value);
+      if(v!==el.value){var p=el.selectionStart; el.value=v; try{el.setSelectionRange(p,p);}catch(e){}}
+    });
+  });
+})();
+</script>
 <script src="/js/dictation.js"></script>
 </body>
 </html>

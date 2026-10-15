@@ -38,11 +38,25 @@ public class SignupController : ControllerBase
 
     private static string NormalizeMobile(string? mobile)
     {
-        var m = new string((mobile ?? "").Where(char.IsDigit).ToArray());
+        var m = new string(NormalizeDigits(mobile).Where(char.IsDigit).ToArray());
         if (m.StartsWith("00989") && m.Length >= 14) m = "0" + m.Substring(4);
         else if (m.StartsWith("989") && m.Length == 12) m = "0" + m.Substring(2);
         else if (m.StartsWith("9") && m.Length == 10) m = "0" + m;
         return m;
+    }
+
+    // ارقامِ فارسی/عربی (و دیکتهٔ صوتی) را به لاتین برمی‌گرداند تا مقایسهٔ کد درست شود.
+    private static string NormalizeDigits(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return "";
+        var sb = new System.Text.StringBuilder(value.Length);
+        foreach (var ch in value)
+        {
+            if (ch >= '\u06F0' && ch <= '\u06F9') sb.Append((char)('0' + (ch - '\u06F0')));       // ۰..۹
+            else if (ch >= '\u0660' && ch <= '\u0669') sb.Append((char)('0' + (ch - '\u0660')));  // ٠..٩
+            else sb.Append(ch);
+        }
+        return sb.ToString().Trim();
     }
 
     private IActionResult Redirect(string status)
@@ -93,6 +107,7 @@ public class SignupController : ControllerBase
     public async Task<IActionResult> Verify(VerifyRequest request, CancellationToken ct)
     {
         var mobile = NormalizeMobile(request.Mobile);
+        request.Code = NormalizeDigits(request.Code);
         var otp = await _db.SignupOtps
             .Where(x => x.Mobile == mobile && !x.Used && x.ExpiresAt >= DateTime.UtcNow)
             .OrderByDescending(x => x.RequestedAt)
@@ -378,6 +393,9 @@ public async Task<IActionResult> SpecialtiesPublic(CancellationToken ct)
             }
             catch (Exception ex) { _log.LogWarning(ex, "پیامک خوش‌آمد نرفت: {Mobile}", pending.Mobile); }
 
+            // حالتِ تست: بدونِ درگاه؛ بعد از ساختِ کاربر مستقیم به صفحهٔ ورود برگرد.
+            if (testMode)
+                return RedirectPermanent($"{Request.Scheme}://{Request.Host}/?signup=success");
             return Redirect("success");
         }
         catch (Exception ex)
