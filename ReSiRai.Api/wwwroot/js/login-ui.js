@@ -38,7 +38,10 @@
       document.getElementById('reSiRaiLogoutButton').addEventListener('click',window.reSiRaiLogout);
     }
     const name=document.getElementById('reSiRaiCurrentUserName');
-    if(name)name.textContent=user.isSuperAdmin?'مدیر سیستم':`${user.firstName||''} ${user.lastName||''}`.trim();
+    if(name)name.textContent = user.isSuperAdmin
+      ? 'مدیر سیستم'
+      : ('دکتر ' + `${user.firstName||''} ${user.lastName||''}`.trim()
+         + ((user.specialtyName||user.SpecialtyName) ? ' - ' + (user.specialtyName||user.SpecialtyName) : '')).trim();
     control.classList.remove('hidden');
   }
 
