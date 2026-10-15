@@ -359,5 +359,17 @@ window.addEventListener('DOMContentLoaded',function(){
 <script src="/js/first-run-tour.js?v=20261001.19"></script>
 <script src="/js/voice-control.js?v=20261001.19"></script>
 <script src="/js/toolbar-more.js?v=20261001.19"></script>
-<script>(document.addEventListener("DOMContentLoaded",function(){if(!window.reSiRaiCurrentUser){var e=document.getElementById("loginSignupLink");if(e)e.style.display="block";}}));</script></body>
+<script>(function(){
+  function syncSignupBar(){
+    var e=document.getElementById("loginSignupLink"); if(!e) return;
+    var loggedIn=!!window.reSiRaiCurrentUser;
+    var onLogin=document.body.classList.contains("resirai-login-active");
+    e.style.display=(!loggedIn&&onLogin)?"block":"none";
+  }
+  document.addEventListener("DOMContentLoaded",function(){
+    syncSignupBar();
+    document.addEventListener("resirai-auth-changed",syncSignupBar);
+    new MutationObserver(syncSignupBar).observe(document.body,{attributes:true,attributeFilter:["class"]});
+  });
+})();</script></body>
 </html>
