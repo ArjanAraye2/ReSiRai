@@ -27,15 +27,32 @@ namespace ReSiRai.Api.Controllers
         public async Task<IActionResult> GetPatients(string? search = null, bool includeInactive = false, bool openOnly = false, bool dueOnly = false,
             int offset = 0, string? sortBy = null, string? sortDir = null)
         {
-            // Statistics describe the complete patient population, while the list below
+            // پزشک فقط بیمارانِ خودش را می‌بیند: بیمارانی که مراجعه‌ای با
+            // DoctorStaffID همین پزشک دارند (مدیر سیستم: کل).
+            byte.TryParse(User.FindFirst("StaffType")?.Value, out byte plStaffType);
+            int.TryParse(User.FindFirst("StaffID")?.Value, out int plStaffID);
+            bool plSuper = string.Equals(User.FindFirst("IsSuperAdmin")?.Value, "true", StringComparison.OrdinalIgnoreCase);
+            bool plDoctor = !plSuper && plStaffType == 2 && plStaffID > 0;
+
+            var patientsScope = _context.Patients.AsNoTracking().AsQueryable();
+            var studiesScope = _context.RadiologyStudies.AsNoTracking().AsQueryable();
+            if (plDoctor)
+            {
+                studiesScope = studiesScope.Where(s => s.DoctorStaffID == plStaffID);
+                var myPatientIds = _context.RadiologyStudies.AsNoTracking()
+                    .Where(s => s.DoctorStaffID == plStaffID).Select(s => s.PatientID);
+                patientsScope = patientsScope.Where(p => myPatientIds.Contains(p.PatientID));
+            }
+
+            // Statistics describe the (scoped) patient population, while the list below
             // still respects the current search/include-inactive filters.
-            var totalPatients = await _context.Patients.AsNoTracking().CountAsync();
-            var activePatients = await _context.Patients.AsNoTracking().CountAsync(p => p.IsActive);
+            var totalPatients = await patientsScope.CountAsync();
+            var activePatients = await patientsScope.CountAsync(p => p.IsActive);
             var inactivePatients = totalPatients - activePatients;
-            var patientsWithStudies = await _context.RadiologyStudies.AsNoTracking()
+            var patientsWithStudies = await studiesScope
                 .Select(s => s.PatientID).Distinct().CountAsync();
 
-            var query = _context.Patients.AsNoTracking().AsQueryable();
+            var query = patientsScope;
             if (!includeInactive) query = query.Where(p => p.IsActive);
 
             // "Open only": a patient still has work outstanding (status is not

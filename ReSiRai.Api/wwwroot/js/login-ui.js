@@ -206,7 +206,15 @@
           q.addData(window.location.origin);
           q.make();
           var el=document.getElementById("loginQr");
-          if (el) el.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true});
+          if (el) {
+            el.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true});
+            var svg=el.querySelector("svg");
+            if (svg) {
+              svg.style.setProperty("width","100%","important");
+              svg.style.setProperty("height","100%","important");
+              svg.style.setProperty("display","block","important");
+            }
+          }
           return true;
         }
       } catch(_) {}
