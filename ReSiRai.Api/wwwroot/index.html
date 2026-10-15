@@ -72,7 +72,7 @@
   <div class="header-brand"><img class="header-brand-logo" src="images/resirai-logo.svg?v=20261001.19" alt="ReSiRai - Medical Intelligence Platform" /></div>
 </div></header>
 <main class="page-container">
-<section id="patientsSection" class="card"><div class="section-header"><div><h2>بیماران</h2><p>جستجو، ثبت و مدیریت پرونده بیماران</p></div></div><div id="patientStatistics" class="patient-statistics"><div><strong id="statTotalPatients">0</strong><span>کل بیماران</span></div><div><strong id="statActivePatients">0</strong><span>فعال</span></div><div><strong id="statInactivePatients">0</strong><span>غیرفعال</span></div><div><strong id="statPatientsWithStudies">0</strong><span>دارای مراجعه</span></div><div><strong id="statPatientsWithOpenStudies">0</strong><span>مراجعهٔ باز دارند</span></div></div><div class="search-panel"><div class="search-container"><input id="patientSearch" type="text" placeholder="نام، نام خانوادگی، کد ملی یا موبایل..." autocomplete="off" /><button id="searchButton" type="button">جستجو</button><button id="clearSearchButton" type="button" class="secondary-button">پاک کردن</button></div><label class="checkbox-row"><input id="includeInactivePatients" type="checkbox" /><span>نمایش بیماران غیرفعال</span></label>
+<section id="patientsSection" class="card"><div class="section-header"><div><h2>بیماران</h2><p>جستجو، ثبت و مدیریت پرونده بیماران</p></div></div><div id="patientStatistics" class="patient-statistics"><div><strong id="statTotalPatients">0</strong><span>کل بیماران</span></div><div><strong id="statActivePatients">0</strong><span>فعال</span></div><div><strong id="statInactivePatients">0</strong><span>غیرفعال</span></div><div><strong id="statPatientsWithStudies">0</strong><span>دارای مراجعه</span></div><div><strong id="statPatientsWithOpenStudies">0</strong><span>مراجعهٔ باز دارند</span></div></div><div class="search-panel"><div class="search-container"><input id="patientSearch" type="text" placeholder="نام، نام خانوادگی، کد ملی یا موبایل..." autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" /><button id="searchButton" type="button">جستجو</button><button id="clearSearchButton" type="button" class="secondary-button">پاک کردن</button></div><label class="checkbox-row"><input id="includeInactivePatients" type="checkbox" /><span>نمایش بیماران غیرفعال</span></label>
         <div class="patient-reminder-filters">
           <label class="checkbox-row"><input id="openStudiesOnly" type="checkbox" /><span>فقط بیماران با مطالعه باز</span></label>
           <label class="checkbox-row"><input id="dueFollowUpOnly" type="checkbox" /><span>فقط پیگیری‌های سررسیده</span></label>
@@ -366,10 +366,18 @@ window.addEventListener('DOMContentLoaded',function(){
     var onLogin=document.body.classList.contains("resirai-login-active");
     e.style.display=(!loggedIn&&onLogin)?"block":"none";
   }
+  // اگر مرورگر کد ملیِ خودِ کاربر را در کادر جست‌وجوی بیماران پر کرده باشد، پاک می‌شود.
+  function clearOwnCodeFromPatientSearch(){
+    var ps=document.getElementById("patientSearch"); if(!ps) return;
+    var u=window.reSiRaiCurrentUser;
+    if(u&&(u.userName||u.nationalCode)&&ps.value.trim()===String(u.userName||u.nationalCode).trim()) ps.value="";
+  }
   document.addEventListener("DOMContentLoaded",function(){
     syncSignupBar();
-    document.addEventListener("resirai-auth-changed",syncSignupBar);
-    new MutationObserver(syncSignupBar).observe(document.body,{attributes:true,attributeFilter:["class"]});
+    clearOwnCodeFromPatientSearch();
+    setTimeout(clearOwnCodeFromPatientSearch,600);
+    document.addEventListener("resirai-auth-changed",function(){syncSignupBar();clearOwnCodeFromPatientSearch();});
+    new MutationObserver(function(){syncSignupBar();clearOwnCodeFromPatientSearch();}).observe(document.body,{attributes:true,attributeFilter:["class"]});
   });
 })();</script></body>
 </html>
