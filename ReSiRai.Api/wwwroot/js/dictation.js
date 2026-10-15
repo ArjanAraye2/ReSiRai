@@ -32,15 +32,15 @@
   if (wrapOf(el)) return false;                              // قبلاً پیچیده شده
   if (el.readOnly || el.disabled) return false;              // صرفاً نمایش (حالتِ نمایشِ کارت)
   if (!el.offsetHeight) return false;                        // پنهان (فرمِ بسته یا کارتِ بسته)
-  if (el.closest("#loginSection")) return false;             // صفحهٔ ورود طرحِ خودش را دارد
-  return !!el.closest(isRootSelector);                       // فقط صفحه‌هایِ محصول، نه مدال‌ها و دایالوگ‌ها
+  if (el.closest("#reSiRaiLoginScreen, #loginSection")) return false; // صفحهٔ ورود (و بازیابی رمز)             // صفحهٔ ورود طرحِ خودش را دارد
+  return true;                       // فقط صفحه‌هایِ محصول، نه مدال‌ها و دایالوگ‌ها
  }
 
  // همهٔ تکست‌هایِ آزادِ دیده‌شده (بدونِ آن‌هایی که باکسِ میکروفن/✕ دارند)
  function freeTextTargets(root) {
   const out = [];
   const scope = root instanceof Element ? root : null;
-  const roots = scope && scope.matches(isRootSelector) ? [scope] : Array.from(document.querySelectorAll(isRootSelector));
+  const roots = scope ? [scope] : [document.body];
   for (const r of roots) {
    r.querySelectorAll(FREE_TEXT_SELECTOR).forEach(el => {
     if (isDictatable(el)) out.push(el);

@@ -25,6 +25,18 @@
   .pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;background:#f7fbfd;border:1px dashed #cfe0ee;border-radius:10px;padding:10px;margin-bottom:12px}
   .pros-cons b{display:block;color:#285b8f;margin-bottom:4px}
   #resultBox{display:none;padding:10px;border-radius:8px;margin-bottom:12px;font-weight:700;font-size:14px}
+  /* دیکته (میکروفن + ✕) — همان استایلِ study-finance، برای صفحهٔ ثبت‌نام */
+  .dictate-wrap{position:relative;display:flex;flex-wrap:nowrap;align-items:center;gap:5px;min-width:0;flex:1 1 auto;width:auto}
+  .dictate-wrap input,.dictate-wrap textarea{flex:1 1 auto;width:auto;min-width:0;padding-inline-end:8px}
+  .dictate-hint{position:absolute;inset-block-start:calc(100% + 3px);inset-inline-start:0;max-width:calc(100% - 12px);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--danger,#c0392b);font-size:var(--fs-xs,11px);font-weight:600;pointer-events:none;background:var(--surface,#fff);padding:1px 8px;border-radius:6px;box-shadow:0 1px 5px rgba(16,40,60,.14);z-index:6}
+  .dictate-hint:empty{display:none}
+  .dictate-btn{position:static;flex:0 0 auto;order:3;font-size:12px;line-height:1.25;padding:1px 7px;border:1px solid var(--border,#cfe0ee);border-radius:999px;background:var(--surface,#fff);color:var(--muted,#5a7f96);cursor:pointer}
+  .dictate-btn:hover{border-color:var(--primary,#0f766e);color:var(--primary,#0f766e)}
+  .dictate-btn.is-listening{border-color:var(--danger,#c0392b);color:var(--danger,#c0392b);background:var(--danger-soft,#fdecec);animation:dictatePulse 1s ease-in-out infinite}
+  .dictate-clr[hidden]{display:none}
+  .dictate-clr{position:static;flex:0 0 auto;order:2;min-width:21px;padding:1px 5px;border:1px solid var(--border,#cfe0ee);border-radius:999px;background:var(--surface,#fff);color:var(--muted,#5a7f96);cursor:pointer;font-size:11px;line-height:1.2;display:flex;align-items:center;justify-content:center}
+  .dictate-clr:hover{border-color:var(--danger,#c0392b);color:var(--danger,#c0392b)}
+  @keyframes dictatePulse{0%,100%{box-shadow:0 0 0 0 rgba(190,60,60,.35)}50%{box-shadow:0 0 0 6px rgba(190,60,60,0)}}
 </style>
 </head>
 <body>
@@ -153,5 +165,6 @@
   };
 })();
 </script>
+<script src="/js/dictation.js"></script>
 </body>
 </html>
