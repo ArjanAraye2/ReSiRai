@@ -245,11 +245,13 @@
  // برای اینکه فرمانِ صوتی بداند دیکته فعال است و ساکت بماند.
  // یکسان‌سازیِ ارقام: هر ورودیِ متنی — چه تایپِ فارسی چه دیکته — با ارقامِ لاتین نوشته شود.
  const FA_DIGITS = /[\u06F0-\u06F9\u0660-\u0669]/;
- function toLatinDigits(s) {
-  return String(s)
-   .replace(/[\u06F0-\u06F9]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x06F0 + 48))
-   .replace(/[\u0660-\u0669]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x0660 + 48));
- }
+ // نرمال‌کنندهٔ مشترکِ پروژه در app.js تعریف شده (window.normalizeDigits).
+ // در صفحه‌هایی که app.js ندارند (مثل ثبت‌نام) جانشینِ محلی به‌کار می‌رود تا یکسان بماند.
+ const toLatinDigits = (s) => (typeof window !== "undefined" && typeof window.normalizeDigits === "function")
+  ? window.normalizeDigits(s)
+  : String(s)
+     .replace(/[\u06F0-\u06F9]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x06F0 + 48))
+     .replace(/[\u0660-\u0669]/g, c => String.fromCharCode(c.charCodeAt(0) - 0x0660 + 48));
  document.addEventListener("input", (e) => {
   const el = e.target;
   if (!el || !el.matches || !el.matches(FREE_TEXT_SELECTOR)) return;
