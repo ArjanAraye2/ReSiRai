@@ -150,7 +150,7 @@
     if (!payload.firstName || !payload.lastName) { msg($("msg2"), "نام و نام خانوادگی را کامل کنید.", false); return; }
     if (!/^\d{10}$/.test(payload.nationalCode)) { msg($("msg2"), "کد ملی ۱۰ رقمی را کامل بزنید.", false); return; }
     if (payload.password.length < 8) { msg($("msg2"), "رمز باید دست‌کم ۸ نویسه باشد.", false); return; }
-    const r = await post("/api/signup/patient-details", payload);
+    const r = await post("/api/signup/details", payload);
     if (r.ok && r.x.success && r.x.registered) { location.href = "/?signup=success"; return; }
     if (r.ok && r.x.success) gotoStep(3);
     else msg($("msg2"), r.x.message || r.x.result || "ذخیره نشد.", false);
