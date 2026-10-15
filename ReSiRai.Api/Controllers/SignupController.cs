@@ -198,6 +198,18 @@ public class SignupController : ControllerBase
         if (await _db.Staff.AsNoTracking().AnyAsync(x => x.NationalCode == pending.NationalCode, ct))
             return BadRequest(new { success = false, message = "این کد ملی قبلاً ثبت شده است." });
 
+        // حالتِ تست: درگاه پرداخت باز نمی‌شود؛ پرداخت «انجام‌شده» فرض و مستقیم به کال‌کک محلی می‌رود.
+        if (string.Equals(_config["Payments:SignupTestMode"], "true", StringComparison.OrdinalIgnoreCase))
+        {
+            var tResNum = $"RSR-{pending.SignupPendingID}-TEST{Guid.NewGuid().ToString("N")[..6].ToUpperInvariant()}";
+            var tAmount = int.TryParse(_config["Payments:Sep:Amount"], out int ta) ? ta : 0;
+            _db.SignupPayments.Add(new SignupPayment { SignupPendingID = pendingID, ResNum = tResNum, SepToken = "TEST", Amount = tAmount, CreatedAt = DateTime.UtcNow });
+            await _db.SaveChangesAsync(ct);
+            var cbBase = $"{Request.Scheme}://{Request.Host}";
+            var cbUrl = cbBase + "/api/signup/payment/callback?State=OK&RefNum=TEST&ResNum=" + Uri.EscapeDataString(tResNum);
+            return Ok(new { success = true, testMode = true, payUrl = cbUrl });
+        }
+
         var terminal = _config["Payments:Sep:TerminalId"];
         var amount = int.TryParse(_config["Payments:Sep:Amount"], out int a) ? a : 0;
         var apiBase = _config["Payments:Sep:ApiBase"];
@@ -295,8 +307,11 @@ public async Task<IActionResult> SpecialtiesPublic(CancellationToken ct)
         // استعلامِ تأیید مستقیم از درگاه — کال‌کک بالاتر از مرورگر نیست
         var terminal = _config["Payments:Sep:TerminalId"];
         var verifyUrl = _config["Payments:Sep:ApiBase"]?.TrimEnd('/') + "/verifyTxnRandomSessionkey/ipg/VerifyTransaction";
-        int verifiedAmount = 0;
-        bool verifyOk = false;
+        // حالتِ تست: بدونِ تماس با درگاه، پرداخت «تأییدشده» تلقی می‌شود.
+        var testMode = string.Equals(_config["Payments:SignupTestMode"], "true", StringComparison.OrdinalIgnoreCase);
+        int verifiedAmount = pay.Amount;
+        bool verifyOk = testMode;
+        if (!testMode)
         try
         {
             var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
