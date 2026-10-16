@@ -76,7 +76,7 @@
 
   function ensureLoginStyles(){
     if(document.getElementById('reSiRaiFinalLoginCss'))return;
-    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.14';document.head.appendChild(l);
+    const l=document.createElement('link');l.id='reSiRaiFinalLoginCss';l.rel='stylesheet';l.href='/css/login-final.css?v=20261009.15';document.head.appendChild(l);
   }
 
   function updateLoginViewport(){
@@ -159,73 +159,8 @@
       </div>`;
 
     document.body.prepend(screen);
-    // کیو‌آرِ ورود: دایرهٔ کوچکِ گوشهٔ چپ؛ با بردنِ موس کامل و آمادهٔ اسکن می‌شود.
-    (function(){
-      try {
-        var qb = screen.querySelector(".login-qr-box");
-        if (!qb) return;
-        document.body.appendChild(qb);
-        var S = function(prop, val, imp){ qb.style.setProperty(prop, val, imp === false ? "" : "important"); };
-        S("position","fixed"); S("left","18px"); S("right","auto"); S("bottom","18px"); S("top","auto");
-        S("width","64px"); S("height","64px"); S("padding","7px"); S("border-radius","50%");
-        S("background","#fff"); S("display","flex"); S("flex-direction","column");
-        S("align-items","center"); S("justify-content","center");
-        S("z-index","10050"); S("overflow","hidden"); S("cursor","zoom-in");
-        S("box-shadow","0 8px 22px rgba(8,50,80,.28)");
-        S("transition","width .18s ease,height .18s ease,border-radius .18s ease");
-        var qr = qb.querySelector("#loginQr, svg");
-        var cap = qb.querySelector(".login-qr-caption");
-        var small = function(){
-          S("width","64px"); S("height","64px"); S("padding","7px"); S("border-radius","50%"); S("cursor","zoom-in");
-          if (qr) { qr.style.setProperty("width","50px","important"); qr.style.setProperty("height","50px","important"); }
-          if (cap) cap.style.setProperty("display","none","important");
-        };
-        var big = function(){
-          S("width","200px"); S("height","auto"); S("padding","10px 10px 6px"); S("border-radius","16px"); S("cursor","zoom-out");
-          if (qr) { qr.style.setProperty("width","178px","important"); qr.style.setProperty("height","178px","important"); }
-          if (cap) cap.style.setProperty("display","block","important");
-        };
-        small();
-        qb.addEventListener("mouseenter", big);
-        qb.addEventListener("mouseleave", small);
-      } catch (_) {}
-    })();
-    updateLoginViewport();
-    // Always open the authentication screen at its real top; the application may have been scrolled before login.
-    window.scrollTo(0,0);
-    screen.scrollTop=0;
-    document.documentElement.scrollTop=0;
-    document.body.scrollTop=0;
-    // کیوآرکد ورود: اسکن با موبایل → باز شدن ReSiRai
-    // از همان qrcode.js که خودِ صفحه لود کرده استفاده می‌کنیم (نه qrcode.min.js
-    // که ممکن است تابعِ سراسریِ qrcode را نسازد) و فقط در نبودش همان را می‌آوریم.
-    function renderLoginQr(){
-      try {
-        if (typeof qrcode === "function") {
-          var q=qrcode(0,"M");
-          q.addData(window.location.origin);
-          q.make();
-          var el=document.getElementById("loginQr");
-          if (el) {
-            el.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true});
-            var svg=el.querySelector("svg");
-            if (svg) {
-              svg.style.setProperty("width","100%","important");
-              svg.style.setProperty("height","100%","important");
-              svg.style.setProperty("display","block","important");
-            }
-          }
-          return true;
-        }
-      } catch(_) {}
-      return false;
-    }
-    if (!renderLoginQr()) {
-      var qrScript=document.createElement("script");
-      qrScript.src="/js/qrcode.js?v=1.4.5";
-      qrScript.onload=renderLoginQr;
-      document.head.appendChild(qrScript);
-    }
+    // کیو‌آرِ شناور از /js/qr-float.js می‌آید (همیشه، همه‌جا) — جعبهٔ داخلِ قالب حذف می‌شود
+    (function(){ try { var qb=screen.querySelector(".login-qr-box"); if(qb) qb.remove(); } catch(_){} })();
     const form=document.getElementById('reSiRaiLoginForm'),userName=document.getElementById('loginUserName'),password=document.getElementById('loginPassword');
     const toggle=document.getElementById('toggleLoginPassword'),status=document.getElementById('loginStatus'),submit=document.getElementById('loginSubmit');
     const label=document.getElementById('loginIdentifierLabel'),icon=document.getElementById('loginIdentifierIcon'),remember=document.getElementById('loginRememberMe');
