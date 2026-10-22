@@ -4,6 +4,7 @@ using ReSiRai.Api.Services;
 using ReSiRai.Api.Services.Pos;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -145,6 +146,20 @@ builder.Services.AddDbContext<ReSiRaiDbContext>(options =>
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+
+// Behind nginx (same host) every request reaches the container from the Docker
+// bridge gateway, so the real client IP/proto arrive in X-Forwarded-For /
+// X-Forwarded-Proto (nginx sends them via `include proxy_params`). Restore them
+// before rate limiting, logging and HTTPS redirection. The app port is
+// published on 127.0.0.1 only, so clearing the trusted-proxy lists is safe:
+// no direct client can reach Kestrel to spoof these headers.
+var forwarded = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwarded.KnownIPNetworks.Clear();
+forwarded.KnownProxies.Clear();
+app.UseForwardedHeaders(forwarded);
 
 using (var scope = app.Services.CreateScope())
 {
