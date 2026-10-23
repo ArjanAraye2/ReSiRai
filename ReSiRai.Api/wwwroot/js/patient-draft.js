@@ -8,17 +8,21 @@
 //    حداقلِ اطلاعات لازم (نام، نامِ خانوادگی، جنسیت) کامل شد، **کلیدِ «ثبت»
 //    کنارِ همان فیلدی که کرسر در آن است** ظاهر می‌شود و با کلیک، بیمار ثبت و
 //    پرونده‌اش باز می‌شود (آمادهٔ ثبتِ مراجعه).
-//  - کدِ ملی با موجووجت? بیمار منطبق شد دو حالت دارد:
-//      ۱) سابقهٔ ویزیت با **همین پزشک** ← در همان فهرستِ بیماران به ردیفِ او اسکرول
-//         و همان ردیف نشان داده می‌شود.
-//      ۲) سابقهٔ ویزیت با **پزشکِ دیگر** ← فیلدها از جدولِ بیماران تکمیل و پرونده
-//         باز می‌شود تا «ثبتِ مراجعه» آماده باشد.
+//  - کدِ ملی با موجودیتِ بیمار منطبق شد دو حالت دارد:
+//      ۱) بیمار سابقهٔ مراجعه دارد (از هر پزشکی) ← در فهرستِ بیماران ردیفِ او
+//         نشان/اسکرول می‌شود؛ پرونده‌اش فقط مراجعه‌های همین پزشک را نشان می‌دهد
+//         و «مراجعهٔ جدید» برای ثبتِ مراجعهٔ تازه در دسترس است.
+//      ۲) بیمار هیچ مراجعه‌ای ندارد ← اطلاعات در همین باکس‌ها نمایش داده
+//         می‌شود و «ثبت مراجعه» پرونده را برای ثبتِ اولین مراجعه باز می‌کند.
+//  - پروندهٔ بیمار مشترک و ثابت است؛ مراجعه‌ها متعلق به هر پزشک‌اند.
 //  - مطب فقط ستونِ داخلی است؛ از `visit-context` می‌آید و در UI نیست.
 (() => {
     "use strict";
 
-    const OTHER_CLINIC_HINT = "پرونده باز شد — آمادهٔ ثبتِ مراجعه";
     const SAME_HINT = "بیمار در فهرست است — ردیفِ او نشان داده می‌شود";
+    const NO_STUDY_HINT = "بیمار موجود است (بدونِ مراجعه) — «ثبت مراجعه» را بزنید";
+    const ACTION_VISIT = "ثبت مراجعه برای همین بیمار";
+    const ACTION_OPEN = "باز کردن پرونده و ثبت مراجعه";
 
     const el = (t, c, x) => { const n = document.createElement(t); if (c) n.className = c; if (x != null) n.textContent = x; return n; };
     const readJson = async r => { try { return await r.json(); } catch { return {}; } };
@@ -119,6 +123,17 @@
 
         card.append(head, body);
 
+        // بیمارِ موجود (چه سابقه داشته باشد چه نه): یک اقدامِ روشن برای ثبتِ
+        // مراجعه. فقطوقتی بیمار شناسایی شود دیده می‌شود.
+        const actionBar = el("div", "patient-draft-actions hidden");
+        const action = el("button", "primary-button", ACTION_VISIT);
+        action.type = "button";
+        action.addEventListener("click", ev => { ev.preventDefault(); openFoundPatient(); });
+        actionBar.appendChild(action);
+        card.append(actionBar);
+        state.actionBar = actionBar;
+        state.action = action;
+
         state.card = card;
         eachInput(code, "nationalCode");
         eachInput(first, "firstName");
@@ -183,7 +198,9 @@
 
     function onAnyChange(key) {
         refreshGenderOptions();
-        const unlocked = !!state.found || !!state.notFoundCode;
+        // فقط بیمارِ «ثبت‌نشده» فیلدها را باز می‌کند؛ بیمارِ موجود فقط‌خواندنی
+        // است و به‌جای «ثبت»، اقدامِ «ثبت مراجعه» نشان داده می‌شود.
+        const unlocked = !!state.notFoundCode;
         const code = validCode();
         const complete = unlocked && minimumComplete();
         if (key) state.lastKey = key; // «فیلدِ جاری» برای پاسخِ دیرهنگامِ جست‌وجو
@@ -192,6 +209,9 @@
             if (k === "nationalCode") return;
             state.rows[k].input.readOnly = !unlocked ? true : false;
         });
+        // اقدامِ «ثبت مراجعه» فقط برایِ بیمارِ شناسایی‌شده
+        if (state.actionBar) state.actionBar.classList.toggle("hidden", !state.found);
+        if (state.action) state.action.textContent = state.found && state.found.hasAnyStudy ? ACTION_OPEN : ACTION_VISIT;
         // «ثبت» کنارِ فیلدِ جاری؛ اگر رویداد بدونِ کلید آمد (پاسخِ جست‌وجو)،
         // کنارِ آخرین فیلدِ ویرایش‌شده بماند — نه اینکه کلید غیب شود.
         const target = key || state.lastKey || null;
@@ -209,33 +229,38 @@
 
     async function lookupWarcode(key) {
         const code = validCode();
-        if (!code) { state.found = null; state.notFoundCode = null; return; }
+        if (!code) { state.found = null; state.notFoundCode = null; onAnyChange(key); return; }
         const token = ++state.lookupToken;
-        const x = await (async () => { try { return await fetch(`/api/patients?search=${code}&includeInactive=true`, { cache: "no-store" }).then(readJson); } catch { return {}; } })();
+        const x = await (async () => {
+            try { return await fetch(`/api/patients/lookup?nationalCode=${code}`, { cache: "no-store" }).then(readJson); } catch { return {}; }
+        })();
         if (token !== state.lookupToken) return; // پاسخِ درخواستِ قدیمی، نادیده
-        const list = x.patients || [];
-        const match = list.find(p => String(p.nationalCode) === code);
+        const found = x && x.exists && x.patient ? x.patient : null;
         await loadContext();
-        if (match) {
-            const det = await (async () => {
-                try { return await fetch(`/api/patients/${match.patientID}/details`, { cache: "no-store" }).then(readJson); } catch { return {}; }
-            })();
-            const same = !ctx.doctorStaffID
-                ? true
-                : (det.studies || []).some(s => Number(s.doctorStaffID) === Number(ctx.doctorStaffID));
-            if (same) {
-                // در فهرستِ بیماران به ردیفِ او اسکرول و همان ردیف نشان داده می‌شود.
-                state.found = match;
+        if (found) {
+            state.notFoundCode = null;
+            state.found = found;
+            fillPatientFields(found);
+            if (found.hasAnyStudy) {
+                // بیمار سابقهٔ مراجعه دارد (از هر پزشکی) ⇒ در فهرست دیده می‌شود؛
+                // ردیفش را نشان بده تا با کلیک، پرونده (فقط مراجعه‌های همین پزشک)
+                // باز شود و «مراجعهٔ جدید» در دسترس باشد.
                 try {
                     await window.loadPatients && window.loadPatients(code);
-                    const tr = document.querySelector(`.patient-list-row[data-patient-id="${match.patientID}"]`);
-                    if (tr) { tr.scrollIntoView({ behavior: "smooth", block: "center" }); tr.classList.add("patient-row-flash"); setTimeout(() => tr.classList.remove("patient-row-flash"), 1800); }
+                    const tr = document.querySelector(`.patient-list-row[data-patient-id="${found.patientID}"]`);
+                    if (tr) {
+                        tr.scrollIntoView({ behavior: "smooth", block: "center" });
+                        tr.classList.add("patient-row-flash");
+                        setTimeout(() => tr.classList.remove("patient-row-flash"), 1800);
+                    }
                 } catch { }
                 if (state.hint) state.hint.textContent = SAME_HINT;
             } else {
-                await setupOtherClinic(match);
-                if (state.hint) state.hint.textContent = OTHER_CLINIC_HINT;
-                if (window.showToast) window.showToast("بیمار در رسیرای هست (پزشکِ دیگر) — پرونده باز شد و آمادهٔ ثبتِ مراجعه است.");
+                // بدونِ هیچ مراجعه‌ای ⇒ اطلاعات بیمار در همین باکس‌ها نمایش داده
+                // می‌شود و «ثبت مراجعه» پرونده را برای اولین مراجعه باز می‌کند.
+                if (state.hint) state.hint.textContent = found.isActive === false
+                    ? "بیمار غیرفعال است — برای فعال‌سازی پرونده را باز کنید"
+                    : NO_STUDY_HINT;
             }
         } else {
             state.found = null;
@@ -243,28 +268,36 @@
             state.notFoundCode = code;
             if (state.hint) state.hint.textContent = "بیمار نیست — فیلدها باز شد؛ حداقلِ اطلاعات لازم و «ثبت» را بزن";
         }
-        onAnyChange(state.lastKey); // با فیلدِ جاری ادامه بده تا «ثبت» غیب نشود
+        onAnyChange(state.found ? null : state.lastKey);
     }
 
 
-    async function setupOtherClinic(match) {
-        try {
-            const det = await fetch(`/api/patients/${match.patientID}/details`, { cache: "no-store" }).then(readJson);
-            const p = det.patient || {};
-            state.rows.nationalCode.input.value = p.nationalCode || onlyDigits(state.rows.nationalCode.input.value);
-            state.rows.firstName.input.value = p.firstName || "";
-            state.rows.lastName.input.value = p.lastName || "";
-            state.rows.gender.input.value = p.gender ? String(p.gender) : "";
-            state.rows.mobile.input.value = p.mobile || "";
-            state.rows.birthDate.input.value = p.birthDate ? fmtDate(p.birthDate) : "";
-        } catch { }
-        state.found = match;
-        await window.openPatient(match.patientID); // آمادهٔ ثبتِ مراجعه
+    // اطلاعاتِ هویتِ بیمار در باکس‌های معرفی (پرونده مشترک است).
+    function fillPatientFields(p) {
+        const put = (k, v) => { const r = state.rows[k]; if (r && v != null && v !== "") r.input.value = String(v); };
+        put("nationalCode", p.nationalCode);
+        put("firstName", p.firstName);
+        put("lastName", p.lastName);
+        put("mobile", p.mobile);
+        if (state.rows.gender.input) state.rows.gender.input.value = p.gender ? String(p.gender) : "";
+        put("birthDate", p.birthDate ? fmtDate(p.birthDate) : "");
+    }
+
+    // بیمارِ شناسایی‌شده: پرونده باز و فرمِ «مراجعهٔ جدید» مستقیم باز می‌شود.
+    async function openFoundPatient() {
+        const pid = Number(state.found && state.found.patientID);
+        if (!Number.isInteger(pid) || pid <= 0) return;
+        const ok = await window.openPatient(pid);
+        if (ok === false) return;
+        if (window.openNewStudyForm) window.openNewStudyForm();
+        reset();
     }
 
     async function register() {
         const code = validCode();
         if (!code) { hintError(state.rows.nationalCode.row, "کد ملی معتبر ۱۰ رقمی را وارد کنید."); return; }
+        // بیمارِ موجود (مثلاً هم‌زمان ثبت شده): دوباره نساز؛ پرونده را باز کن.
+        if (state.found && state.found.patientID) { await openFoundPatient(); return; }
         const payload = {
             nationalCode: code,
             firstName: state.rows.firstName.input.value.trim(),
@@ -308,10 +341,12 @@
                 if (go && x.existing && x.existing.patientID) { state.found = null; await lookupAfterCreate(x.existing.patientID, payload.nationalCode); }
                 return;
             }
-            if (!r.ok || !x.success) throw new Error(x.message || "ثبت بیمار انجام نشد.");            const newID = x.patientID || (x.patient && x.patient.patientID);
+            if (!r.ok || !x.success) throw new Error(x.message || "ثبت بیمار انجام نشد.");
+            const newID = x.patientID || (x.patient && x.patient.patientID);
             if (window.showToast) window.showToast("بیمار ثبت شد.");
-            // پرونده باز می‌شود و آمادهٔ ثبتِ مراجعه است.
+            // پرونده باز می‌شود و فرمِ «مراجعهٔ جدید» مستقیم باز است.
             await window.openPatient(newID);
+            if (window.openNewStudyForm) window.openNewStudyForm();
             reset();
             if (state.hint) state.hint.textContent = "پرونده باز شد — آمادهٔ ثبتِ مراجعه";
         } catch (e) {
@@ -324,20 +359,9 @@
     }
 
     async function lookupAfterCreate(pid, code) {
-        // همان حالتِ «شناسایی شد» — طبق سابقهش پزشک
-        try {
-            const det = await fetch(`/api/patients/${pid}/details`, { cache: "no-store" }).then(readJson);
-            const same = !ctx.doctorStaffID || (det.studies || []).some(s => Number(s.doctorStaffID) === Number(ctx.doctorStaffID));
-            if (same) {
-                try { await window.loadPatients && window.loadPatients(code); } catch { }
-                const tr = document.querySelector(`.patient-list-row[data-patient-id="${pid}"]`);
-                if (tr) tr.scrollIntoView({ behavior: "smooth", block: "center" });
-                if (state.hint) state.hint.textContent = SAME_HINT;
-            } else {
-                await setupOtherClinic({ patientID: pid });
-                if (state.hint) state.hint.textContent = OTHER_CLINIC_HINT;
-            }
-        } catch { }
+        // مسابقهٔ ثبت (۴۰۹): بیمار همین حالا ساخته شده — همان شناساییِ کد ملی
+        // را دوباره اجرا کن تا اطلاعات/اقدامِ درست نمایش داده شود.
+        await lookupWarcode("nationalCode");
     }
 
     function hintError(row, msg) {
@@ -358,6 +382,7 @@
             r.row.classList.remove("visit-field-error");
         });
         state.found = null;
+        if (state.actionBar) state.actionBar.classList.add("hidden");
         Object.keys(state.rows).forEach(k => { if (k !== "nationalCode") state.rows[k].input.readOnly = true; });
         refreshGenderOptions();
     }

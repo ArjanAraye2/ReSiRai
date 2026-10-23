@@ -1,10 +1,10 @@
-name: resirai
+﻿name: resirai
 
 networks:
   default:
     name: arjanpeyman_default
     external: true
-    # کانتنرِ postgresql با alias db روی همین شبکه است
+    # Ú©Ø§Ù†ØªÙ†Ø±Ù postgresql Ø¨Ø§ alias db Ø±ÙˆÛŒ Ù‡Ù…ÛŒÙ† Ø´Ø¨Ú©Ù‡ Ø§Ø³Øª
 
 volumes:
   images:
@@ -16,7 +16,7 @@ volumes:
 
 services:
   resirai:
-    image: resirai:20261023c
+    image: resirai:20261023d
     container_name: resirai
     restart: unless-stopped
     ports:

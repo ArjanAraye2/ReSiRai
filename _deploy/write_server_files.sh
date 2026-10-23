@@ -1,4 +1,4 @@
-#!/bin/sh
+﻿#!/bin/sh
 set -e
 mkdir -p ~/reSirai/config
 # compose
@@ -20,7 +20,7 @@ volumes:
 
 services:
   resirai:
-    image: resirai:20261023c
+    image: resirai:20261023d
     container_name: resirai
     restart: unless-stopped
     ports:

@@ -27,21 +27,28 @@ namespace ReSiRai.Api.Controllers
         public async Task<IActionResult> GetPatients(string? search = null, bool includeInactive = false, bool openOnly = false, bool dueOnly = false,
             int offset = 0, string? sortBy = null, string? sortDir = null)
         {
-            // پزشک فقط بیمارانِ خودش را می‌بیند: بیمارانی که مراجعه‌ای با
-            // DoctorStaffID همین پزشک دارند (مدیر سیستم: کل).
+            // پروندهٔ بیمار مشترک و ثابت است؛ مراجعه‌ها متعلق به پزشکِ خودشان.
+            // (پیش‌تر فهرست فقط بیمارانِ دارای مراجعهٔ همین پزشک بود.)
             byte.TryParse(User.FindFirst("StaffType")?.Value, out byte plStaffType);
             int.TryParse(User.FindFirst("StaffID")?.Value, out int plStaffID);
             bool plSuper = string.Equals(User.FindFirst("IsSuperAdmin")?.Value, "true", StringComparison.OrdinalIgnoreCase);
             bool plDoctor = !plSuper && plStaffType == 2 && plStaffID > 0;
 
+            // پروندهٔ بیمار مشترک و ثابت است؛ مراجعه‌ها متعلق به پزشکِ خودشان.
+            // فهرست = هر بیماری که دستِ‌کم یک مراجعه (از هر پزشکی) دارد، تا پزشکِ
+            // بعدی هم بداند بیمار وجود دارد و بتواند برایش مراجعه ثبت کند. بیمارِ
+            // بدونِ مراجعه در فهرست نمی‌آید؛ با کد ملی در «معرفی بیمار» پیدا می‌شود.
+            // شمارش/فیلتر/سورتِ مراجعه فقط با مراجعه‌های خودِ پزشک انجام می‌شود
+            // تا هیچ اطلاعی از مراجعه‌های پزشکانِ دیگر درز نکند.
             var patientsScope = _context.Patients.AsNoTracking().AsQueryable();
             var studiesScope = _context.RadiologyStudies.AsNoTracking().AsQueryable();
+            int? ownDoctorID = null;
             if (plDoctor)
             {
+                ownDoctorID = plStaffID;
                 studiesScope = studiesScope.Where(s => s.DoctorStaffID == plStaffID);
-                var myPatientIds = _context.RadiologyStudies.AsNoTracking()
-                    .Where(s => s.DoctorStaffID == plStaffID).Select(s => s.PatientID);
-                patientsScope = patientsScope.Where(p => myPatientIds.Contains(p.PatientID));
+                patientsScope = patientsScope.Where(p =>
+                    _context.RadiologyStudies.Any(s => s.PatientID == p.PatientID));
             }
 
             // Statistics describe the (scoped) patient population, while the list below
@@ -59,10 +66,12 @@ namespace ReSiRai.Api.Controllers
             // completed). "Due only": a planned follow-up has reached its date.
             // Both are used by the reminder filter in the patient list.
             if (openOnly)
-                query = query.Where(p => _context.RadiologyStudies.Any(s => s.PatientID == p.PatientID && s.Status != 2));
+                query = query.Where(p => _context.RadiologyStudies.Any(s => s.PatientID == p.PatientID && s.Status != 2
+                    && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID)));
             if (dueOnly)
                 query = query.Where(p => _context.RadiologyStudies.Any(s =>
-                    s.PatientID == p.PatientID && s.Status == 3 && s.FollowUpDate != null && s.FollowUpDate <= DateTime.Today));
+                    s.PatientID == p.PatientID && s.Status == 3 && s.FollowUpDate != null && s.FollowUpDate <= DateTime.Today
+                    && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID)));
 
             if (!string.IsNullOrWhiteSpace(search))
             {
@@ -84,11 +93,11 @@ namespace ReSiRai.Api.Controllers
             IOrderedQueryable<Patient> ordered = (sortBy ?? "").Trim().ToLowerInvariant() switch
             {
                 "lastvisit" => descending
-                    ? query.OrderByDescending(p => _context.RadiologyStudies.Where(s => s.PatientID == p.PatientID).Select(s => (DateTime?)s.StudyDate).Max() ?? DateTime.MinValue)
-                    : query.OrderBy(p => _context.RadiologyStudies.Where(s => s.PatientID == p.PatientID).Select(s => (DateTime?)s.StudyDate).Max() ?? DateTime.MinValue),
+                    ? query.OrderByDescending(p => _context.RadiologyStudies.Where(s => s.PatientID == p.PatientID && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID)).Select(s => (DateTime?)s.StudyDate).Max() ?? DateTime.MinValue)
+                    : query.OrderBy(p => _context.RadiologyStudies.Where(s => s.PatientID == p.PatientID && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID)).Select(s => (DateTime?)s.StudyDate).Max() ?? DateTime.MinValue),
                 "studies" => descending
-                    ? query.OrderByDescending(p => _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID))
-                    : query.OrderBy(p => _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID)),
+                    ? query.OrderByDescending(p => _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID)))
+                    : query.OrderBy(p => _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID))),
                 "mobile" => descending ? query.OrderByDescending(p => p.Mobile) : query.OrderBy(p => p.Mobile),
                 "nationalcode" => descending ? query.OrderByDescending(p => p.NationalCode) : query.OrderBy(p => p.NationalCode),
                 "firstname" => descending ? query.OrderByDescending(p => p.FirstName) : query.OrderBy(p => p.FirstName),
@@ -113,19 +122,19 @@ namespace ReSiRai.Api.Controllers
                     p.CreatedDate, p.ModifiedDate,
                     // Design D patient list summary. These correlated aggregates are
                     // translated by EF Core and avoid one query per patient.
-                    StudyCount = _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID),
+                    StudyCount = _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID)),
                     // Open (1) and pending follow-up (3) count as "not finished", so
                     // the list can show how much work is still outstanding.
-                    OpenStudyCount = _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID && s.Status != 2),
-                    CompletedStudyCount = _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID && s.Status == 2),
+                    OpenStudyCount = _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID && s.Status != 2 && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID)),
+                    CompletedStudyCount = _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID && s.Status == 2 && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID)),
                     // A follow-up that has come due, used by the reminder filter.
-                    DueFollowUpCount = _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID && s.Status == 3 && s.FollowUpDate != null && s.FollowUpDate <= DateTime.Today),
+                    DueFollowUpCount = _context.RadiologyStudies.Count(s => s.PatientID == p.PatientID && s.Status == 3 && s.FollowUpDate != null && s.FollowUpDate <= DateTime.Today && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID)),
                     NextFollowUpDate = _context.RadiologyStudies
-                        .Where(s => s.PatientID == p.PatientID && s.Status == 3 && s.FollowUpDate != null)
+                        .Where(s => s.PatientID == p.PatientID && s.Status == 3 && s.FollowUpDate != null && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID))
                         .Select(s => (DateTime?)s.FollowUpDate)
                         .Min(),
                     LastStudyDate = _context.RadiologyStudies
-                        .Where(s => s.PatientID == p.PatientID)
+                        .Where(s => s.PatientID == p.PatientID && (ownDoctorID == null || s.DoctorStaffID == ownDoctorID))
                         .Select(s => (DateTime?)s.StudyDate)
                         .Max(),
                     BaseInsuranceName = _context.InsuranceTypes.AsNoTracking()
@@ -135,7 +144,7 @@ namespace ReSiRai.Api.Controllers
                 .ToListAsync();
 
             // statistics for the header, including how many patients still have work.
-            int patientsWithOpenStudies = await _context.RadiologyStudies.AsNoTracking()
+            int patientsWithOpenStudies = await studiesScope
                 .Where(s => s.Status != 2)
                 .Select(s => s.PatientID).Distinct().CountAsync();
 
@@ -150,6 +159,31 @@ namespace ReSiRai.Api.Controllers
                 statistics = new { totalPatients, activePatients, inactivePatients, patientsWithStudies, patientsWithOpenStudies },
                 patients
             });
+        }
+
+        // شناساییِ بیمار با کدِ ملی — مستقل از اینکه پزشک با او مراجعه دارد یا نه.
+        // فقط هویتِ مشترکِ بیمار برمی‌گردد (هیچ مراجعه‌ای) + یک پرچم که آیا بیمار
+        // دستِ‌کم یک مراجعه (از هر پزشکی) دارد؛ UI با آن می‌داند بیمار در فهرست
+        // دیده می‌شود یا باید در «معرفیِ بیمار» نمایش داده شود. تطبیق دقیق است،
+        // نه پیشوندی، تا فهرستِ بیماران قابلِ شمارش نباشد.
+        [HttpGet("lookup")]
+        public async Task<IActionResult> LookupPatientByNationalCode([FromQuery] string? nationalCode = null)
+        {
+            string code = new string(NormalizeSearch(nationalCode ?? string.Empty).Where(c => c >= '0' && c <= '9').ToArray());
+            if (code.Length != 10 || !IranianNationalCodeValidator.IsValid(code))
+                return BadRequest(new { success = false, message = "کد ملی واردشده معتبر نیست." });
+
+            var patient = await _context.Patients.AsNoTracking()
+                .Where(p => p.NationalCode == code)
+                .Select(p => new
+                {
+                    p.PatientID, p.NationalCode, p.FirstName, p.LastName,
+                    p.Gender, p.Mobile, p.BirthDate, p.IsActive,
+                    hasAnyStudy = _context.RadiologyStudies.Any(s => s.PatientID == p.PatientID)
+                })
+                .FirstOrDefaultAsync();
+
+            return Ok(new { success = true, exists = patient != null, patient });
         }
 
         [HttpGet("{nationalCode}")]

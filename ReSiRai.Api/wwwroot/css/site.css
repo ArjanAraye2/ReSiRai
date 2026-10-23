@@ -5695,6 +5695,9 @@ textarea.visit-input{resize:vertical}
 .visit-field-save{border:1px solid #0f766e;background:#0f766e;color:#fff;border-radius:8px;padding:6px 12px;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
 .visit-field-save:hover{background:#0b5f59}
 .visit-field-save:disabled{opacity:.7;cursor:default}
+/* بیمارِ شناسایی‌شده در «معرفیِ بیمار»: اقدامِ ثبتِ مراجعه */
+.patient-draft-actions{display:flex;justify-content:flex-end;gap:8px;padding:8px 12px 12px}
+.patient-draft-actions .primary-button{padding:8px 16px}
 .visit-field-error .visit-input{border-color:#e06a5e}
 .visit-field-error-text{grid-column:2/-1;color:#b42318;font-size:12px}
 .visit-now{font-size:12px;padding:4px 10px;white-space:nowrap}
