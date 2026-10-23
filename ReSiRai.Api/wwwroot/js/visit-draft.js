@@ -469,9 +469,14 @@
     function createDraftCard() {
         const card = el("article", "study-draft-card");
         const head = el("header", "study-draft-head");
+        head.tabIndex = 0;
+        head.setAttribute("role", "button");
+        head.setAttribute("aria-expanded", "true");
         const title = el("div", "study-draft-title");
+        const caret = el("span", "study-draft-caret", "⌃");
+        caret.setAttribute("aria-hidden", "true");
         const badge = el("span", "study-draft-badge", "پیش‌نویس");
-        title.append(badge, " ", document.createTextNode("مراجعهٔ جدید"));
+        title.append(caret, badge, " ", document.createTextNode("مراجعهٔ جدید"));
         const discard = el("button", "secondary-button study-draft-discard", "پاک کردن");
         discard.type = "button";
         discard.title = "این پیش‌نویس و مقادیرِ محفوظِ آن در این مرورگر پاک شود";
@@ -496,6 +501,20 @@
         card.__sectionsHost = sectionsHost;
         card.__factorsHost = factorsHost;
         card.__fields = fields;
+
+        // جمع/باز کردنِ پیش‌نویس با کلیک روی هدر (دکمهٔ «پاک کردن» مستثناست).
+        const toggleBody = () => {
+            const collapsed = body.classList.toggle("hidden");
+            head.setAttribute("aria-expanded", collapsed ? "false" : "true");
+            caret.textContent = collapsed ? "⌄" : "⌃";
+        };
+        head.addEventListener("click", ev => {
+            if (ev.target.closest("button")) return;
+            toggleBody();
+        });
+        head.addEventListener("keydown", ev => {
+            if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggleBody(); }
+        });
         return card;
     }
 
@@ -535,24 +554,17 @@
         clearDraftHost();
     }
 
-    // با هر رندرِ صفحهٔ بیمار صدا زده می‌شود.
+    // با هر رندرِ صفحهٔ بیمار صدا زده می‌شود. پیش‌نویس به‌صورتِ پیش‌فرض بسته است و
+    // فقط با کلیکِ «+ مراجعهٔ جدید» (showNew) ساخته/باز می‌شود؛ مقادیرِ ذخیره‌شده
+    // در مرورگر هم همان لحظه بازیابی می‌شوند.
     function mount() {
         const host = document.getElementById("visitDraftHost");
         const pid = Number(window.selectedPatientID);
         if (!host) return;
         if (!pid) { clearDraftHost(); return; }
-        if (host.dataset.patientId === String(pid) && host.firstElementChild) return; // همین ساخته شده
-        host.dataset.patientId = String(pid);
+        if (host.dataset.patientId === String(pid) && host.firstElementChild) return; // باز است
         if (pid !== draftPatientID) { suppressed = false; draftPatientID = pid; }
-
-        const stored = readDraft();
-        if (!stored && suppressed) { clearDraftHost(); return; } // بعد از ثبت، بدونِ کارتِ خالی
-
-        const card = createDraftCard();
-        // فیلدهای تاریخ/ساعت هم مثل بقیهٔ فرم‌ها تقویمِ شمسی بگیرند (jalali-picker).
-        window.ReSiRaiJalali && window.ReSiRaiJalali.enhanceAll(card);
-        host.replaceChildren(card);
-        wireDraft(card);
+        clearDraftHost(); // تا انتخابِ «مراجعهٔ جدید» چیزی نشان داده نمی‌شود
     }
 
     window.ReSiRaiVisitDraft = { mount, showNew, suppress, hideDraft, buildFields, forget: forgetDraft, saveCard, loadContext };
