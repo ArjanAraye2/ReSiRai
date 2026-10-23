@@ -1193,10 +1193,168 @@
     return defs;
   }
 
+  /* ================= جستجوی «افزودنِ مشاهده» (AutoComplete) ================= */
+
+  // نرمال‌سازیِ فارسی: نیم‌فاصله/ی/ک/ارقام و فاصله‌هایِ اضافه.
+  const normText = (v) => String(v ?? "")
+    .replace(/[\u200c\u200e\u200f]/g, " ")
+    .replace(/ي/g, "ی").replace(/ك/g, "ک")
+    .replace(/[۰-۹]/g, (d) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+    .replace(/\s+/g, " ").trim().toLowerCase();
+
+  // فهرستِ جستجو یک‌بار ساخته می‌شود: عنوانِ هر مشاهده + برچسبِ همهٔ فاکتورهای
+  // زیرمجموعهٔ آن. فرمِ هر بخش در یک ظرفِ جدا از سند ساخته و برچسب‌هایش خوانده
+  // می‌شود تا با تغییرِ فیلدها، جستجو خودبه‌خود به‌روز بماند.
+  let searchIndex = null;
+  const CHIP_NOISE = new Set(["بله", "خیر", "دارد", "ندارد", "طبیعی", "غیرطبیعی", "مثبت", "منفی", "نامشخص"]);
+  function buildSearchIndex() {
+    if (searchIndex) return searchIndex;
+    searchIndex = [];
+    TEMPLATE_DEFS.concat(EXTRA_DEFS).forEach((def) => {
+      const labels = new Set();
+      try {
+        const sec = el("article", "gsec");
+        const body = el("div", "gsec-body");
+        sec.append(body);
+        def.build(body, sec);
+        qsa("[data-label]", body).forEach((n) => {
+          const t = String(n.dataset.label || "").trim();
+          if (t && t !== "متن") labels.add(t);
+        });
+        // گزینه‌های ریزِ عمومی («بله/خیر/طبیعی») نویز می‌سازند و کنار گذاشته می‌شوند؛
+        // بقیهٔ چیپ‌ها (مثل «درد قفسهٔ سینه» یا «سیگار») برای جستجو مفیدند.
+        qsa(".gsec-chip", body).forEach((n) => {
+          const t = String(n.textContent || "").trim();
+          if (t && !CHIP_NOISE.has(t)) labels.add(t);
+        });
+      } catch { /* یک بخشِ ناسازگار نباید کلِ جستجو را خراب کند */ }
+      searchIndex.push({
+        def,
+        title: normText(def.title),
+        labels: [...new Set([...labels].map(normText).filter((t) => t && t.length > 1))]
+      });
+    });
+    return searchIndex;
+  }
+
+  // افزودنِ مشاهده از نتیجهٔ جستجو: اگر از قبل هست، همان را باز می‌کند.
+  function addSectionByDef(def) {
+    if (!def || !listEl) return;
+    const existing = qsa(".gsec", listEl).find((s) => s.dataset.id === def.id);
+    if (existing) {
+      if (!existing.classList.contains("is-open")) toggleSection(existing);
+      existing.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    listEl.querySelector(".gs-empty")?.remove();
+    if (!addedCodes.includes(def.id)) addedCodes.push(def.id);
+    const sec = makeSection(def, rowsCache.get(def.id) || null);
+    if (!sec) return;
+    if (!sec.classList.contains("is-open")) toggleSection(sec);
+    sec.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function buildSearchBar() {
+    const wrap = el("div", "gs-search");
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "gs-search-input";
+    input.placeholder = "جستجوی مشاهده… (عنوان یا فاکتور، مثلاً فشار خون، تب، قند)";
+    input.autocomplete = "off";
+    input.setAttribute("aria-label", "جستجوی مشاهده برای افزودن به مراجعه");
+    const list = el("div", "gs-search-list hidden");
+    wrap.append(input, list);
+
+    let items = [];
+    let active = -1;
+    const close = () => { list.classList.add("hidden"); list.replaceChildren(); items = []; active = -1; };
+
+    const paint = () => {
+      list.replaceChildren();
+      if (!items.length) { list.classList.add("hidden"); return; }
+      items.forEach((hit, idx) => {
+        const row = el("button", "gs-search-hit");
+        row.type = "button";
+        row.dataset.idx = String(idx);
+        row.append(
+          el("strong", "gs-search-hit-title", hit.def.title),
+          el("span", "gs-search-hit-hint", hit.labels.slice(0, 3).join(" · "))
+        );
+        // mousedown تا پیش از blur اجرا شود؛ کلیکِ بیرون لیست را می‌بندد.
+        row.addEventListener("mousedown", (e) => {
+          e.preventDefault();
+          addSectionByDef(hit.def);
+          input.value = "";
+          close();
+        });
+        list.append(row);
+      });
+      // کارتِ مراجعه overflow:hidden دارد؛ فهرست با position:fixed و مختصاتِ
+      // لحظه‌ایِ خودِ فیلد نمایش داده می‌شود تا بریده نشود.
+      const r = input.getBoundingClientRect();
+      const width = Math.min(r.width, window.innerWidth - 16);
+      list.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - width - 8))}px`;
+      list.style.top = `${r.bottom + 4}px`;
+      list.style.width = `${width}px`;
+      list.style.maxHeight = `${Math.max(140, Math.min(300, window.innerHeight - r.bottom - 16))}px`;
+      list.classList.remove("hidden");
+    };
+
+    const run = () => {
+      const q = normText(input.value);
+      if (!q) { close(); return; }
+      const words = q.split(" ").filter(Boolean);
+      items = buildSearchIndex()
+        .map((entry) => {
+          const titleHit = words.every((w) => entry.title.includes(w));
+          const labelHits = entry.labels.filter((l) => words.every((w) => l.includes(w)));
+          const allHit = words.every((w) => entry.title.includes(w) || entry.labels.some((l) => l.includes(w)));
+          if (!allHit) return null;
+          return { ...entry, labels: labelHits.length ? labelHits : entry.labels, score: titleHit ? 0 : 1 };
+        })
+        .filter(Boolean)
+        .sort((a, b) => a.score - b.score)
+        .slice(0, 8);
+      active = -1;
+      paint();
+    };
+
+    input.addEventListener("input", run);
+    input.addEventListener("focus", () => { if (input.value.trim()) run(); });
+    input.addEventListener("keydown", (e) => {
+      const rows = qsa(".gs-search-hit", list);
+      if (e.key === "Escape") { close(); return; }
+      if (!rows.length) return;
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        active = (active + (e.key === "ArrowDown" ? 1 : -1) + rows.length) % rows.length;
+        rows.forEach((r, i) => r.classList.toggle("on", i === active));
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        const pick = items[active >= 0 ? active : 0];
+        if (pick) { addSectionByDef(pick.def); input.value = ""; close(); }
+      }
+    });
+    document.addEventListener("click", (e) => { if (!wrap.contains(e.target)) close(); });
+    // با اسکرول/تغییرِ اندازه، مختصاتِ fixed دیگر معتبر نیست؛ فهرست بسته می‌شود.
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return wrap;
+  }
+
   function renderList(studyRows) {
     rowsCache = new Map(studyRows.map((r) => [r.sectionCode, r]));
     listEl.replaceChildren();
-    defsFor(studyRows).forEach((def) => makeSection(def, rowsCache.get(def.id) || null));
+    // فقط مشاهداتِ الصاق‌شده به همین مراجعه نمایش داده می‌شوند؛ افزودنِ مشاهدهٔ
+    // تازه از جستجوی بالایِ پنل انجام می‌شود تا کارتِ مراجعه شلوغ نشود.
+    defsFor(studyRows).forEach((def) => {
+      if (!rowsCache.has(def.id) && !def.readOnly) return;
+      makeSection(def, rowsCache.get(def.id) || null);
+    });
+    if (!listEl.children.length) {
+      listEl.append(el("div", "gs-empty", "هنوز مشاهده‌ای به این مراجعه الصاق نشده است — از جستجوی بالا اضافه کنید."));
+    }
   }
 
   function note(text, isError) {
@@ -1322,15 +1480,11 @@
     if (!host) return null;
     panelEl = el("div", "gs-panel");
     panelEl.append(el("div", "gs-hint",
-      "تیک‌محور: انتخاب با یک کلیک و کلیکِ دوباره = لغو · ذخیره فقط با «تأیید و ثبت» · بخشِ ثبت‌شده را می‌توان دوباره باز کرد و اصلاح کرد."));
+      "مشاهدهٔ دلخواه را جستجو کنید (عنوان یا فاکتور) و با کلیک به همین مراجعه الصاق کنید · ذخیره فقط با «تأیید و ثبت» · بخشِ ثبت‌شده را می‌توان دوباره باز و اصلاح کرد."));
     noteEl = el("div", "gs-note hidden");
     listEl = el("div", "gs-list");
-    const addbar = el("div", "gs-addbar");
-    const add = el("button", "gs-add", "+ بخشِ دیگر");
-    add.type = "button";
-    add.addEventListener("click", openDialog);
-    addbar.append(add);
-    panelEl.append(noteEl, listEl, addbar);
+    const searchBar = buildSearchBar();
+    panelEl.append(noteEl, searchBar, listEl);
 
     // Enter در فیلدها نباید فرمِ مراجعه را ثبت کند — ذخیره فقط از «تأیید و ثبت» است.
     panelEl.addEventListener("keydown", (e) => {
