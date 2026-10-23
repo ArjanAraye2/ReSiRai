@@ -586,6 +586,34 @@
 /* نمایشِ فیلترشده (فقط فیلدهای مرتبط با جستجو) */
 .gsec-focus-hidden { display: none !important; }
 
+/* نمایِ خلاصهٔ مشاهدهٔ ثبت‌شده: فقط عامل‌های انتخاب‌شده */
+.gsec.rec-view [data-save] { display: none !important; }
+
+.gsec-recorded {
+    display: grid;
+    gap: 8px;
+    background: #f7fbfb;
+    border: 1px dashed var(--gs-line, #dbe4ec);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+}
+
+.gsec-rec-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 13px;
+    line-height: 1.8;
+}
+
+.gsec-rec-label { color: var(--gs-ink, #123); }
+
+.gsec-rec-value { color: var(--gs-ink, #123); font-weight: 600; }
+
+.gsec-rec-note { color: var(--gs-muted, #66788c); font-size: 12.5px; }
+
 .gsec-focus-bar {
     display: flex;
     align-items: center;

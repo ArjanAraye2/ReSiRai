@@ -1177,7 +1177,7 @@
 
     if (row) markRecorded(sec, row.data?.summary || (def.summarize ? def.summarize(sec) : ""));
     if (focus) applyFocus(sec, focus);
-    else if (row) applyRecorded(sec); // مشاهدهٔ ثبت‌شده: فقط مقادیرِ ثبت‌شده
+    else if (row) renderRecorded(sec); // مشاهدهٔ ثبت‌شده: فقط عامل‌های انتخاب‌شده
     return sec;
   }
 
@@ -1188,10 +1188,10 @@
   function applyFocus(sec, query) {
     const body = sec.querySelector(".gsec-body");
     if (!body) return;
-    body.querySelectorAll(".gsec-focus-hidden").forEach((n) => n.classList.remove("gsec-focus-hidden"));
-    body.querySelector(".gsec-focus-bar")?.remove();
-    sec.__focus = query && String(query).trim() ? String(query).trim() : null;
-    if (!sec.__focus) return;
+    clearView(sec);
+    const q = query && String(query).trim() ? String(query).trim() : null;
+    if (!q) return;
+    sec.__focus = q;
 
     const words = normText(sec.__focus).split(" ").filter(Boolean);
     const rows = Array.from(body.children).filter((n) => !n.classList.contains("gsec-foot") && !n.classList.contains("gsec-focus-bar"));
@@ -1213,17 +1213,28 @@
         || !!n.querySelector('[data-group][data-required="1"]');
       n.classList.toggle("gsec-focus-hidden", !(flags[i] || mustKeep));
     });
+    body.prepend(viewBar(sec, `فقط فیلدهای مرتبط با «${q}»`));
+  }
+
+  // پاک‌سازیِ هر نمایِ ویژه (فیلترِ جستجو / خلاصهٔ ثبت‌شده) و برگشت به فرمِ کامل.
+  function clearView(sec) {
+    const body = sec.querySelector(".gsec-body");
+    if (!body) return;
+    body.querySelectorAll(".gsec-focus-hidden").forEach((n) => n.classList.remove("gsec-focus-hidden"));
+    body.querySelector(".gsec-focus-bar")?.remove();
+    body.querySelector(".gsec-recorded")?.remove();
+    sec.classList.remove("rec-view");
+    sec.__focus = null;
+  }
+
+  function viewBar(sec, title) {
     const bar = el("div", "gsec-focus-bar");
-    bar.append(el("span", null, `فقط فیلدهای مرتبط با «${sec.__focus}»`));
+    bar.append(el("span", null, title));
     const all = el("button", "gsec-linkbtn", "نمایش همهٔ فیلدها");
     all.type = "button";
-    all.addEventListener("click", () => {
-      body.querySelectorAll(".gsec-focus-hidden").forEach((n) => n.classList.remove("gsec-focus-hidden"));
-      bar.remove();
-      sec.__focus = null;
-    });
+    all.addEventListener("click", () => clearView(sec));
     bar.append(all);
-    body.prepend(bar);
+    return bar;
   }
 
   // آیا این ردیف در DOM مقدارِ ثبت‌شده (یا تازه‌وارد‌شده) دارد؟
@@ -1242,25 +1253,109 @@
     return false;
   }
 
-  // مشاهدهٔ ثبت‌شده: فقط ردیف‌هایی که مقدار دارند نشان داده می‌شوند (نه کلِ فرمِ
-  // خالی). «نمایش همهٔ فیلدها» همیشه در دسترس است تا فاکتورِ تازه اضافه شود.
-  function applyRecorded(sec) {
+  function labelOf(n) {
+    const lab = n.querySelector("label");
+    if (lab) {
+      const first = lab.firstChild;
+      if (first && first.nodeType === 3) {
+        const t = String(first.textContent || "").trim();
+        if (t) return t;
+      }
+    }
+    return String(n.dataset.label || "").trim();
+  }
+
+  // خط‌های خلاصهٔ مقادیرِ ثبت‌شده (یکی برای هر عامل)، از رویِ خودِ فرمِ پرشده.
+  function recordedLines(body) {
+    const lines = [];
+    Array.from(body.children)
+      .filter((n) => !n.classList.contains("gsec-foot"))
+      .forEach((n) => {
+        // هر سیستم/آیتمِ غربالگری یک سطر
+        if (n.dataset.sys) {
+          if (!n.dataset.state) return;
+          const detail = String(n.querySelector("[data-detail]")?.value || "").trim();
+          lines.push({ label: n.dataset.sys, text: n.dataset.state === "normal" ? "طبیعی" : "غیرطبیعی", note: detail });
+          return;
+        }
+        if (n.dataset.screen) {
+          const st = n.querySelector(".gseg")?.dataset.state;
+          if (st) lines.push({ label: n.dataset.screen, text: st, note: "" });
+          return;
+        }
+        // چک‌لیستِ پیوندی: یک سطر با همهٔ انتخاب‌ها
+        const links = Array.from(n.querySelectorAll("[data-link]:checked")).map((c) => c.dataset.link);
+        if (links.length) { lines.push({ label: "پیوندها", text: links.join("، "), note: "" }); return; }
+        // نمونه‌های تکراری (فشار/قند): هر نمونه یک سطر
+        const samples = Array.from(n.querySelectorAll("[data-row]"));
+        if (samples.length) {
+          const lab = labelOf(n);
+          samples.forEach((s) => {
+            const vals = [];
+            s.querySelectorAll("[data-k]").forEach((i) => {
+              const v = String(i.value || "").trim();
+              if (v) vals.push(`${i.dataset.label || i.dataset.k}: ${v}`);
+            });
+            if (!vals.length) return;
+            const at = s.querySelector("[data-now]")?.dataset.v;
+            lines.push({ label: lab, text: vals.join("، "), note: at || "" });
+          });
+          return;
+        }
+        // ردیفِ معمولی: چیپ‌های انتخاب‌شده + ورودی‌های پرشده
+        const values = [];
+        n.querySelectorAll(".gsec-chip.on").forEach((c) => {
+          const t = String(c.textContent || "").trim();
+          if (t && !values.includes(t)) values.push(t);
+        });
+        n.querySelectorAll("[data-group]").forEach((g) => {
+          if (g.dataset.v && !values.includes(g.dataset.v)) values.push(g.dataset.v);
+        });
+        const notes = [];
+        n.querySelectorAll("input, textarea, select").forEach((i) => {
+          if (i.type === "checkbox" || i.type === "radio") return;
+          if (i.type === "range") {
+            if (i.dataset.touched === "1") values.push(`${i.dataset.label || "شدت"}: ${i.value}`);
+            return;
+          }
+          const v = String(i.value || "").trim();
+          if (!v) return;
+          if (i.dataset.num !== undefined || i.tagName === "SELECT") values.push(`${i.dataset.label || i.dataset.k || "مقدار"}: ${v}`);
+          else notes.push(v);
+        });
+        if (!values.length && !notes.length) return;
+        lines.push({
+          label: labelOf(n),
+          text: values.length ? values.join("، ") : notes.join("؛ "),
+          note: values.length ? notes.join("؛ ") : ""
+        });
+      });
+    return lines;
+  }
+
+  // مشاهدهٔ ثبت‌شده: فقط عامل‌های انتخاب‌شده، هر کدام یک سطر و توضیحش کنارِ خودش.
+  // فرمِ خالی پنهان می‌شود؛ «نمایش همهٔ فیلدها» برای ویرایش/افزودن در دسترس است.
+  function renderRecorded(sec) {
     const body = sec.querySelector(".gsec-body");
     if (!body) return;
-    const rows = Array.from(body.children).filter((n) => !n.classList.contains("gsec-foot") && !n.classList.contains("gsec-focus-bar"));
-    const filled = rows.map(rowHasValue);
-    if (!filled.some(Boolean)) return; // چیزی ثبت نشده ⇒ فرمِ کامل
-    rows.forEach((n, i) => n.classList.toggle("gsec-focus-hidden", !filled[i]));
-    const bar = el("div", "gsec-focus-bar");
-    bar.append(el("span", null, "فقط مقادیرِ ثبت‌شده"));
-    const all = el("button", "gsec-linkbtn", "نمایش همهٔ فیلدها");
-    all.type = "button";
-    all.addEventListener("click", () => {
-      body.querySelectorAll(".gsec-focus-hidden").forEach((n) => n.classList.remove("gsec-focus-hidden"));
-      bar.remove();
+    clearView(sec);
+    const lines = recordedLines(body);
+    if (!lines.length) return; // چیزی ثبت نشده ⇒ فرمِ کامل
+
+    Array.from(body.children)
+      .filter((n) => !n.classList.contains("gsec-foot"))
+      .forEach((n) => n.classList.add("gsec-focus-hidden"));
+
+    const box = el("div", "gsec-recorded");
+    lines.forEach((l) => {
+      const line = el("div", "gsec-rec-line");
+      if (l.label) line.append(el("strong", "gsec-rec-label", l.label + ":"));
+      line.append(el("span", "gsec-rec-value", l.text || "—"));
+      if (l.note) line.append(el("span", "gsec-rec-note", `— ${l.note}`));
+      box.append(line);
     });
-    bar.append(all);
-    body.prepend(bar);
+    body.prepend(viewBar(sec, "فقط مقادیرِ ثبت‌شده"), box);
+    sec.classList.add("rec-view");
   }
 
   // «لغو»: بستنِ مشاهده بدونِ ذخیره. تغییراتِ ذخیره‌نشده برمی‌گردند؛ اگر مشاهده
