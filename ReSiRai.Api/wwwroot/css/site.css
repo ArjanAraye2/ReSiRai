@@ -5731,31 +5731,38 @@ textarea.visit-input{resize:vertical}
 #dashboardSection .dashboard-summary-card span { font-size: 13px; font-weight: 600; }
 #dashboardSection .dashboard-metric-icon svg { width: 26px; height: 26px; }
 
-/* آمار کلی: گرادیانِ شاد + متنِ سفید */
-#dashboardSection .dashboard-overall-grid .dashboard-summary-card { color: #fff; }
-#dashboardSection .dashboard-overall-grid .dashboard-summary-card strong { color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, .16); }
-#dashboardSection .dashboard-overall-grid .dashboard-summary-card span { color: rgba(255, 255, 255, .94); }
-#dashboardSection .dashboard-overall-grid .metric-blue {
-    background-color: #2f80ed;
-    background-image: radial-gradient(circle at 18% 12%, rgba(255,255,255,.30), transparent 46%), linear-gradient(135deg, #2f80ed, #06b6d4);
+/* همهٔ پنج کارت: گرادیان‌های زنده با متنِ سفید (کلاسِ ردیف: dashboard-stats-row) */
+#dashboardSection .dashboard-stats-row .dashboard-summary-card { color: #fff; border: 0; }
+#dashboardSection .dashboard-stats-row .dashboard-summary-card strong {
+    color: #fff;
+    font-size: 30px;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, .2);
 }
-#dashboardSection .dashboard-overall-grid .metric-green {
-    background-color: #10b981;
-    background-image: radial-gradient(circle at 18% 12%, rgba(255,255,255,.30), transparent 46%), linear-gradient(135deg, #10b981, #84cc16);
-}
+#dashboardSection .dashboard-stats-row .dashboard-summary-card span { color: rgba(255, 255, 255, .95); }
+#dashboardSection .dashboard-stats-row .dashboard-metric-icon { color: #fff; }
 
-/* امروز: پاستیلی با عددِ رنگی */
-#dashboardSection .today-card { color: #17364a; background-color: #eef6ff; }
-#dashboardSection .today-card strong { font-size: 30px; text-shadow: none; }
-#dashboardSection .today-card span { color: #4a6474; }
-#dashboardSection .today-patients { background-image: linear-gradient(160deg, #eef6ff, #dbeafe); border-color: #c7defa; }
-#dashboardSection .today-patients strong { color: #1d4ed8; }
-#dashboardSection .today-studies { background-image: linear-gradient(160deg, #f5f0ff, #e9ddff); border-color: #ddd0f7; }
-#dashboardSection .today-studies strong { color: #7c3aed; }
-#dashboardSection .today-new { background-image: linear-gradient(160deg, #fff7ec, #ffe6cc); border-color: #f7d9b8; }
-#dashboardSection .today-new strong { color: #c2410c; }
-#dashboardSection .today-card:not(.has-value) { opacity: .9; }
-#dashboardSection .today-card.has-value { box-shadow: 0 14px 28px rgba(12, 55, 70, .18); }
+#dashboardSection .dashboard-stats-row .metric-blue {
+    background-color: #2563eb;
+    background-image: radial-gradient(circle at 18% 12%, rgba(255,255,255,.34), transparent 48%), linear-gradient(135deg, #2563eb, #06b6d4);
+}
+#dashboardSection .dashboard-stats-row .metric-green {
+    background-color: #059669;
+    background-image: radial-gradient(circle at 18% 12%, rgba(255,255,255,.34), transparent 48%), linear-gradient(135deg, #059669, #84cc16);
+}
+#dashboardSection .dashboard-stats-row .today-patients {
+    background-color: #7c3aed;
+    background-image: radial-gradient(circle at 18% 12%, rgba(255,255,255,.30), transparent 48%), linear-gradient(135deg, #7c3aed, #c026d3);
+}
+#dashboardSection .dashboard-stats-row .today-studies {
+    background-color: #ea580c;
+    background-image: radial-gradient(circle at 18% 12%, rgba(255,255,255,.30), transparent 48%), linear-gradient(135deg, #ea580c, #f59e0b);
+}
+#dashboardSection .dashboard-stats-row .today-new {
+    background-color: #db2777;
+    background-image: radial-gradient(circle at 18% 12%, rgba(255,255,255,.30), transparent 48%), linear-gradient(135deg, #db2777, #f472b6);
+}
+#dashboardSection .dashboard-stats-row .today-card:not(.has-value) { opacity: 1; }
+#dashboardSection .dashboard-stats-row .today-card.has-value { box-shadow: 0 16px 30px rgba(12, 55, 70, .24); }
 
 /* فضای محل نگهداری تصاویر */
 #dashboardSection .dashboard-storage-panel {
