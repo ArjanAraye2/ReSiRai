@@ -595,85 +595,6 @@
         hidePages(); placeholderSections[name]?.classList.remove("hidden"); setActive(name); window.scrollTo(0, 0);
     }
 
-    // The header search previously did nothing. It now performs a real
-    // patient lookup and opens the selected record in the Patients workspace.
-    function setupGlobalSearch() {
-        const input = document.getElementById("globalSearchInput");
-        const results = document.getElementById("globalSearchResults");
-        if (!input || !results) return;
-        let timer = null, controller = null;
-
-        const close = () => { results.classList.add("hidden"); results.replaceChildren(); };
-
-        const render = patients => {
-            results.replaceChildren();
-            if (!patients.length) {
-                const empty = document.createElement("div");
-                empty.className = "global-search-empty";
-                empty.textContent = "بیماری با این مشخصات یافت نشد.";
-                results.appendChild(empty);
-            } else {
-                patients.slice(0, 8).forEach(p => {
-                    const item = document.createElement("button");
-                    item.type = "button";
-                    item.className = "global-search-item";
-                    item.setAttribute("role", "option");
-                    const avatar = document.createElement("span");
-                    avatar.className = "global-search-avatar";
-                    const img = document.createElement("img");
-                    img.alt = ""; img.loading = "lazy";
-                    img.src = `/api/patients/${p.patientID}/photo`;
-                    img.onerror = () => { img.remove(); avatar.textContent = "👤"; };
-                    avatar.appendChild(img);
-                    const text = document.createElement("span");
-                    text.className = "global-search-text";
-                    const name = document.createElement("strong");
-                    name.textContent = `${p.firstName || ""} ${p.lastName || ""}`.trim() || "-";
-                    const meta = document.createElement("small");
-                    meta.textContent = `${p.nationalCode || "-"}${p.mobile ? ` — ${p.mobile}` : ""}`;
-                    text.append(name, meta);
-                    item.append(avatar, text);
-                    item.addEventListener("click", () => { close(); input.value = ""; openSearchResult(p); });
-                    results.appendChild(item);
-                });
-            }
-            results.classList.remove("hidden");
-        };
-
-        const search = async term => {
-            controller?.abort(); controller = new AbortController();
-            try {
-                const q = new URLSearchParams();
-                q.set("search", term);
-                q.set("includeInactive", "true");
-                const r = await fetch(`/api/patients?${q}`, { cache: "no-store", signal: controller.signal });
-                const x = await r.json();
-                if (!r.ok) throw new Error();
-                render(x.patients || x || []);
-            } catch (e) { if (e?.name !== "AbortError") close(); }
-        };
-
-        input.addEventListener("input", () => {
-            const term = input.value.trim();
-            clearTimeout(timer);
-            if (term.length < 2) { close(); return; }
-            timer = setTimeout(() => search(term), 220);
-        });
-        input.addEventListener("keydown", e => {
-            if (e.key === "Escape") { close(); input.blur(); return; }
-            if (e.key === "Enter") { e.preventDefault(); results.querySelector(".global-search-item")?.click(); }
-        });
-        document.addEventListener("click", e => { if (!e.target.closest("#globalSearchBox")) close(); });
-    }
-
-    async function openSearchResult(patient) {
-        navigate("patients");
-        const search = document.getElementById("patientSearch");
-        if (search) search.value = patient.nationalCode || `${patient.firstName || ""} ${patient.lastName || ""}`.trim();
-        if (typeof window.loadPatients === "function") await window.loadPatients(search?.value || "");
-        if (typeof window.openPatientInline === "function") await window.openPatientInline(patient.patientID);
-    }
-
     function navigate(name) {
         if (name === "dashboard") return openDashboard();
         if (name === "patients") { dashboardVisible = false; stopDashboardAutoRefresh(); return openPatients(); }
@@ -705,7 +626,6 @@
         document.getElementById("posSettingsCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
     moveAdministrativeButtons();
-    setupGlobalSearch();
     window.ReSiRaiNavigation = { navigate, moveAdministrativeButtons };
     navigate("dashboard");
 })();

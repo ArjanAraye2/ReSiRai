@@ -1682,101 +1682,6 @@ button {
 }
 .header-brand h1 { margin:0; font-size:21px; line-height:1.2; color:#0d3f4f; }
 .header-brand p { margin:3px 0 0; color:var(--muted); font-size:12px; }
-.header-search {
-    width:min(520px,48vw);
-    display:flex;
-    align-items:center;
-    gap:8px;
-    padding:0 13px;
-    border:1px solid #d8e7ec;
-    border-radius:11px;
-    background:#f5fbfd;
-}
-.header-search span { color:var(--shell-blue); font-size:21px; }
-.header-search .search-icon {
-    display: inline-flex;
-    align-items: center;
-    color: var( --brand-600 );
-    font-size: 0;
-}
-.header-search .search-icon svg { width: 19px; height: 19px; display: block; }
-.header-search input {
-    width:100%;
-    height:42px;
-    border:0;
-    outline:0;
-    background:transparent;
-    color:var(--text);
-    font-family:inherit;
-}
-
-/* Global patient search: the header search now returns real results. */
-.header-search { position: relative; }
-.global-search-results {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    left: 0;
-    z-index: 60;
-    max-height: 380px;
-    overflow-y: auto;
-    padding: 6px;
-    background: #ffffff;
-    border: 1px solid #c3dae1;
-    border-radius: 12px;
-    box-shadow: 0 18px 44px rgba(12,55,70, .18);
-}
-.global-search-item {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 10px;
-    color: #0f5165;
-    border: 0;
-    border-radius: 9px;
-    background: transparent;
-    text-align: right;
-}
-.global-search-item:hover,
-.global-search-item:focus-visible {
-    background: #eef8fb;
-}
-.global-search-item .global-search-avatar {
-    width: 34px;
-    height: 34px;
-    flex: 0 0 34px;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    border-radius: 50%;
-    background: #eef8fb;
-    color: #0e7f95;
-}
-.global-search-item .global-search-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.global-search-item .global-search-text {
-    display: grid;
-    gap: 1px;
-    min-width: 0;
-}
-.global-search-item .global-search-text strong { font-size: 12px; }
-.global-search-item .global-search-text small {
-    color: #55707e;
-    font-size: 12px;
-    direction: ltr;
-    text-align: right;
-}
-.global-search-empty {
-    padding: 14px 10px;
-    color: #55707e;
-    text-align: center;
-    font-size: 12px;
-}
-
 .page-container {
     max-width: 1500px;
     margin: 20px auto;
@@ -1838,28 +1743,9 @@ button {
     }
     .header-logout-button { min-height: 38px; padding: 7px 12px; }
 
-    /* Search takes the whole second row. */
-    .header-search {
-        order: 3;
-        flex: 1 0 100%;
-        width: 100%;
-        margin-top: 2px;
-    }
-    .header-search input {
-        height: 44px;
-        font-size: 16px;   /* stops iOS from zooming on focus */
-    }
-    .header-search .search-icon svg { width: 18px; height: 18px; }
-
     .brand-mark { width: 38px; height: 38px; border-radius: 11px; font-size: 14px; }
     .header-brand h1 { font-size: 17px; }
     .header-brand { gap: 9px; }
-
-    /* Results open right under the full-width field. */
-    .global-search-results {
-        top: calc(100% + 6px);
-        max-height: 55vh;
-    }
 }
 @media (max-width: 700px) {
     .app-sidebar {
@@ -1880,7 +1766,6 @@ button {
     .sidebar-link { flex:1; min-height:50px; font-size:0; justify-content:center; gap:0; }
     .app-shell { margin-right:0; padding-bottom:72px; }
     .main-header { position:sticky; }
-    .header-search { width:58vw; }
     .header-brand h1 { font-size:17px; }
 }
 
@@ -4656,7 +4541,6 @@ body { line-height: 1.75; }
     /* Dialogs use the full width and stay scrollable. */
     .confirm-dialog,
     .jalali-picker-dialog { width: 100%; }
-    .global-search-results { max-height: 60vh; }
 }
 
 /* Respect users who ask for less motion. */
