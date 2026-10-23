@@ -202,10 +202,14 @@
     const save = el("button", "gsec-btn primary", "تأیید و ثبت");
     save.type = "button";
     save.dataset.save = "1";
+    const cancel = el("button", "gsec-btn ghost", "لغو");
+    cancel.type = "button";
+    cancel.title = "بستنِ این مشاهده بدونِ ذخیره (تغییراتِ ذخیره‌نشده برمی‌گردد)";
+    cancel.dataset.cancel = "1";
     const del = el("button", "gsec-btn ghost danger hidden", "حذفِ ثبت");
     del.type = "button";
     del.dataset.del = "1";
-    f.append(err, save, del);
+    f.append(err, save, cancel, del);
     return f;
   }
 
@@ -1133,7 +1137,7 @@
   let addedCodes = [];            // بخش‌هایِ افزودنیِ انتخاب‌شده در این نشست
   let listEl = null, noteEl = null, dialogEl = null, dialogListEl = null, panelEl = null;
 
-  function makeSection(def, row) {
+  function makeSection(def, row, focus) {
     const sec = el("article", "gsec");
     sec.dataset.id = def.id;
     sec.def = def;
@@ -1154,6 +1158,7 @@
       pre.textContent = JSON.stringify(row?.data ?? {}, null, 2);
       body.append(pre, footRow());
       body.querySelector("[data-save]")?.classList.add("hidden");
+      body.querySelector("[data-cancel]")?.classList.add("hidden");
     } else {
       def.build(body, sec);
       body.append(footRow());
@@ -1162,10 +1167,66 @@
     }
 
     body.querySelector("[data-save]")?.addEventListener("click", () => confirmSection(sec));
+    body.querySelector("[data-cancel]")?.addEventListener("click", () => cancelSection(sec));
     body.querySelector("[data-del]")?.addEventListener("click", () => deleteSection(sec));
 
     if (row) markRecorded(sec, row.data?.summary || (def.summarize ? def.summarize(sec) : ""));
+    applyFocus(sec, focus);
     return sec;
+  }
+
+  // ---- نمایشِ فیلترشده: فقط فیلدِ جستجو‌شده و هم‌خانواده‌هایش ----------------
+  // وقتی کاربر «فشار خون» را جستجو می‌کند، کلِ فرمِ «علائم حیاتی» باز نمی‌شود؛
+  // فقط ردیف‌هایی که به واژه‌های جستجو مربوط‌اند می‌مانند (مثلاً سیستول/دیاستول)
+  // و یک دکمهٔ «نمایش همهٔ فیلدها» برای حالتِ کامل.
+  function applyFocus(sec, query) {
+    const body = sec.querySelector(".gsec-body");
+    if (!body) return;
+    body.querySelectorAll(".gsec-focus-hidden").forEach((n) => n.classList.remove("gsec-focus-hidden"));
+    body.querySelector(".gsec-focus-bar")?.remove();
+    sec.__focus = query && String(query).trim() ? String(query).trim() : null;
+    if (!sec.__focus) return;
+
+    const words = normText(sec.__focus).split(" ").filter(Boolean);
+    const rows = Array.from(body.children).filter((n) => !n.classList.contains("gsec-foot") && !n.classList.contains("gsec-focus-bar"));
+    const hit = (n) => {
+      const parts = [n.dataset.label || "", n.textContent || ""];
+      n.querySelectorAll("[data-label]").forEach((x) => parts.push(x.dataset.label || ""));
+      const text = normText(parts.join(" "));
+      return words.some((w) => text.includes(w));
+    };
+    const flags = rows.map(hit);
+    if (!flags.some(Boolean)) return; // مچ فقط رویِ عنوان بود ⇒ همهٔ فیلدها بمانند
+
+    rows.forEach((n, i) => n.classList.toggle("gsec-focus-hidden", !flags[i]));
+    const bar = el("div", "gsec-focus-bar");
+    bar.append(el("span", null, `فقط فیلدهای مرتبط با «${sec.__focus}»`));
+    const all = el("button", "gsec-linkbtn", "نمایش همهٔ فیلدها");
+    all.type = "button";
+    all.addEventListener("click", () => {
+      body.querySelectorAll(".gsec-focus-hidden").forEach((n) => n.classList.remove("gsec-focus-hidden"));
+      bar.remove();
+      sec.__focus = null;
+    });
+    bar.append(all);
+    body.prepend(bar);
+  }
+
+  // «لغو»: بستنِ مشاهده بدونِ ذخیره. تغییراتِ ذخیره‌نشده برمی‌گردند؛ اگر مشاهده
+  // هنوز به مراجعه الصاق نشده باشد، کارتش هم برداشته می‌شود.
+  function cancelSection(sec) {
+    const rec = rowsCache.get(sec.def.id);
+    const err = sec.querySelector("[data-err]");
+    if (err) err.textContent = "";
+    if (!rec) {
+      sec.remove();
+      if (listEl && !listEl.querySelector(".gsec")) listEl.append(emptyHint());
+      return;
+    }
+    const focus = sec.__focus || null;
+    const fresh = makeSection(sec.def, rec, focus);
+    sec.replaceWith(fresh);
+    closeSection(fresh);
   }
 
   function readOnlyDef(row) {
@@ -1208,6 +1269,28 @@
   // می‌شود تا با تغییرِ فیلدها، جستجو خودبه‌خود به‌روز بماند.
   let searchIndex = null;
   const CHIP_NOISE = new Set(["بله", "خیر", "دارد", "ندارد", "طبیعی", "غیرطبیعی", "مثبت", "منفی", "نامشخص"]);
+
+  // واژه‌هایِ طبیعی که کاربر ممکن است بنویسد ولی عیناً در برچسبِ فیلد نیست
+  // (مثلاً «فشار خون» در حالی‌که فیلدها «فشارِ سیستول/دیاستول» نام دارند).
+  const SECTION_ALIASES = {
+    vitals: ["فشار خون", "تب", "دمای بدن", "وزن", "قد", "نبض", "اکسیژن خون", "تنفس"],
+    bp: ["فشار خون", "سیستول", "دیاستول", "نبض", "پرفشاری"],
+    sugar: ["قند خون", "قند ناشتا", "دیابت", "HbA1c"],
+    anamnesis: ["شکایت", "علامت", "سابقه", "حساسیت", "دارو", "بستری", "عمل جراحی", "مدت بیماری"],
+    exam: ["معاینه", "قلب", "ریه", "شکم", "عصبی", "پوست", "گوش", "حلق", "چشم", "دهان"],
+    life: ["سیگار", "قلیان", "الکل", "تغذیه", "ورزش", "خواب", "استرس", "سبک زندگی"],
+    screen: ["غربالگری", "واکسن", "پاپ اسمیر", "ماموگرافی", "چربی", "تیروئید", "کم خونی", "ویتامین"],
+    emerg: ["اورژانس", "شدت", "هوشیاری", "تریاج"],
+    pain: ["درد", "شدت درد", "محل درد"],
+    phq: ["افسردگی", "اضطراب", "سلامت روان", "روان"],
+    ante: ["بارداری", "حاملگی", "جنین", "سونوگرافی بارداری"],
+    peds: ["کودک", "رشد", "وزن کودک", "قد کودک", "تکامل"],
+    geri: ["سالمند", "سالمندی", "سقوط", "زمین خوردن"],
+    linkLab: ["آزمایش", "lab", "برگه آزمایش"],
+    linkImg: ["تصویر", "رادیولوژی", "سونوگرافی", "سی تی", "ام آر آی"],
+    linkDoc: ["سند", "گواهی", "نامه", "مدارک"]
+  };
+
   function buildSearchIndex() {
     if (searchIndex) return searchIndex;
     searchIndex = [];
@@ -1229,27 +1312,33 @@
           if (t && !CHIP_NOISE.has(t)) labels.add(t);
         });
       } catch { /* یک بخشِ ناسازگار نباید کلِ جستجو را خراب کند */ }
+      const cleanLabels = [...new Set([...labels].map(normText).filter((t) => t && t.length > 1))];
+      const aliases = (SECTION_ALIASES[def.id] || []).map(normText);
       searchIndex.push({
         def,
         title: normText(def.title),
-        labels: [...new Set([...labels].map(normText).filter((t) => t && t.length > 1))]
+        labels: cleanLabels,
+        aliases,
+        hay: normText([def.title, ...cleanLabels, ...aliases].join(" "))
       });
     });
     return searchIndex;
   }
 
-  // افزودنِ مشاهده از نتیجهٔ جستجو: اگر از قبل هست، همان را باز می‌کند.
-  function addSectionByDef(def) {
+  // افزودنِ مشاهده از نتیجهٔ جستجو: اگر از قبل هست، همان کارت باز می‌شود و
+  // فیلترِ عاملِ جستجو رویِ آن اعمال می‌شود (بدونِ ساختِ کارتِ تکراری).
+  function addSectionByDef(def, query) {
     if (!def || !listEl) return;
     const existing = qsa(".gsec", listEl).find((s) => s.dataset.id === def.id);
     if (existing) {
       if (!existing.classList.contains("is-open")) toggleSection(existing);
+      applyFocus(existing, query);
       existing.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
     listEl.querySelector(".gs-empty")?.remove();
     if (!addedCodes.includes(def.id)) addedCodes.push(def.id);
-    const sec = makeSection(def, rowsCache.get(def.id) || null);
+    const sec = makeSection(def, rowsCache.get(def.id) || null, query);
     if (!sec) return;
     if (!sec.classList.contains("is-open")) toggleSection(sec);
     sec.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1284,7 +1373,7 @@
         // mousedown تا پیش از blur اجرا شود؛ کلیکِ بیرون لیست را می‌بندد.
         row.addEventListener("mousedown", (e) => {
           e.preventDefault();
-          addSectionByDef(hit.def);
+          addSectionByDef(hit.def, input.value);
           input.value = "";
           close();
         });
@@ -1305,16 +1394,24 @@
       const q = normText(input.value);
       if (!q) { close(); return; }
       const words = q.split(" ").filter(Boolean);
+      const squashed = q.replace(/\s+/g, "");
       items = buildSearchIndex()
         .map((entry) => {
-          const titleHit = words.every((w) => entry.title.includes(w));
-          const labelHits = entry.labels.filter((l) => words.every((w) => l.includes(w)));
-          const allHit = words.every((w) => entry.title.includes(w) || entry.labels.some((l) => l.includes(w)));
-          if (!allHit) return null;
-          return { ...entry, labels: labelHits.length ? labelHits : entry.labels, score: titleHit ? 0 : 1 };
+          const hay = entry.hay || entry.title;
+          // «فشار خون» با فاصله هم باید «فشارخون» را پیدا کند؛ هم‌چنین واژه‌به‌واژه.
+          const whole = squashed.length > 1 && hay.replace(/\s+/g, "").includes(squashed);
+          const hitWords = words.filter((w) => hay.includes(w));
+          if (!whole && !hitWords.length) return null;
+          const titleAll = words.every((w) => entry.title.includes(w));
+          const matched = entry.labels.filter((l) => words.some((w) => l.includes(w)));
+          return {
+            ...entry,
+            labels: matched.length ? matched : entry.labels,
+            score: (whole ? 100 : 0) + (titleAll ? 20 : 0) + hitWords.length
+          };
         })
         .filter(Boolean)
-        .sort((a, b) => a.score - b.score)
+        .sort((a, b) => b.score - a.score)
         .slice(0, 8);
       active = -1;
       paint();
@@ -1333,7 +1430,7 @@
       } else if (e.key === "Enter") {
         e.preventDefault();
         const pick = items[active >= 0 ? active : 0];
-        if (pick) { addSectionByDef(pick.def); input.value = ""; close(); }
+        if (pick) { addSectionByDef(pick.def, input.value); input.value = ""; close(); }
       }
     });
     document.addEventListener("click", (e) => { if (!wrap.contains(e.target)) close(); });
@@ -1342,6 +1439,8 @@
     window.addEventListener("resize", close);
     return wrap;
   }
+
+  const emptyHint = () => el("div", "gs-empty", "هنوز مشاهده‌ای به این مراجعه الصاق نشده است — از جستجوی بالا اضافه کنید.");
 
   function renderList(studyRows) {
     rowsCache = new Map(studyRows.map((r) => [r.sectionCode, r]));
@@ -1352,9 +1451,7 @@
       if (!rowsCache.has(def.id) && !def.readOnly) return;
       makeSection(def, rowsCache.get(def.id) || null);
     });
-    if (!listEl.children.length) {
-      listEl.append(el("div", "gs-empty", "هنوز مشاهده‌ای به این مراجعه الصاق نشده است — از جستجوی بالا اضافه کنید."));
-    }
+    if (!listEl.children.length) listEl.append(emptyHint());
   }
 
   function note(text, isError) {

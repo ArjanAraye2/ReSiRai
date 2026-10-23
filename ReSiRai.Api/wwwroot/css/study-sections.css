@@ -582,3 +582,32 @@
     font-size: 12px;
     color: var(--gs-muted, #66788c);
 }
+
+/* نمایشِ فیلترشده (فقط فیلدهای مرتبط با جستجو) */
+.gsec-focus-hidden { display: none !important; }
+
+.gsec-focus-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--gs-chip, #eef4fa);
+    border: 1px dashed var(--gs-line, #dbe4ec);
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--gs-muted, #66788c);
+}
+
+.gsec-linkbtn {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--gs-on, #0b7ad6);
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    white-space: nowrap;
+}
