@@ -1036,7 +1036,7 @@
     // در حالتِ «افزودن از رویِ یک فاکتور» (فرمِ فیلترشده) فقط همان فاکتور ثبت
     // می‌شود؛ «کلیدِ» کلیِ بخش اجباری نیست، وگرنه تیکِ «چربی» بدونِ شکایتِ اصلی
     // ذخیره نمی‌شد. در فرمِ کامل، همان قاعدهٔ قبلی برجاست.
-    if (sec.def.key && !sec.__focus && !sec.def.key(sec)) miss.push(sec.def.keyMsg || "بخشِ کلیدی ناقص است");
+    if (sec.def.key && !sec.__focus && !rowsCache.has(sec.def.id) && !sec.def.key(sec)) miss.push(sec.def.keyMsg || "بخشِ کلیدی ناقص است");
     qsa("[data-req]", body).forEach((i) => {
       if (!String(i.value || "").trim()) miss.push(i.dataset.label || i.placeholder || "موردِ کلیدی");
     });
@@ -1176,7 +1176,8 @@
     body.querySelector("[data-del]")?.addEventListener("click", () => deleteSection(sec));
 
     if (row) markRecorded(sec, row.data?.summary || (def.summarize ? def.summarize(sec) : ""));
-    applyFocus(sec, focus);
+    if (focus) applyFocus(sec, focus);
+    else if (row) applyRecorded(sec); // مشاهدهٔ ثبت‌شده: فقط مقادیرِ ثبت‌شده
     return sec;
   }
 
@@ -1203,10 +1204,11 @@
     const flags = rows.map(hit);
     if (!flags.some(Boolean)) { sec.__focus = null; return; } // مچ فقط رویِ عنوان بود ⇒ همهٔ فیلدها بمانند
 
-    // ردیفِ نخستِ بخش (جایِ کلیدِ اصلی) و هر ردیفِ دارایِ فیلدِ اجباری هرگز
-    // پنهان نمی‌شود تا کاربر با اعتبارسنجیِ «لطفاً تکمیل کنید» گیر نکند.
+    // ردیفِ نخستِ بخش (جایِ کلیدِ اصلی)، هر ردیفِ دارایِ فیلدِ اجباری، و هر ردیفی
+    // که از قبل مقدارِ ثبت‌شده دارد هرگز پنهان نمی‌شود.
     rows.forEach((n, i) => {
       const mustKeep = i === 0
+        || rowHasValue(n)
         || !!n.querySelector("[data-req]")
         || !!n.querySelector('[data-group][data-required="1"]');
       n.classList.toggle("gsec-focus-hidden", !(flags[i] || mustKeep));
@@ -1219,6 +1221,43 @@
       body.querySelectorAll(".gsec-focus-hidden").forEach((n) => n.classList.remove("gsec-focus-hidden"));
       bar.remove();
       sec.__focus = null;
+    });
+    bar.append(all);
+    body.prepend(bar);
+  }
+
+  // آیا این ردیف در DOM مقدارِ ثبت‌شده (یا تازه‌وارد‌شده) دارد؟
+  function rowHasValue(n) {
+    if (n.querySelector(".gsec-chip.on")) return true;
+    if (n.querySelector("[data-sys][data-state]")) return true;
+    if (n.querySelector("[data-screen] [data-state]")) return true;
+    if (n.querySelector("[data-link]:checked")) return true;
+    if (n.querySelector("[data-row]")) return true;
+    const inputs = n.querySelectorAll("input, textarea, select");
+    for (const i of inputs) {
+      if (i.type === "checkbox" || i.type === "radio") { if (i.checked) return true; continue; }
+      if (i.type === "range") { if (i.dataset.touched === "1") return true; continue; }
+      if (String(i.value || "").trim() !== "") return true;
+    }
+    return false;
+  }
+
+  // مشاهدهٔ ثبت‌شده: فقط ردیف‌هایی که مقدار دارند نشان داده می‌شوند (نه کلِ فرمِ
+  // خالی). «نمایش همهٔ فیلدها» همیشه در دسترس است تا فاکتورِ تازه اضافه شود.
+  function applyRecorded(sec) {
+    const body = sec.querySelector(".gsec-body");
+    if (!body) return;
+    const rows = Array.from(body.children).filter((n) => !n.classList.contains("gsec-foot") && !n.classList.contains("gsec-focus-bar"));
+    const filled = rows.map(rowHasValue);
+    if (!filled.some(Boolean)) return; // چیزی ثبت نشده ⇒ فرمِ کامل
+    rows.forEach((n, i) => n.classList.toggle("gsec-focus-hidden", !filled[i]));
+    const bar = el("div", "gsec-focus-bar");
+    bar.append(el("span", null, "فقط مقادیرِ ثبت‌شده"));
+    const all = el("button", "gsec-linkbtn", "نمایش همهٔ فیلدها");
+    all.type = "button";
+    all.addEventListener("click", () => {
+      body.querySelectorAll(".gsec-focus-hidden").forEach((n) => n.classList.remove("gsec-focus-hidden"));
+      bar.remove();
     });
     bar.append(all);
     body.prepend(bar);
