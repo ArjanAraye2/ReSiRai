@@ -209,6 +209,8 @@ public class SignupController : ControllerBase
             };
             _db.Staff.Add(staff);
             await _db.SaveChangesAsync(ct);
+            // هر پزشک مطبِ خودش را دارد (ReSiRai به پزشک خدمات می‌دهد).
+            await ClinicProvisioning.EnsureForDoctorAsync(_db, staff, ct);
             _db.Users.Add(new User
             {
                 StaffID = staff.StaffID,
@@ -399,6 +401,8 @@ public async Task<IActionResult> SpecialtiesPublic(CancellationToken ct)
             };
             _db.Staff.Add(staff);
             await _db.SaveChangesAsync(ct);
+            // هر پزشک مطبِ خودش را دارد (ReSiRai به پزشک خدمات می‌دهد).
+            await ClinicProvisioning.EnsureForDoctorAsync(_db, staff, ct);
 
             var user = new User
             {

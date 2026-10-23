@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using ReSiRai.Api.Models;
+using ReSiRai.Api.Services;
 #pragma warning disable EF1002 // رشتههای DDL ثابتِ کامپایلاند (بدون ورودی کاربر)
 
 namespace ReSiRai.Api.Data;
@@ -27,6 +28,24 @@ public static class DbBootstrap
         {
             await SqlServerAsync(db);
         }
+        await EnsureDoctorClinicsAsync(db);
+    }
+
+    /// <summary>
+    /// هر پزشک واحدِ کارِ خودش است و ClinicID در ثبتِ مراجعه اجباری است؛ برای هر
+    /// پزشکِ بدونِ مطب یک مطبِ فعال به نامِ خودش ساخته و وصل می‌شود تا نصبِ تازه
+    /// هرگز با «ClinicID and DoctorStaffID are required» روبه‌رو نشود. نصب‌هایی که
+    /// پزشکشان از قبل مطب دارد دست‌نخورده می‌مانند.
+    /// </summary>
+    private static async Task EnsureDoctorClinicsAsync(ReSiRaiDbContext db)
+    {
+        try
+        {
+            var doctors = await db.Staff.AsNoTracking().Where(s => s.StaffType == 2).ToListAsync();
+            foreach (var doctor in doctors)
+                await ClinicProvisioning.EnsureForDoctorAsync(db, doctor);
+        }
+        catch { /* راه‌اندازی نباید به‌خاطرِ این بلوک متوقف شود */ }
     }
 
     // ------------------------------------------------------------------ PostgreSQL

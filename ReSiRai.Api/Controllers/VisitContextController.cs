@@ -40,11 +40,14 @@ namespace ReSiRai.Api.Controllers
                     .FirstOrDefaultAsync(cancellationToken)
                 : null;
             if (!clinicID.HasValue)
-                clinicID = await _db.Clinics.AsNoTracking()
-                    .Where(x => x.IsActive)
-                    .OrderBy(x => x.ClinicID)
-                    .Select(x => (int?)x.ClinicID)
-                    .FirstOrDefaultAsync(cancellationToken);
+            {
+                // بدونِ اتصال، «اولین مطبِ فعال» فقط وقتی انتخاب می‌شود که در کلِ
+                // سیستم یک مطبِ فعال باشد؛ در چندپزشکی، انتخاب/اتصال با ادمین است
+                // تا مراجعهٔ کسی به مطبِ پزشکِ دیگر نچسبد.
+                var activeClinics = await _db.Clinics.AsNoTracking()
+                    .Where(x => x.IsActive).Select(x => x.ClinicID).Take(2).ToListAsync(cancellationToken);
+                if (activeClinics.Count == 1) clinicID = activeClinics[0];
+            }
 
             // ---- پزشک ----
             int? doctorStaffID = null;

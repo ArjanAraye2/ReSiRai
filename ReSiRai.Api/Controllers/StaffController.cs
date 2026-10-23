@@ -108,6 +108,9 @@ namespace ReSiRai.Api.Controllers
             request.StaffID = 0;
             _context.Staff.Add(request);
             await _context.SaveChangesAsync();
+            // پزشک تازه: مطبِ خودش به‌طورِ خودکار ساخته و وصل می‌شود.
+            if (request.StaffType == 2)
+                await ClinicProvisioning.EnsureForDoctorAsync(_context, request);
 
             return Ok(new { success = true, staff = request });
         }
