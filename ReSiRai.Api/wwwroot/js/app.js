@@ -618,40 +618,12 @@ let sectionsHome=null;
 
    const actions=document.createElement("div");
    actions.className="study-scroll-actions";
-   const toggle=document.createElement("button");
-   toggle.type="button";toggle.className="study-toggle-button secondary-button";toggle.textContent="نمایش";
-   toggle.setAttribute("aria-label","نمایش جزئیات مطالعه");
-   if(Number(study.status)!==2){
-    const complete=document.createElement("button");complete.type="button";complete.className="study-complete-button";complete.textContent="✓ تمام شد";
-    complete.title="علامت‌گذاری این مطالعه به‌عنوان تمام‌شده";complete.onclick=e=>{e.stopPropagation();completeStudyFromCard(study,complete);};
-    actions.appendChild(complete);
-   }
+   // هدرِ کارت فعلاً فقط «حذف مراجعه» را دارد (از study-delete.js).
+   // «تمام شد» دکمه نیست؛ وضعیت همان‌جا در نشانِ سمتِ راست دیده می‌شود.
+   // «بستن/نمایش»، «تصویر ▾» و «تحلیل با هوش مصنوعی» هم فعلاً از هدر برداشته
+   // شده‌اند؛ باز/بستنِ کارت با کلیک روی همین هدر انجام می‌شود و کارهای تصویر و
+   // تحلیل هم داخلِ بدنهٔ کارت در دسترس‌اند.
    // دکمهٔ «ویرایش» حذف شد: فیلدهایِ ثابت در خودِ کارت مستقیم‌ویرایش‌اند.
-   // --- کارهای تصویر زیر یک منوی «تصویر ▾» تا ردیف اکشن شلوغ نشود -----
-   const imageMenuButton=document.createElement("button");
-   imageMenuButton.type="button";imageMenuButton.className="secondary-button study-image-menu-button";
-   imageMenuButton.textContent="تصویر ▾";
-   imageMenuButton.setAttribute("aria-haspopup","true");imageMenuButton.setAttribute("aria-expanded","false");
-   const imageMenuBox=document.createElement("div");
-   imageMenuBox.className="study-image-menu-box hidden";
-   [["عکس/فایل جدید (دوربین یا کامپیوتر)",()=>openUploadImageForm(study),false],
-    ["الصاق تصویر موجود از پرونده",()=>{selectVisit(study);window.ReSiRaiImagePickup.open();},true],
-    ["دریافت از بیمار با لینک/کیوآرکد",()=>{selectVisit(study);window.ReSiRaiReceive&&window.ReSiRaiReceive.open();},false],
-    ["ارسال لینک تصویر با پیامک",()=>{selectVisit(study);window.ReSiRaiShareImages&&window.ReSiRaiShareImages.open();},false]]
-   .forEach(([label,run,needsImages])=>{
-     const item=document.createElement("button");item.type="button";item.className="study-image-menu-item";item.textContent=label;
-     // اگر بیمار هیچ تصویری نداشته باشد، «الصاق» معنا ندارد و مخفی می‌ماند.
-     if(needsImages)item.setAttribute("data-needs-images","1");
-     item.onclick=ev=>{ev.stopPropagation();closeStudyImageMenus();run();};
-     imageMenuBox.appendChild(item);
-   });
-   imageMenuButton.onclick=ev=>{
-     ev.stopPropagation();
-     const willOpen=imageMenuBox.classList.contains("hidden");
-     closeStudyImageMenus();
-     if(willOpen){imageMenuBox.classList.remove("hidden");imageMenuButton.setAttribute("aria-expanded","true");}
-   };
-   actions.append(toggle,imageMenuButton,imageMenuBox);
 
    // --- body: built on first open, so a closed study costs nothing ----------
    const body=document.createElement("div");
@@ -661,7 +633,6 @@ let sectionsHome=null;
    const setOpen=open=>{
     body.classList.toggle("hidden",!open);
     header.setAttribute("aria-expanded",open?"true":"false");
-    toggle.textContent=open?"بستن":"نمایش";
     card.classList.toggle("study-open",open);
     if(open&&!hydrated){
      hydrated=true;
@@ -770,7 +741,6 @@ const status=document.createElement("div");status.className="status-message";sta
      hydrateStudyCard(study,chart,status,grid,docsSection);
     }
    };
-   toggle.onclick=e=>{e.stopPropagation();setOpen(body.classList.contains("hidden"));};
    header.addEventListener("click",()=>setOpen(body.classList.contains("hidden")));
    header.addEventListener("keydown",e=>{
     if(e.key==="Enter"||e.key===" "){e.preventDefault();setOpen(body.classList.contains("hidden"));}

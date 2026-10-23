@@ -33,8 +33,10 @@ async function analyze(card,button){
  finally{button.disabled=false;}
 }
 
-// Attach to the current collapsible row markup. The actions live in the header, so
-// the button is visible without opening the Study, and the click must not toggle it.
-function enhance(){document.querySelectorAll('.study-scroll-card').forEach(card=>{if(card.querySelector('.ai-analyze-button'))return;const actions=card.querySelector('.study-scroll-actions');if(!actions)return;const button=document.createElement('button');button.type='button';button.className='secondary-button ai-analyze-button';button.textContent='تحلیل با هوش مصنوعی';button.addEventListener('click',e=>{e.stopPropagation();analyze(card,button);});actions.appendChild(button);});}
+// Attach to the current collapsible row markup. The header no longer shows the
+// analyse button (owner request): the element stays in the actions container but
+// hidden, so the in-card «تحلیلِ همهٔ تصاویر با AI» can still trigger the same
+// flow with a programmatic click.
+function enhance(){document.querySelectorAll('.study-scroll-card').forEach(card=>{if(card.querySelector('.ai-analyze-button'))return;const actions=card.querySelector('.study-scroll-actions');if(!actions)return;const button=document.createElement('button');button.type='button';button.className='secondary-button ai-analyze-button hidden';button.textContent='تحلیل با هوش مصنوعی';button.addEventListener('click',e=>{e.stopPropagation();analyze(card,button);});actions.appendChild(button);});}
 const container=document.getElementById('studiesContainer');if(container){new MutationObserver(enhance).observe(container,{childList:true,subtree:true});enhance();}
 })();

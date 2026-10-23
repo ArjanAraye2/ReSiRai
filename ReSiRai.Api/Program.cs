@@ -214,7 +214,7 @@ app.Use(async (context, next) =>
             const string featureScripts =
                 "<script src=\"/js/mobile-camera-loader.js?v=20261001.19\"></script>\n" +
                 "<script src=\"/js/study-type-lookup.js?v=20261001.19\"></script>\n" +
-                "<script src=\"/js/ai-study-analysis.js?v=20261001.19\"></script>\n" +
+                "<script src=\"/js/ai-study-analysis.js?v=20261023.4\"></script>\n" +
                 "<script src=\"/js/card-extraction.js?v=20261001.19\"></script>\n" +
                 "<script src=\"/js/ai-chat.js?v=20261001.19\"></script>\n" +
                 "<script src=\"/js/study-card-scan.js?v=20261008.1\"></script>\n" +

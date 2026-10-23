@@ -6,14 +6,10 @@
 // extraction writes through the same API with source = 2). A value outside its
 // reference range is flagged while it is typed, so the doctor sees it before AI.
 //
-// SuperAdmins get a "test mode" bar on top of the panel: it asks which specialty
-// to test and loads that specialty's factor set, so the whole flow can be tried
-// before any doctor is registered. Values recorded in test mode are still real
-// values on the visit - the bar says so.
+// نوارِ «در حال تست هستم» (انتخابِ تخصصِ آزمایشی) به‌درخواستِ مالک حذف شد؛
+// فاکتورها همیشه از تخصصِ خودِ مراجعه/پزشکِ همین نشست می‌آیند.
 (function () {
     "use strict";
-
-    const TEST_KEY = "reSiRaiTestSpecialty";
 
     const CATEGORY_LABELS = {
         Vitals: "علائم حیاتی",
@@ -32,25 +28,8 @@
     // Values entered in the new-visit form before the visit row exists; they are
     // posted the moment the visit is created (commitPending).
     let pendingItems = [];
-    // The panel that last rendered; the test bar re-renders that one, not some
-    // other panel of the same page.
+    // The panel that last rendered.
     let lastHost = null;
-    let testState = loadTestState();
-
-    function loadTestState() {
-        try {
-            const raw = localStorage.getItem(TEST_KEY);
-            if (raw) {
-                const parsed = JSON.parse(raw);
-                return { enabled: !!parsed.enabled, specialtyID: Number(parsed.specialtyID) || 0 };
-            }
-        } catch { }
-        return { enabled: false, specialtyID: 0 };
-    }
-
-    function saveTestState() {
-        try { localStorage.setItem(TEST_KEY, JSON.stringify(testState)); } catch { }
-    }
 
     async function readJson(r) { try { return await r.json(); } catch { return { success: false }; } }
 
@@ -158,85 +137,7 @@
         el.classList.toggle("error", !!isError);
     }
 
-    // The admin test bar: "I am testing" + "which specialty?" - it reloads the
-    // panel with the chosen specialty's factor set.
-    function buildTestBar() {
-        const bar = document.createElement("div");
-        bar.className = "factors-testbar";
-
-        const label = document.createElement("label");
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.checked = !!(testState.enabled && testState.specialtyID);
-        label.append(checkbox, document.createTextNode(" در حال تست هستم"));
-
-        const question = document.createElement("span");
-        question.className = "factors-testbar-question";
-        question.textContent = "برای کدام تخصص تست می‌کنید؟";
-
-        // ۱۳۰ ردیفِ تخصص: سلکت با «متن + datalist» عوض می‌شود تا تایپ فیلتر کند؛
-        // SpecialtyID از همان fetch خوانده می‌شود و متنِ خالی یعنی «انتخاب نشده».
-        const list = document.createElement("datalist");
-        list.id = "factorsTestSpecialtyList";
-        const input = document.createElement("input");
-        input.type = "text";
-        // ویژگیِ `list` فقط‌خواندنی است؛ انتسابِ مستقیم در strict mode استثنا می‌دهد
-        // و کلِ پنلِ «شرایط فعلی» را می‌شکست (نگهبان: smoke11).
-        input.setAttribute("list", list.id);
-        input.autocomplete = "off";
-        input.placeholder = "— انتخاب تخصص —";
-        input.disabled = !checkbox.checked;
-        const entries = [];
-        let chosen = Number(testState.specialtyID) || 0;
-        const normSpec = s => String(s || "").replace(/\u200c/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
-        const resolveSpecialty = () => {
-            const want = normSpec(input.value);
-            if (!want) return 0;
-            const hit = entries.find(e => normSpec(e.name) === want)
-                || entries.find(e => normSpec(e.name).includes(want) || want.includes(normSpec(e.name)));
-            return hit ? hit.id : 0;
-        };
-
-        fetch("/api/admin/specialties", { cache: "no-store" }).then(readJson).then(x => {
-            const rows = x.specialties || x.items || x.data || [];
-            for (const s of rows) {
-                const name = s.specialtyName || s.name || "";
-                const id = s.specialtyID ?? s.id;
-                if (id === undefined || !name) continue;
-                entries.push({ id: Number(id) || 0, name: String(name) });
-                list.appendChild(new Option(name));
-            }
-            const hit = entries.find(e => e.id === chosen);
-            input.value = hit ? hit.name : "";
-        }).catch(() => { });
-
-        const hint = document.createElement("small");
-        hint.className = "factors-testbar-hint";
-        hint.textContent = "فقط برای نمایش فاکتورهای آن تخصص؛ مقادیری که ثبت کنید روی همین مراجعه می‌ماند.";
-
-        const reload = () => { if (currentStudy) render(currentStudy, lastHost); };
-        checkbox.addEventListener("change", () => {
-            testState.enabled = checkbox.checked;
-            if (!checkbox.checked) { testState.specialtyID = 0; chosen = 0; input.value = ""; }
-            saveTestState();
-            input.disabled = !checkbox.checked;
-            reload();
-        });
-        // تایپ فقط فهرست را فیلتر می‌کند؛ انتخاب هنگامِ خروج از فیلد (یا Enter)
-        // قطعی می‌شود تا هر حرف باعث رندرِ دوبارهٔ پنل نشود.
-        input.addEventListener("change", () => {
-            const id = resolveSpecialty();
-            if (id === chosen) return;
-            chosen = id;
-            testState.specialtyID = id;
-            saveTestState();
-            reload();
-        });
-        input.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); input.blur(); } });
-
-        bar.append(label, question, input, list, hint);
-        return bar;
-    }
+    // نوارِ تست (انتخابِ تخصصِ آزمایشی) حذف شد؛ فاکتورها از تخصصِ خودِ مراجعه می‌آیند.
 
     async function render(study, hostOverride) {
         const host = hostOverride || document.getElementById("studyFactorsPanel") || ensurePanelExists();
@@ -253,9 +154,6 @@
         const content = document.createElement("div");
         content.className = "factors-content";
         host.appendChild(content);
-        // The test bar is available to every user of this installation; it only
-        // switches the displayed specialty and says so on its face.
-        host.insertBefore(buildTestBar(), content);
 
         const note = document.createElement("div");
         note.className = "factors-empty";
@@ -265,7 +163,6 @@
         try {
             const params = [];
             if (studyID) params.push(`studyID=${studyID}`);
-            if (testState.enabled && testState.specialtyID) params.push(`specialtyID=${testState.specialtyID}`);
             const defUrl = `/api/factors/definitions${params.length ? "?" + params.join("&") : ""}`;
             const [defRes, valRes] = await Promise.all([
                 fetch(defUrl, { cache: "no-store" }).then(readJson),
@@ -614,16 +511,15 @@
             consultBtn.className = "primary-button";
             consultBtn.textContent = "مشاوره با هوش مصنوعی";
             consultBtn.addEventListener("click", () => {
-                const specialty = testState.enabled && testState.specialtyID ? testState.specialtyID : null;
                 const myID = Number(host.dataset.studyId) || 0;
-                if (myID) { window.ReSiRaiConsult?.open(myID, specialty); return; }
+                // تخصص از خودِ مراجعه/پزشکِ همین نشست خوانده می‌شود (نوارِ تست حذف شد).
+                if (myID) { window.ReSiRaiConsult?.open(myID); return; }
                 // New-visit form: the consultation runs over what is typed in
                 // right now. When the data is not enough, the AI says what is
                 // missing instead of guessing.
                 window.ReSiRaiConsult?.openDraft({
                     patientID: window.selectedPatientID || null,
                     description: document.getElementById("newStudyDescription")?.value || "",
-                    specialtyID: specialty,
                     items: collectItems(host)
                 });
             });
