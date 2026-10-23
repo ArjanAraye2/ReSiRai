@@ -5677,6 +5677,8 @@ body { line-height: 1.75; }
 .study-draft-card{border:1px dashed var(--border,#cfe0ee);border-radius:12px;background:#f7fcfe;padding:12px 14px;box-shadow:var(--shadow,none)}
 .study-draft-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;cursor:pointer}
 .study-draft-caret{color:#5c7a8a;font-size:14px;line-height:1}
+.study-card-sections-title{margin:14px 0 6px;font-weight:700;font-size:13.5px;color:#285b8f;display:flex;align-items:center;gap:8px}
+.study-card-sections-title::before{content:"";width:4px;height:16px;border-radius:2px;background:#2f8f7a;display:inline-block}
 .study-draft-title{display:flex;align-items:center;gap:8px;font-weight:700;color:#123}
 .study-draft-badge{background:#fff3d6;color:#8a5b00;border:1px solid #f0d9a6;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:600}
 .visit-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:6px 16px}

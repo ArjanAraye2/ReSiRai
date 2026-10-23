@@ -490,15 +490,14 @@
         const fields = buildFields(null, { draft: true });
         body.appendChild(fields);
 
-        // همان بخش‌های تیک‌محور و شرایط فعلیِ کارتِ واقعی، این‌جا هم هستند.
-        const sectionsHost = el("div", "study-card-sections");
-        body.appendChild(sectionsHost);
+        // بخش‌های تیک‌محور («مشاهدات») عمداً در پیش‌نویس نیستند؛ بعد از ثبتِ
+        // مراجعه، داخلِ کارتِ همان مراجعه با عنوانِ «مشاهدات قابل الصاق به مراجعه»
+        // در دسترس‌اند. شرایط فعلی (فاکتورها) همین‌جا می‌ماند.
         const factorsHost = el("div", "factors-panel");
         factorsHost.id = "visitDraftFactors";
         body.appendChild(factorsHost);
 
         card.append(head, body);
-        card.__sectionsHost = sectionsHost;
         card.__factorsHost = factorsHost;
         card.__fields = fields;
 
@@ -519,12 +518,7 @@
     }
 
     function wireDraft(card) {
-        // پنلِ بخش‌ها (تکی) به داخلِ کارت منتقل می‌شود؛ در خانه‌اش نگه داشته می‌شود
-        // تا هنگامِ رندرِ دوبارهٔ لیست از بین نرود.
-        if (window.ReSiRaiMoveSections) window.ReSiRaiMoveSections(card.__sectionsHost);
-        if (window.ReSiRaiStudySections && window.ReSiRaiStudySections.render) {
-            Promise.resolve(window.ReSiRaiStudySections.render(0)).catch(() => { });
-        }
+        // بخش‌های مراجعه در پیش‌نویس نیستند؛ فقط شرایط فعلی (فاکتورها) رندر می‌شود.
         if (window.ReSiRaiFactors && window.ReSiRaiFactors.render) {
             try { window.ReSiRaiFactors.render({ studyID: 0 }, card.__factorsHost); } catch { }
         }

@@ -640,6 +640,9 @@ let sectionsHome=null;
      // تغییرکرده ظاهر می‌شود و کلِ همین کارت را ذخیره می‌کند (visit-draft.js).
      const fields=window.ReSiRaiVisitDraft?window.ReSiRaiVisitDraft.buildFields(study):null;
      const sectionsHost=document.createElement("div");sectionsHost.className="study-card-sections";
+     // بخش‌های تیک‌محور فقط در مراجعهٔ ثبت‌شده هستند (نه در پیش‌نویس)؛ عنوانِ
+     // روشن می‌گوید که می‌شود این مشاهدات را به همین مراجعه الصاق کرد.
+     const sectionsTitle=document.createElement("div");sectionsTitle.className="study-card-sections-title";sectionsTitle.textContent="مشاهدات قابل الصاق به مراجعه";sectionsHost.appendChild(sectionsTitle);
      // کارتِ سابقه: سندِ اسکن‌شدهٔ همین مراجعه — جدا از تصاویر رادیولوژی نشان داده می‌شود.
      const docsSection=document.createElement("section");docsSection.className="study-scroll-docs";
      docsSection.innerHTML='<div class="study-scroll-images-title">کارت سابقه</div><div class="images-grid docs-grid"></div>';
