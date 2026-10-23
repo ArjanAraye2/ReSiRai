@@ -5776,3 +5776,28 @@ textarea.visit-input{resize:vertical}
 #dashboardSection .dashboard-storage-legend b { color: #123; }
 #dashboardSection .dashboard-storage-legend #dashboardStoragePct { margin-inline-start: auto; color: #0e7d55; font-weight: 700; }
 
+/* همهٔ آمارها در یک ردیف تا اسکرول لازم نباشد */
+#dashboardSection .dashboard-stats-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    margin: 2px 0 16px;
+}
+#dashboardSection .dashboard-stats-row .dashboard-summary-card {
+    min-height: 104px;
+    padding: 14px 10px;
+    border-radius: 16px;
+}
+#dashboardSection .dashboard-stats-row .dashboard-summary-card strong { font-size: 28px; }
+#dashboardSection .dashboard-stats-row .dashboard-summary-card span { font-size: 12.5px; }
+#dashboardSection .dashboard-stats-row .dashboard-metric-icon svg { width: 22px; height: 22px; }
+
+@media (max-width: 1200px) {
+    #dashboardSection .dashboard-stats-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+    #dashboardSection .dashboard-stats-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 460px) {
+    #dashboardSection .dashboard-stats-row { grid-template-columns: 1fr; }
+}
+

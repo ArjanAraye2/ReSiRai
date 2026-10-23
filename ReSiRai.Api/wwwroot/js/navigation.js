@@ -14,14 +14,10 @@
     dashboard.id = "dashboardSection";
     dashboard.className = "card hidden shell-page";
     dashboard.innerHTML = `
-      <div class="section-header"><div><h2>داشبورد</h2><p>نمای کلی سامانه ReSiRai</p></div></div>
-      <h3 class="dashboard-group-title">آمار کلی</h3>
-      <div class="dashboard-summary-grid dashboard-overall-grid">
+      <div class="dashboard-summary-grid dashboard-stats-row">
         <div class="dashboard-summary-card metric-blue"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.5"/><path d="M17.6 14.7c2.2.6 3.6 2.3 3.6 4.5"/></svg></span><strong id="dashboardTotalPatients">-</strong><span>کل بیماران</span></div>
         <div class="dashboard-summary-card metric-green"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.4 2.6 2.6L16 9.6"/></svg></span><strong id="dashboardActivePatients">-</strong><span>بیماران فعال</span></div>
-      </div>
-      <h3 class="dashboard-group-title">امروز</h3>
-      <div class="dashboard-summary-grid dashboard-today-grid">
+      
         <div class="dashboard-summary-card today-card today-patients"><strong id="dashboardPatientsToday">-</strong><span>بیماران امروز</span></div>
         <div class="dashboard-summary-card today-card today-studies"><strong id="dashboardStudiesToday">-</strong><span>مراجعات امروز</span></div>
         <div class="dashboard-summary-card today-card today-new"><strong id="dashboardNewPatientsToday">-</strong><span>بیماران جدید امروز</span></div>
