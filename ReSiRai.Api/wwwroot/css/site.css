@@ -5910,3 +5910,29 @@ textarea.visit-input{resize:vertical}
 #clinicSettingsSection .profile-photo-actions { display: grid; gap: 6px; }
 #clinicSettingsSection .profile-photo-actions .status-message { margin: 0; font-size: 12px; }
 
+/* ==========================================================
+   نوارِ جستجوی بیماران داخلِ خودِ کارتِ فهرست (نه پنلِ جدا)
+   ========================================================== */
+#patientsSection .table-container .search-panel.patient-list-toolbar {
+    margin: 0 0 12px;
+    padding: 0 2px 12px;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid #e4eff2;
+    border-radius: 0;
+    box-shadow: none;
+}
+#patientsSection .table-container .patient-list-toolbar .search-container {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+}
+#patientsSection .table-container .patient-list-toolbar .checkbox-row { margin-top: 10px; }
+#patientsSection .table-container .patient-list-toolbar .patient-reminder-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+#patientsSection .table-container .patient-list-toolbar .patient-reminder-filters .checkbox-row { margin-top: 10px; }
+@media (max-width: 700px) {
+    #patientsSection .table-container .patient-list-toolbar .search-container { grid-template-columns: 1fr; }
+}
+

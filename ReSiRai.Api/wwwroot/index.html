@@ -36,7 +36,7 @@
 })();
 </script>
     <link rel="stylesheet" href="/css/fonts.css?v=20261001.19" />
-    <link rel="stylesheet" href="/css/site.css?v=20261024.2" />
+    <link rel="stylesheet" href="/css/site.css?v=20261024.3" />
     <link rel="stylesheet" href="/css/study-finance.css?v=20261008.7" />
 <link rel="stylesheet" href="/css/factors.css?v=20261023.3" />
 <link rel="stylesheet" href="/css/study-sections.css?v=20261023.11" />
@@ -72,15 +72,17 @@
   <div class="header-brand"><img class="header-brand-logo" src="images/resirai-logo.svg?v=20261001.19" alt="ReSiRai - Medical Intelligence Platform" /></div>
 </div></header>
 <main class="page-container">
-<section id="patientsSection" class="card"><div class="section-header"><div><h2>بیماران</h2><p>جستجو، ثبت و مدیریت پرونده بیماران</p></div></div><div id="patientStatistics" class="patient-statistics"><div><strong id="statTotalPatients">0</strong><span>کل بیماران</span></div><div><strong id="statActivePatients">0</strong><span>فعال</span></div><div><strong id="statInactivePatients">0</strong><span>غیرفعال</span></div><div><strong id="statPatientsWithStudies">0</strong><span>دارای مراجعه</span></div><div><strong id="statPatientsWithOpenStudies">0</strong><span>مراجعهٔ باز دارند</span></div></div><div class="search-panel"><div class="search-container"><input id="patientSearch" type="text" placeholder="نام، نام خانوادگی، کد ملی یا موبایل..." autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" /><button id="searchButton" type="button">جستجو</button><button id="clearSearchButton" type="button" class="secondary-button">پاک کردن</button></div><label class="checkbox-row"><input id="includeInactivePatients" type="checkbox" /><span>نمایش بیماران غیرفعال</span></label>
-        <div class="patient-reminder-filters">
-          <label class="checkbox-row"><input id="openStudiesOnly" type="checkbox" /><span>فقط بیماران با مطالعه باز</span></label>
-          <label class="checkbox-row"><input id="dueFollowUpOnly" type="checkbox" /><span>فقط پیگیری‌های سررسیده</span></label>
-        </div></div><div id="statusMessage" class="status-message">در حال دریافت اطلاعات...</div>
+<section id="patientsSection" class="card"><div class="section-header"><div><h2>بیماران</h2><p>جستجو، ثبت و مدیریت پرونده بیماران</p></div></div><div id="patientStatistics" class="patient-statistics"><div><strong id="statTotalPatients">0</strong><span>کل بیماران</span></div><div><strong id="statActivePatients">0</strong><span>فعال</span></div><div><strong id="statInactivePatients">0</strong><span>غیرفعال</span></div><div><strong id="statPatientsWithStudies">0</strong><span>دارای مراجعه</span></div><div><strong id="statPatientsWithOpenStudies">0</strong><span>مراجعهٔ باز دارند</span></div></div><div id="statusMessage" class="status-message">در حال دریافت اطلاعات...</div>
 <!-- ناحیهٔ «معرفیِ بیمار» بدونِ ناوبری: همیشه بالایِ فهرست؛ اول کدِ ملی — بعد بقیه (patient-draft.js) -->
 <div id="patientDraftHost" class="patient-draft-host"></div>
 <!--- نمای فشردهٔ بیماران: نام+سن، تماس+کد ملی، بیمه، مراجعات (باز/بسته)، آخرین مراجعه، پیگیری، وضعیت، عملیات -->
-<div class="table-container"><table class="patient-table patient-table-compact"><thead><tr><th>بیمار</th><th>تماس</th><th>بیمه</th><th>مراجعات</th><th>آخرین مراجعه</th><th>پیگیری</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody id="patientsTableBody"></tbody></table></div></section>
+<div class="table-container">
+<div class="search-panel patient-list-toolbar"><div class="search-container"><input id="patientSearch" type="text" placeholder="نام، نام خانوادگی، کد ملی یا موبایل..." autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" /><button id="searchButton" type="button">جستجو</button><button id="clearSearchButton" type="button" class="secondary-button">پاک کردن</button></div><label class="checkbox-row"><input id="includeInactivePatients" type="checkbox" /><span>نمایش بیماران غیرفعال</span></label>
+        <div class="patient-reminder-filters">
+          <label class="checkbox-row"><input id="openStudiesOnly" type="checkbox" /><span>فقط بیماران با مطالعه باز</span></label>
+          <label class="checkbox-row"><input id="dueFollowUpOnly" type="checkbox" /><span>فقط پیگیری‌های سررسیده</span></label>
+        </div></div>
+<table class="patient-table patient-table-compact"><thead><tr><th>بیمار</th><th>تماس</th><th>بیمه</th><th>مراجعات</th><th>آخرین مراجعه</th><th>پیگیری</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody id="patientsTableBody"></tbody></table></div></section>
 <section id="patientDetailsSection" class="card hidden">
   <div class="details-toolbar" aria-label="عملیات پرونده بیمار">
     <button id="backToPatientsButton" type="button" class="secondary-button">← بازگشت</button>
@@ -350,7 +352,7 @@ window.addEventListener('DOMContentLoaded',function(){
 <script src="/js/inbox-ui.js?v=20261024.1"></script>
 <script src="/js/study-receive.js?v=20261001.19"></script>
 <script src="/js/navigation.js?v=20261024.2"></script>
-<script src="/js/clinic-settings.js?v=20261024.2"></script>
+<script src="/js/clinic-settings.js?v=20261024.3"></script>
 <script src="/js/pos-settings.js?v=20261001.19"></script>
 <script src="/js/patient-messages.js?v=20261001.19"></script>
 <script src="/js/share-images.js?v=20261001.19"></script>

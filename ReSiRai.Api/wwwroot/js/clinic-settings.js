@@ -35,7 +35,7 @@
 
       <section class="settings-card">
         <h3>پروفایل من</h3>
-        <p class="field-hint">این اطلاعات از ثبت‌نام/مدیریتِ پرسنل می‌آید؛ در «تنظیمات مطب» قابلِ ویرایش نیست. فقط عکسِ پروفایل قابلِ تغییر است.</p>
+        <p class="field-hint">نام، کد ملی و تخصص از ثبت‌نام/مدیریتِ پرسنل می‌آید و فقط‌خواندنی است؛ <strong>موبایل شخصی</strong> و <strong>عکسِ پروفایل</strong> قابلِ ویرایش‌اند.</p>
         <div class="profile-photo-row">
           <div class="profile-photo" id="profilePhotoBox"></div>
           <div class="profile-photo-actions">
@@ -48,7 +48,7 @@
         <div class="form-grid">
           <div class="form-field"><label for="profileFirstName">نام</label><input id="profileFirstName" maxlength="100" readonly /></div>
           <div class="form-field"><label for="profileLastName">نام خانوادگی</label><input id="profileLastName" maxlength="100" readonly /></div>
-          <div class="form-field"><label for="profileMobile">موبایل شخصی</label><input id="profileMobile" inputmode="tel" maxlength="30" readonly /></div>
+          <div class="form-field"><label for="profileMobile">موبایل شخصی</label><input id="profileMobile" inputmode="tel" maxlength="30" placeholder="۰۹…" /><button id="profileMobileSaveButton" type="button" class="secondary-button">ذخیرهٔ موبایل</button><div id="profileMobileStatus" class="status-message"></div></div>
           <div class="form-field"><label for="profileNationalCode">کد ملی (ورود)</label><input id="profileNationalCode" readonly /></div>
           <div class="form-field"><label for="profileSpecialty">تخصص</label><input id="profileSpecialty" readonly /></div>
         </div>
@@ -111,6 +111,7 @@
                 $("profileFirstName")?.closest(".settings-card")?.classList.add("hidden");
             }
             setStatus("clinicStatus", "", false);
+            setStatus("profileMobileStatus", "", false);
         } catch (e) {
             setStatus("clinicStatus", e.message || "دریافت اطلاعات ناموفق بود.", true);
         }
@@ -136,6 +137,29 @@
             window.showToast?.("تنظیمات مطب ذخیره شد.");
         } catch (e) {
             setStatus("clinicStatus", e.message || "ذخیره انجام نشد.", true);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    async function saveMobile() {
+        const button = $("profileMobileSaveButton");
+        button.disabled = true;
+        setStatus("profileMobileStatus", "در حال ذخیره…", false);
+        try {
+            const r = await fetch("/api/profile/mobile", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mobile: $("profileMobile").value.trim() })
+            });
+            const x = await r.json().catch(() => ({}));
+            if (!r.ok || !x.success) throw new Error(x.message || "ذخیره انجام نشد.");
+            $("profileMobile").value = x.mobile || "";
+            setStatus("profileMobileStatus", x.message || "ذخیره شد.", false);
+            if (window.reSiRaiCurrentUser) window.reSiRaiCurrentUser.mobile = x.mobile;
+            window.showToast?.("موبایلِ شخصی ذخیره شد.");
+        } catch (e) {
+            setStatus("profileMobileStatus", e.message || "ذخیره انجام نشد.", true);
         } finally {
             button.disabled = false;
         }
@@ -192,6 +216,7 @@
             load();
         });
         $("clinicSaveButton")?.addEventListener("click", saveClinic);
+        $("profileMobileSaveButton")?.addEventListener("click", saveMobile);
         $("profilePhotoButton")?.addEventListener("click", () => $("profilePhotoInput")?.click());
         $("profilePhotoInput")?.addEventListener("change", uploadPhoto);
         document.addEventListener("resirai-auth-changed", syncAuth);

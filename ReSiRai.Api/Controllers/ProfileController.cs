@@ -30,6 +30,11 @@ namespace ReSiRai.Api.Controllers
             public string? Address { get; set; }
         }
 
+        public sealed class MobileUpdate
+        {
+            public string? Mobile { get; set; }
+        }
+
         private int CurrentStaffID => int.TryParse(User.FindFirst("StaffID")?.Value, out int id) ? id : 0;
         private bool IsSuper => string.Equals(User.FindFirst("IsSuperAdmin")?.Value, "true", StringComparison.OrdinalIgnoreCase);
 
@@ -134,6 +139,35 @@ namespace ReSiRai.Api.Controllers
                 message = "تنظیمات مطب ذخیره شد.",
                 clinic = new { clinic.ClinicID, clinic.ClinicName, clinic.Phone, clinic.Address }
             });
+        }
+
+        /// <summary>
+        /// فقط «موبایلِ شخصیِ پزشک» قابلِ ویرایش است (نام/کد ملی/تخصص از مدیریتِ
+        /// پرسنل می‌آید). این شماره با شمارهٔ مطب فرق دارد.
+        /// </summary>
+        [HttpPut("mobile")]
+        public async Task<IActionResult> UpdateMobile(MobileUpdate request, CancellationToken ct)
+        {
+            if (IsSuper) return Forbid();
+            int staffID = CurrentStaffID;
+            var staff = await _db.Staff.FirstOrDefaultAsync(s => s.StaffID == staffID, ct);
+            if (staff == null) return NotFound(new { success = false, message = "پروفایل پیدا نشد." });
+
+            string? mobile = NormalizeMobile(request.Mobile);
+            if (!string.IsNullOrWhiteSpace(mobile) && mobile.Length < 10)
+                return BadRequest(new { success = false, message = "شماره موبایل معتبر نیست." });
+
+            staff.Mobile = string.IsNullOrWhiteSpace(mobile) ? null : mobile;
+            await _db.SaveChangesAsync(ct);
+            return Ok(new { success = true, message = "موبایلِ شخصی ذخیره شد.", mobile = staff.Mobile });
+        }
+
+        private static string? NormalizeMobile(string? value)
+        {
+            string digits = string.Concat((value ?? string.Empty).Where(char.IsDigit));
+            if (digits.StartsWith("98") && digits.Length is 12 or 13) digits = "0" + digits[2..];
+            else if (digits.Length == 10 && digits.StartsWith("9")) digits = "0" + digits;
+            return string.IsNullOrWhiteSpace(digits) ? null : digits;
         }
 
         /// <summary>
