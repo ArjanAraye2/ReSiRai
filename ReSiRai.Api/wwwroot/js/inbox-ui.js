@@ -78,24 +78,10 @@
   }
 
   function ensureSidebar() {
-    const nav = document.querySelector(".sidebar-nav");
-    if (!nav || nav.querySelector('[data-nav="inbox"]')) return;
-    const link = document.createElement("a");
-    link.href = "#";
-    link.className = "sidebar-link";
-    link.dataset.nav = "inbox";
-    link.innerHTML = '<span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5h18v11H3z"/><path d="M3.6 7.2 12 13l8.4-5.8"/></svg></span>پیامک‌های ورودی';
-    nav.insertBefore(link, nav.querySelector('[data-nav="settings"]'));
-    link.addEventListener("click", e => {
-      e.preventDefault();
-      document.querySelectorAll(".page-container > section").forEach(x => x.classList.add("hidden"));
-      document.querySelectorAll(".sidebar-link").forEach(x => x.classList.remove("active"));
-      link.classList.add("active");
-      $("inboxSection")?.classList.remove("hidden");
-      window.scrollTo(0, 0);
-      loadDevices();
-      loadMessages();
-    });
+    // صفحهٔ مستقلِ «پیامک‌های ورودی» فعلاً در منو نمایش داده نمی‌شود؛
+    // کارهای دریافت تصویر داخلِ همان مراجعه انجام می‌شوند (QR/پیست/فوروارد).
+    // کدِ صندوق و جفت‌سازی برای آینده می‌ماند.
+    return;
   }
 
   function ensureSection() {

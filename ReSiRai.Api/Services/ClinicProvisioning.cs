@@ -29,12 +29,23 @@ public static class ClinicProvisioning
             .Select(x => (int?)x.ClinicID)
             .FirstOrDefaultAsync(ct);
         if (existingClinicID.HasValue)
-            return await db.Clinics.AsNoTracking().FirstOrDefaultAsync(c => c.ClinicID == existingClinicID.Value, ct);
+        {
+            var existing = await db.Clinics.FirstOrDefaultAsync(c => c.ClinicID == existingClinicID.Value, ct);
+            // شمارهٔ مطب در ثبت‌نام از موبایلِ پزشک مقدار می‌گیرد؛ اگر خالی مانده باشد
+            // همین‌جا (یک‌بار) پر می‌شود. بعد از آن، پزشک خودش در «تنظیمات مطب» عوض می‌کند.
+            if (existing != null && string.IsNullOrWhiteSpace(existing.Phone) && !string.IsNullOrWhiteSpace(staff.Mobile))
+            {
+                existing.Phone = staff.Mobile;
+                await db.SaveChangesAsync(ct);
+            }
+            return existing;
+        }
 
         string fullName = ($"{staff.FirstName} {staff.LastName}").Trim();
         var clinic = new Clinic
         {
             ClinicName = string.IsNullOrWhiteSpace(fullName) ? "مطب" : $"مطب دکتر {fullName}",
+            Phone = string.IsNullOrWhiteSpace(staff.Mobile) ? null : staff.Mobile,
             IsActive = true
         };
         db.Clinics.Add(clinic);

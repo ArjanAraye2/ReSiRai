@@ -5808,3 +5808,41 @@ textarea.visit-input{resize:vertical}
     #dashboardSection .dashboard-stats-row { grid-template-columns: 1fr; }
 }
 
+/* ==========================================================
+   تنظیمات مطب / پروفایل من (پنلِ پزشک و پرسنل)
+   ========================================================== */
+#clinicSettingsSection .settings-card {
+    border: 1px solid var(--border, #d8e7ec);
+    border-radius: 14px;
+    padding: 16px;
+    margin-top: 14px;
+    background: #fff;
+}
+#clinicSettingsSection .settings-card h3 {
+    margin: 0 0 12px;
+    color: #0f5165;
+    font-size: 15px;
+}
+#clinicSettingsSection .settings-card .form-actions { margin-top: 12px; }
+
+/* «نیازمند اطلاع‌رسانی» داخلِ کارتِ مراجعه */
+.study-attention-card {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 8px;
+    border: 1px solid #f0d9a6;
+    background: #fffaf0;
+    border-radius: 12px;
+    padding: 10px 12px;
+}
+.study-attention-card.hidden { display: none; }
+.study-attention-title {
+    font-weight: 700;
+    color: #8a5b00;
+    font-size: 13px;
+}
+
+/* در داشبورد، ردیف‌ها فقط نشانگرند و با کلیک پرونده باز می‌شود */
+.attention-row-clickable { cursor: pointer; }
+.attention-row-clickable:hover { background: #f7fbfd; }
+

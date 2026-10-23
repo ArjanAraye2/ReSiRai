@@ -120,6 +120,18 @@
         document.getElementById("sepSaveButton").onclick=async()=>{const status=document.getElementById("sepStatus");status.textContent="در حال ذخیره...";try{const r=await fetch("/api/communications/settings",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({sepTerminalId:document.getElementById("sepTerminalId").value.trim(),sepEnabled:document.getElementById("sepEnabled").checked})});let d={};try{d=await r.json();}catch{}status.textContent=d.message||(r.ok?"درگاه ذخیره شد.":"ذخیره نشد.");}catch(e){status.textContent="خطا در ذخیره.";status.classList.add("error");}};
         document.getElementById("sepTestButton").onclick=async()=>{const status=document.getElementById("sepStatus");status.textContent="در حال تست درگاه...";try{const r=await fetch("/api/communications/sep/test",{method:"POST",headers:{"Content-Type":"application/json"}});let d={};try{d=await r.json();}catch{}status.textContent=d.detail||"نتیجه تست دریافت نشد.";if(d.ok)status.classList.remove("error");else status.classList.add("error");}catch(e){status.textContent="خطا در تست درگاه.";status.classList.add("error");}};
         link.addEventListener("click",e=>{e.preventDefault();document.querySelectorAll(".page-container > section").forEach(x=>x.classList.add("hidden"));section.classList.remove("hidden");document.querySelectorAll(".sidebar-link").forEach(x=>x.classList.toggle("active",x===link));loadSettings();window.scrollTo(0,0);});
+
+        // «ارتباطات» تنظیماتِ سراسریِ پیامک است و فقط مدیرِ سیستم آن را می‌بیند.
+        // پزشک/پرسنل کارهای ارتباطیِ خودشان را داخلِ پرونده و مراجعه دارند.
+        const syncAuth = () => {
+            const superAdmin = window.reSiRaiCurrentUser?.isSuperAdmin === true;
+            link.classList.toggle("hidden", !superAdmin);
+            if (!superAdmin && !section.classList.contains("hidden")) {
+                window.ReSiRaiNavigation?.navigate("dashboard");
+            }
+        };
+        document.addEventListener("resirai-auth-changed", syncAuth);
+        syncAuth();
     }
     if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",init); else init();
 })();

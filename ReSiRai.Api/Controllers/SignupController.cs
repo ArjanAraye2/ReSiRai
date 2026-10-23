@@ -205,6 +205,9 @@ public class SignupController : ControllerBase
                 LastName = lastName,
                 StaffType = 2, // پزشک
                 SpecialtyID = specialtyID,
+                // شمارهٔ تأییدشدهٔ ثبت‌نام، هم موبایلِ شخصیِ پزشک است و هم پیش‌فرضِ
+                // شمارهٔ مطب (پزشک بعداً در «تنظیمات مطب» عوضش می‌کند).
+                Mobile = pending.Mobile,
                 StartDate = DateTime.UtcNow,
             };
             _db.Staff.Add(staff);
@@ -397,6 +400,8 @@ public async Task<IActionResult> SpecialtiesPublic(CancellationToken ct)
                 LastName = pending.LastName,
                 StaffType = 2, // پزشک
                 SpecialtyID = pending.SpecialtyID,
+                // شمارهٔ تأییدشدهٔ ثبت‌نام، پیش‌فرضِ موبایلِ شخصی و شمارهٔ مطب است.
+                Mobile = pending.Mobile,
                 StartDate = DateTime.UtcNow
             };
             _db.Staff.Add(staff);

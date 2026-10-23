@@ -175,6 +175,49 @@
     // Who needs a message today, gathered from appointments, due follow-ups and
     // outstanding balances. Nothing is sent from here automatically; each row has a
     // button that opens the messaging dialog with the right template.
+    function attentionRowsFrom(payload) {
+        return []
+            .concat((payload.appointments || []).map(i => ({ ...i, kindLabel: "نوبت پیش‌رو" })))
+            .concat((payload.followUps || []).map(i => ({ ...i, kindLabel: "پیگیری سررسیده" })))
+            .concat((payload.balances || []).map(i => ({ ...i, kindLabel: "مانده حساب" })));
+    }
+
+    function attentionRowEl(item, options = {}) {
+        const row = document.createElement("div");
+        row.className = `attention-row attention-${item.kind}`;
+        const text = document.createElement("div");
+        text.className = "attention-text";
+        const name = document.createElement("strong");
+        name.textContent = item.patientName || "-";
+        const meta = document.createElement("small");
+        meta.textContent = item.kind === "balance"
+            ? `${item.kindLabel} — ${Number(item.balance || 0).toLocaleString("fa-IR")} تومان`
+            : `${item.kindLabel} — ${item.dueDate ? formatPersianDateTime(item.dueDate) : ""}`;
+        text.append(name, meta);
+        row.appendChild(text);
+        if (options.send) {
+            const send = document.createElement("button");
+            send.type = "button";
+            send.className = "attention-send";
+            send.textContent = "ارسال پیامک";
+            send.onclick = () => openAttentionMessage(item);
+            row.appendChild(send);
+        } else {
+            // داشبورد فقط نشان می‌دهد؛ اقدامِ ارسال داخلِ پرونده/مراجعهٔ همان بیمار است.
+            row.classList.add("attention-row-clickable");
+            row.title = "باز کردن پروندهٔ بیمار";
+            row.onclick = () => openPatientFromAttention(item.patientID);
+        }
+        return row;
+    }
+
+    async function openPatientFromAttention(patientID) {
+        try {
+            navigate("patients");
+            if (typeof window.openPatientInline === "function") await window.openPatientInline(patientID);
+        } catch { }
+    }
+
     async function loadAttention() {
         const root = document.getElementById("dashboardAttention");
         const summary = document.getElementById("attentionSummary");
@@ -185,45 +228,40 @@
             const r = await fetch("/api/attention", { cache: "no-store" });
             const x = await r.json();
             if (!r.ok || !x.success) throw new Error();
-
-            const rows = []
-                .concat((x.appointments || []).map(i => ({ ...i, kindLabel: "نوبت پیش‌رو" })))
-                .concat((x.followUps || []).map(i => ({ ...i, kindLabel: "پیگیری سررسیده" })))
-                .concat((x.balances || []).map(i => ({ ...i, kindLabel: "مانده حساب" })));
-
+            const rows = attentionRowsFrom(x);
             summary.textContent = rows.length ? `${rows.length} مورد` : "موردی نیست";
             root.replaceChildren();
             // «نیازمند اطلاع‌رسانی» فقط وقتی موردی هست نمایش داده می‌شود.
             panel?.classList.toggle("hidden", !rows.length);
-            if (!rows.length) {
-                return;
-            }
-            rows.forEach(item => {
-                const row = document.createElement("div");
-                row.className = `attention-row attention-${item.kind}`;
-                const text = document.createElement("div");
-                text.className = "attention-text";
-                const name = document.createElement("strong");
-                name.textContent = item.patientName || "-";
-                const meta = document.createElement("small");
-                meta.textContent = item.kind === "balance"
-                    ? `${item.kindLabel} — ${Number(item.balance || 0).toLocaleString("fa-IR")} تومان`
-                    : `${item.kindLabel} — ${item.dueDate ? formatPersianDateTime(item.dueDate) : ""}`;
-                text.append(name, meta);
-                const send = document.createElement("button");
-                send.type = "button";
-                send.className = "attention-send";
-                send.textContent = "ارسال پیامک";
-                send.onclick = () => openAttentionMessage(item);
-                row.append(text, send);
-                root.appendChild(row);
-            });
+            if (!rows.length) return;
+            rows.forEach(item => root.appendChild(attentionRowEl(item)));
         } catch {
             panel?.classList.add("hidden");
             if (summary) summary.textContent = "-";
             root.textContent = "";
         }
     }
+
+    // «نیازمند اطلاع‌رسانی»ِ همان بیمار، داخلِ کارتِ مراجعه (با دکمهٔ ارسال).
+    async function renderAttentionForPatient(patientID, host) {
+        if (!host || !patientID) return;
+        try {
+            const r = await fetch("/api/attention", { cache: "no-store" });
+            const x = await r.json();
+            if (!r.ok || !x.success) return;
+            const rows = attentionRowsFrom(x).filter(i => Number(i.patientID) === Number(patientID));
+            host.replaceChildren();
+            if (!rows.length) { host.classList.add("hidden"); return; }
+            const title = document.createElement("div");
+            title.className = "study-attention-title";
+            title.textContent = "نیازمند اطلاع‌رسانی";
+            host.append(title);
+            rows.forEach(item => host.appendChild(attentionRowEl(item, { send: true })));
+            host.classList.remove("hidden");
+        } catch { /* پرونده/داشبورد پیامِ خودشان را نشان می‌دهند */ }
+    }
+
+    window.ReSiRaiAttention = { renderForPatient: renderAttentionForPatient, openMessage: openAttentionMessage };
 
     // Opens the patient and asks the messaging dialog to open with the template for
     // this kind of reminder.

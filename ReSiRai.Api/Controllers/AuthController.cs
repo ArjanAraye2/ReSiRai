@@ -127,10 +127,24 @@ namespace ReSiRai.Api.Controllers
             var generic = new { success = true, message = "اگر حسابی با این مشخصات و شماره بازیابی معتبر وجود داشته باشد، کد بازیابی ارسال می‌شود." };
             if (nationalCode.Length == 0) return Ok(generic);
             var user = await _context.Users.FirstOrDefaultAsync(x => x.UserName == nationalCode && x.IsActive);
-            if (user == null || string.IsNullOrWhiteSpace(user.RecoveryMobile)) return Ok(generic);
+            if (user == null) return Ok(generic);
+
+            // فعلاً شمارهٔ بازیابیِ کارکنان همان شمارهٔ مطب است؛ اگر شمارهٔ اختصاصی
+            // (RecoveryMobile) ثبت شده باشد، همان اولویت دارد.
+            string? recoveryMobile = user.RecoveryMobile;
+            if (string.IsNullOrWhiteSpace(recoveryMobile) && user.StaffID > 0)
+            {
+                recoveryMobile = await (
+                    from link in _context.ClinicStaff.AsNoTracking()
+                    join clinic in _context.Clinics.AsNoTracking() on link.ClinicID equals clinic.ClinicID
+                    where link.StaffID == user.StaffID && clinic.Phone != null && clinic.Phone != ""
+                    select clinic.Phone).FirstOrDefaultAsync();
+            }
+            if (string.IsNullOrWhiteSpace(recoveryMobile)) return Ok(generic);
+
             var code = Random.Shared.Next(100000, 999999).ToString();
             ResetCodes[nationalCode] = new ResetCode(code, DateTimeOffset.UtcNow.AddMinutes(5), 0);
-            var result = await _communication.SendSmsAsync(user.RecoveryMobile, $"کد بازیابی رمز عبور ReSiRai: {code}\nاعتبار: ۵ دقیقه");
+            var result = await _communication.SendSmsAsync(recoveryMobile, $"کد بازیابی رمز عبور ReSiRai: {code}\nاعتبار: ۵ دقیقه");
             if (!result.Success) ResetCodes.TryRemove(nationalCode, out _);
             return Ok(generic);
         }

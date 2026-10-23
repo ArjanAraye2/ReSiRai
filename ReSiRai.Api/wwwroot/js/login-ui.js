@@ -279,7 +279,7 @@
 
   function loadCommunicationUi(){
     if(document.getElementById('communicationUiScript'))return;
-    const s=document.createElement('script');s.id='communicationUiScript';s.src='/js/communication-ui.js?v=20260926.1';document.body.appendChild(s);
+    const s=document.createElement('script');s.id='communicationUiScript';s.src='/js/communication-ui.js?v=20261024.1';document.body.appendChild(s);
   }
 
   async function initialize(){

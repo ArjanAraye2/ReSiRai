@@ -62,14 +62,26 @@ namespace ReSiRai.Api.Controllers
         }
 
         /// <summary>
-        /// شمارهٔ مطب برای نمایش به منشی (روش «فوروارد به گوشی مطب»).
+        /// شمارهٔ مطب برای نمایش به بیمار/منشی (روش «فوروارد به گوشی مطب»).
+        /// حالا این شماره از «تنظیمات مطب»ِ خودِ پزشک (tblClinics.Phone) می‌آید؛
+        /// مقدارِ سراسریِ قدیمی فقط برای نصب‌های بدونِ مطب نگه داشته می‌شود.
         /// عمداً فقط همین یک فیلد برمی‌گردد تا کلید API در اختیار کاربر عادی قرار نگیرد.
         /// </summary>
         [HttpGet("clinic-mobile")]
-        public IActionResult ClinicMobile()
+        public async Task<IActionResult> ClinicMobile(CancellationToken cancellationToken = default)
         {
-            var settings = _communication.GetSettings();
-            return Ok(new { success = true, mobile = settings.ClinicMobile ?? string.Empty });
+            int.TryParse(User.FindFirst("StaffID")?.Value, out int staffID);
+            string? clinicPhone = staffID > 0
+                ? await (
+                    from link in _context.ClinicStaff.AsNoTracking()
+                    join clinic in _context.Clinics.AsNoTracking() on link.ClinicID equals clinic.ClinicID
+                    where link.StaffID == staffID && clinic.Phone != null && clinic.Phone != ""
+                    select clinic.Phone).FirstOrDefaultAsync(cancellationToken)
+                : null;
+            string mobile = !string.IsNullOrWhiteSpace(clinicPhone)
+                ? clinicPhone
+                : (_communication.GetSettings().ClinicMobile ?? string.Empty);
+            return Ok(new { success = true, mobile });
         }
 
         [HttpPut("settings")]

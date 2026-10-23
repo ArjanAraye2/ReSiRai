@@ -664,6 +664,11 @@ let sectionsHome=null;
      const setChartOpen=open=>{chartSection.classList.toggle("is-collapsed",!open);chartToggle.setAttribute("aria-expanded",open?"true":"false");chartArrow.textContent=open?"⌃":"⌄";};
      chartToggle.addEventListener("click",()=>setChartOpen(chartSection.classList.contains("is-collapsed")));
      }
+     // «نیازمند اطلاع‌رسانی»ِ همین بیمار، بالای بدنهٔ مراجعه (اقدام/ارسال اینجا انجام می‌شود).
+     const attentionHost=document.createElement("section");
+     attentionHost.className="study-attention-card hidden";
+     body.prepend(attentionHost);
+     window.ReSiRaiAttention?.renderForPatient(study.patientID,attentionHost);
      body.append(fields,sectionsHost,docsSection);if(chartSection)body.append(chartSection);
      // بخش‌هایِ تیک‌محور (تکی) به داخلِ همین کارت می‌آیند تا هیچ صفحه‌ای باز نشود.
      if(window.ReSiRaiMoveSections)window.ReSiRaiMoveSections(sectionsHost);
