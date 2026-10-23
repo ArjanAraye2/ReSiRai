@@ -27,6 +27,10 @@ namespace ReSiRai.Api.Models
         [MaxLength(30)]
         public string? Mobile { get; set; }
 
+        // عکسِ پروفایل (اختیاری) — روی داشبورد نمایش داده می‌شود.
+        [MaxLength(500)]
+        public string? PhotoRelativePath { get; set; }
+
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
     }

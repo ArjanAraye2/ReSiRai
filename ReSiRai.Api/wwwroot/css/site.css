@@ -5846,3 +5846,67 @@ textarea.visit-input{resize:vertical}
 .attention-row-clickable { cursor: pointer; }
 .attention-row-clickable:hover { background: #f7fbfd; }
 
+/* ==========================================================
+   سربرگِ برندِ داشبورد (لوگو + عکسِ پزشک) و عکسِ پروفایل
+   ========================================================== */
+#dashboardSection .dashboard-hero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    margin: 2px 0 16px;
+    padding: 18px 22px;
+    border-radius: 20px;
+    color: #fff;
+    background-color: #0e7f95;
+    background-image: radial-gradient(circle at 14% 18%, rgba(255, 255, 255, .18), transparent 44%),
+                      linear-gradient(120deg, #0b4f5f, #0e7f95 55%, #12a3a3);
+    box-shadow: 0 14px 34px rgba(12, 55, 70, .22);
+    overflow: hidden;
+}
+#dashboardSection .dashboard-hero-brand { display: flex; align-items: center; gap: 16px; min-width: 0; }
+#dashboardSection .dashboard-hero-logo { height: 46px; width: auto; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, .22)); }
+#dashboardSection .dashboard-hero-text h2 { margin: 0 0 2px; font-size: 19px; color: #fff; }
+#dashboardSection .dashboard-hero-text p { margin: 0; font-size: 12.5px; color: rgba(255, 255, 255, .86); }
+#dashboardSection .dashboard-hero-avatar {
+    flex: 0 0 auto;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, .16);
+    border: 2px solid rgba(255, 255, 255, .6);
+    background-size: cover;
+    background-position: center;
+    color: #fff;
+    font-weight: 800;
+    font-size: 20px;
+}
+#dashboardSection .dashboard-hero-avatar.has-photo { background-color: #fff; }
+@media (max-width: 600px) {
+    #dashboardSection .dashboard-hero { flex-direction: column; text-align: center; }
+    #dashboardSection .dashboard-hero-brand { flex-direction: column; gap: 8px; }
+}
+
+/* عکسِ پروفایل در «تنظیمات مطب» */
+#clinicSettingsSection .profile-photo-row { display: flex; align-items: center; gap: 14px; margin: 6px 0 14px; flex-wrap: wrap; }
+#clinicSettingsSection .profile-photo {
+    width: 84px;
+    height: 84px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #e7f1f5;
+    color: #0e7f95;
+    font-size: 26px;
+    font-weight: 800;
+    border: 2px solid #cfe3ea;
+    background-size: cover;
+    background-position: center;
+}
+#clinicSettingsSection .profile-photo.has-photo { background-color: #fff; }
+#clinicSettingsSection .profile-photo-actions { display: grid; gap: 6px; }
+#clinicSettingsSection .profile-photo-actions .status-message { margin: 0; font-size: 12px; }
+

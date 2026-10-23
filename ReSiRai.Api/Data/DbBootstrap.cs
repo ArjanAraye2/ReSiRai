@@ -74,6 +74,7 @@ public static class DbBootstrap
                 ALTER TABLE "tblPatients" ADD COLUMN IF NOT EXISTS "Supp2InsuranceNo" text NULL;
                 ALTER TABLE "tblPatients" ADD COLUMN IF NOT EXISTS "FileNumber" text NULL;
                 ALTER TABLE "tblPatients" ADD COLUMN IF NOT EXISTS "ContactPreference" text NULL;
+                ALTER TABLE "tblStaff" ADD COLUMN IF NOT EXISTS "PhotoRelativePath" text NULL;
                 """);
         }
         catch { }
@@ -238,6 +239,7 @@ public static class DbBootstrap
                 IF COL_LENGTH('tblPatients', 'Supp2InsuranceNo') IS NULL ALTER TABLE tblPatients ADD Supp2InsuranceNo nvarchar(50) NULL;
                 IF COL_LENGTH('tblPatients', 'FileNumber') IS NULL ALTER TABLE tblPatients ADD FileNumber nvarchar(50) NULL;
                 IF COL_LENGTH('tblPatients', 'ContactPreference') IS NULL ALTER TABLE tblPatients ADD ContactPreference nvarchar(20) NULL;
+                IF COL_LENGTH('tblStaff', 'PhotoRelativePath') IS NULL ALTER TABLE tblStaff ADD PhotoRelativePath nvarchar(500) NULL;
                 """);
         }
         catch { }

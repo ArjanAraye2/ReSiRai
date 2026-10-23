@@ -14,6 +14,16 @@
     dashboard.id = "dashboardSection";
     dashboard.className = "card hidden shell-page";
     dashboard.innerHTML = `
+      <section class="dashboard-hero">
+        <div class="dashboard-hero-brand">
+          <img class="dashboard-hero-logo" src="/images/resirai-logo-dark.svg?v=20261001.19" alt="ReSiRai" />
+          <div class="dashboard-hero-text">
+            <h2 id="dashboardDoctorName">—</h2>
+            <p id="dashboardClinicName">—</p>
+          </div>
+        </div>
+        <div class="dashboard-hero-avatar" id="dashboardDoctorAvatar">R</div>
+      </section>
       <div class="dashboard-summary-grid dashboard-stats-row">
         <div class="dashboard-summary-card metric-blue"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.5"/><path d="M17.6 14.7c2.2.6 3.6 2.3 3.6 4.5"/></svg></span><strong id="dashboardTotalPatients">-</strong><span>کل بیماران</span></div>
         <div class="dashboard-summary-card metric-green"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.4 2.6 2.6L16 9.6"/></svg></span><strong id="dashboardActivePatients">-</strong><span>بیماران فعال</span></div>
@@ -133,6 +143,7 @@
             // کامپیوترِ پزشک» هنوز پیاده نشده)؛ بنابراین آمارِ فضای دیسکِ سرور
             // نمایش داده نمی‌شود. با فعال شدنِ حالتِ محلی، renderStorage روشن می‌شود.
             // renderStorage(connected ? (result.system?.storage || {}) : {});
+            fillDashboardHero();
             loadAttention();
         } catch {
             if (silent) return; // keep the last good snapshot on a background refresh
@@ -216,6 +227,47 @@
             navigate("patients");
             if (typeof window.openPatientInline === "function") await window.openPatientInline(patientID);
         } catch { }
+    }
+
+    // ---- سربرگِ برندِ داشبورد: لوگو + عکس/نامِ پزشک + نامِ مطب ----------------
+    let dashboardProfilePromise = null;
+    function loadDashboardProfile(force) {
+        if (!dashboardProfilePromise || force) {
+            dashboardProfilePromise = fetch("/api/profile", { cache: "no-store" })
+                .then(r => r.json())
+                .catch(() => ({}));
+        }
+        return dashboardProfilePromise;
+    }
+    // بعد از تغییرِ عکس در «تنظیمات مطب»، دفعهٔ بعد تازه خوانده شود.
+    window.ReSiRaiDashboardProfileChanged = () => { dashboardProfilePromise = null; };
+
+    async function fillDashboardHero() {
+        const nameEl = document.getElementById("dashboardDoctorName");
+        const clinicEl = document.getElementById("dashboardClinicName");
+        const avatar = document.getElementById("dashboardDoctorAvatar");
+        if (!nameEl || !clinicEl || !avatar) return;
+        try {
+            const x = await loadDashboardProfile();
+            const p = x?.profile || null;
+            const c = x?.clinic || null;
+            const superAdmin = window.reSiRaiCurrentUser?.isSuperAdmin === true;
+            nameEl.textContent = p
+                ? `دکتر ${`${p.firstName || ""} ${p.lastName || ""}`.trim()}`.trim()
+                : (superAdmin ? "مدیر سیستم" : "—");
+            clinicEl.textContent = c?.clinicName || (superAdmin ? "ReSiRai — Medical Intelligence Platform" : "");
+            if (p?.photoRelativePath) {
+                avatar.classList.add("has-photo");
+                avatar.style.backgroundImage = `url("/api/profile/photo?v=${encodeURIComponent(p.photoRelativePath)}")`;
+                avatar.textContent = "";
+            } else {
+                avatar.classList.remove("has-photo");
+                avatar.style.backgroundImage = "";
+                const first = (p?.firstName || "").trim();
+                const last = (p?.lastName || "").trim();
+                avatar.textContent = ((first ? first[0] : "") + (last ? last[0] : "")) || "R";
+            }
+        } catch { /* سربرگ بدونِ عکس هم قابلِ استفاده است */ }
     }
 
     async function loadAttention() {

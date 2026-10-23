@@ -1,29 +1,26 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ReSiRai.Api.Data;
-using ReSiRai.Api.Models;
+using ReSiRai.Api.Services;
 
 namespace ReSiRai.Api.Controllers
 {
-    // «تنظیمات مطب» و «پروفایل من» — کارِ خودِ پزشک/پرسنل، نه مدیرِ سیستم.
-    // مدیرِ سیستم (سوپرادمین) نه مطب دارد و نه پروفایلِ پرسنلی؛ برایش خالی برمی‌گردد.
+    // «تنظیمات مطب» — فقط نامِ مطب، شماره‌های تلفن و نشانی قابلِ ویرایش‌اند.
+    // اطلاعاتِ پروفایل (نام/شمارهٔ شخصی) از ثبت‌نام/مدیریتِ پرسنل می‌آید و این‌جا
+    // فقط خوانده می‌شود. عکسِ پروفایل تنها فیلدِ قابلِ تغییرِ پروفایل است و روی
+    // داشبورد نمایش داده می‌شود.
     [ApiController]
     [Route("api/profile")]
     [Authorize]
     public sealed class ProfileController : ControllerBase
     {
         private readonly ReSiRaiDbContext _db;
-        public ProfileController(ReSiRaiDbContext db) => _db = db;
-
-        public sealed class ProfileUpdate
+        private readonly RadiologyStorageService _storage;
+        public ProfileController(ReSiRaiDbContext db, RadiologyStorageService storage)
         {
-            public string? FirstName { get; set; }
-            public string? LastName { get; set; }
-            public string? Mobile { get; set; }
+            _db = db;
+            _storage = storage;
         }
 
         public sealed class ClinicUpdate
@@ -91,49 +88,17 @@ namespace ReSiRai.Api.Controllers
                     staff.NationalCode,
                     staff.Mobile,
                     staff.StaffType,
-                    specialtyName
+                    specialtyName,
+                    staff.PhotoRelativePath
                 },
                 clinic
             });
         }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateProfile(ProfileUpdate request, CancellationToken ct)
-        {
-            if (IsSuper) return Forbid();
-            int staffID = CurrentStaffID;
-            var staff = await _db.Staff.FirstOrDefaultAsync(s => s.StaffID == staffID, ct);
-            if (staff == null) return NotFound(new { success = false, message = "پروفایل پیدا نشد." });
-
-            string first = (request.FirstName ?? string.Empty).Trim();
-            string last = (request.LastName ?? string.Empty).Trim();
-            if (first.Length == 0 || last.Length == 0)
-                return BadRequest(new { success = false, message = "نام و نام خانوادگی را وارد کنید." });
-            if (first.Length > 100 || last.Length > 100)
-                return BadRequest(new { success = false, message = "نام نمی‌تواند بیشتر از ۱۰۰ نویسه باشد." });
-
-            string? mobile = NormalizeMobile(request.Mobile);
-            if (!string.IsNullOrWhiteSpace(mobile) && mobile.Length < 10)
-                return BadRequest(new { success = false, message = "شماره موبایل معتبر نیست." });
-
-            staff.FirstName = first;
-            staff.LastName = last;
-            staff.Mobile = string.IsNullOrWhiteSpace(mobile) ? null : mobile;
-            await _db.SaveChangesAsync(ct);
-
-            // نامِ تازه باید همان لحظه در هدر دیده شود؛ کوکی با همان تنظیماتِ فعلی تازه می‌شود.
-            await RefreshCookieAsync(staff, ct);
-
-            return Ok(new
-            {
-                success = true,
-                message = "پروفایل ذخیره شد.",
-                firstName = staff.FirstName,
-                lastName = staff.LastName,
-                mobile = staff.Mobile
-            });
-        }
-
+        /// <summary>
+        /// فقط تنظیماتِ مطب: نام، شمارهٔ تلفن و نشانی. پروفایل (نام/موبایلِ شخصی)
+        /// از این مسیر قابلِ تغییر نیست.
+        /// </summary>
         [HttpPut("clinic")]
         public async Task<IActionResult> UpdateClinic(ClinicUpdate request, CancellationToken ct)
         {
@@ -171,48 +136,75 @@ namespace ReSiRai.Api.Controllers
             });
         }
 
-        private static string? NormalizeMobile(string? value)
+        /// <summary>
+        /// عکسِ پروفایل (اختیاری). همان الگویِ عکسِ بیمار: تصویر معتبر، ذخیره زیرِ
+        /// مسیرِ ذخیره‌سازیِ سامانه، و حذفِ عکسِ قبلی. عکس روی داشبورد دیده می‌شود.
+        /// </summary>
+        [HttpPost("photo")]
+        [RequestSizeLimit(10 * 1024 * 1024)]
+        public async Task<IActionResult> UploadPhoto(IFormFile file, CancellationToken ct)
         {
-            string digits = string.Concat((value ?? string.Empty).Where(char.IsDigit));
-            if (digits.StartsWith("98") && digits.Length is 12 or 13) digits = "0" + digits[2..];
-            else if (digits.Length == 10 && digits.StartsWith("9")) digits = "0" + digits;
-            return string.IsNullOrWhiteSpace(digits) ? null : digits;
+            if (IsSuper) return Forbid();
+            if (file == null || file.Length == 0
+                || string.IsNullOrWhiteSpace(file.ContentType)
+                || !file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { success = false, message = "لطفاً یک فایل تصویری معتبر انتخاب کنید." });
+            if (file.Length > 8 * 1024 * 1024)
+                return BadRequest(new { success = false, message = "حجم عکس نباید بیشتر از ۸ مگابایت باشد." });
+
+            int staffID = CurrentStaffID;
+            var staff = await _db.Staff.FirstOrDefaultAsync(s => s.StaffID == staffID, ct);
+            if (staff == null) return NotFound(new { success = false, message = "پروفایل پیدا نشد." });
+
+            string extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (extension is not (".jpg" or ".jpeg" or ".png" or ".webp")) extension = ".jpg";
+            string relativePath = Path.Combine("Staff", staffID.ToString(), "Profile", $"staff-{Guid.NewGuid():N}{extension}");
+
+            string root = _storage.GetRootPath();
+            string fullPath = Path.Combine(root, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+            await using (var stream = System.IO.File.Create(fullPath))
+                await file.CopyToAsync(stream, ct);
+
+            if (!string.IsNullOrWhiteSpace(staff.PhotoRelativePath))
+            {
+                string oldPath = Path.Combine(root, staff.PhotoRelativePath);
+                if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+            }
+
+            staff.PhotoRelativePath = relativePath;
+            await _db.SaveChangesAsync(ct);
+
+            return Ok(new
+            {
+                success = true,
+                message = "عکس پروفایل ذخیره شد.",
+                photoRelativePath = relativePath
+            });
         }
 
-        /// <summary>کوکیِ ورود با نام/تخصصِ تازه دوباره صادر می‌شود (ویژگی‌های نشست حفظ می‌شوند).</summary>
-        private async Task RefreshCookieAsync(Staff staff, CancellationToken ct)
+        /// <summary>عکسِ پروفایلِ همین کاربر؛ نسخهٔ ?v= از کشِ مرورگر جلوگیری می‌کند.</summary>
+        [HttpGet("photo")]
+        public async Task<IActionResult> GetPhoto(CancellationToken ct)
         {
-            var user = await _db.Users.AsNoTracking()
-                .FirstOrDefaultAsync(u => u.StaffID == staff.StaffID && u.IsActive, ct);
-            string? specialtyName = staff.SpecialtyID.HasValue
-                ? await _db.Specialties.AsNoTracking()
-                    .Where(s => s.SpecialtyID == staff.SpecialtyID)
-                    .Select(s => s.SpecialtyName)
-                    .FirstOrDefaultAsync(ct)
-                : null;
+            if (IsSuper) return NotFound();
+            int staffID = CurrentStaffID;
+            string? relativePath = await _db.Staff.AsNoTracking()
+                .Where(s => s.StaffID == staffID)
+                .Select(s => s.PhotoRelativePath)
+                .FirstOrDefaultAsync(ct);
+            if (string.IsNullOrWhiteSpace(relativePath)) return NotFound();
 
-            var claims = new List<Claim>
+            string fullPath = Path.Combine(_storage.GetRootPath(), relativePath);
+            if (!System.IO.File.Exists(fullPath)) return NotFound();
+
+            string contentType = Path.GetExtension(fullPath).ToLowerInvariant() switch
             {
-                new(ClaimTypes.Name, user?.UserName ?? User.Identity?.Name ?? string.Empty),
-                new("UserID", (user?.UserID ?? 0).ToString()),
-                new("StaffID", staff.StaffID.ToString()),
-                new("StaffType", staff.StaffType.ToString()),
-                new("FirstName", staff.FirstName),
-                new("LastName", staff.LastName),
-                new("IsSuperAdmin", "false"),
-                new("ViewReports", user?.ViewReports == true ? "true" : "false")
+                ".png" => "image/png",
+                ".webp" => "image/webp",
+                _ => "image/jpeg"
             };
-            if (staff.SpecialtyID.HasValue)
-                claims.Add(new("SpecialtyID", staff.SpecialtyID.Value.ToString()));
-            if (!string.IsNullOrWhiteSpace(specialtyName))
-                claims.Add(new("SpecialtyName", specialtyName));
-
-            var auth = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            var properties = auth.Properties ?? new AuthenticationProperties { IsPersistent = true, AllowRefresh = true };
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)),
-                properties);
+            return PhysicalFile(fullPath, contentType);
         }
     }
 }

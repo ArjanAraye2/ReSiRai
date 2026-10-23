@@ -35,15 +35,23 @@
 
       <section class="settings-card">
         <h3>پروفایل من</h3>
+        <p class="field-hint">این اطلاعات از ثبت‌نام/مدیریتِ پرسنل می‌آید؛ در «تنظیمات مطب» قابلِ ویرایش نیست. فقط عکسِ پروفایل قابلِ تغییر است.</p>
+        <div class="profile-photo-row">
+          <div class="profile-photo" id="profilePhotoBox"></div>
+          <div class="profile-photo-actions">
+            <input id="profilePhotoInput" type="file" accept="image/*" capture="environment" class="hidden" />
+            <button id="profilePhotoButton" type="button" class="secondary-button">انتخاب/تغییر عکس</button>
+            <small class="field-hint">عکس روی داشبورد نمایش داده می‌شود (حداکثر ۸ مگابایت).</small>
+            <div id="profilePhotoStatus" class="status-message"></div>
+          </div>
+        </div>
         <div class="form-grid">
-          <div class="form-field"><label for="profileFirstName">نام</label><input id="profileFirstName" maxlength="100" /></div>
-          <div class="form-field"><label for="profileLastName">نام خانوادگی</label><input id="profileLastName" maxlength="100" /></div>
-          <div class="form-field"><label for="profileMobile">موبایل شخصی</label><input id="profileMobile" inputmode="tel" maxlength="30" placeholder="۰۹…" /><small class="field-hint">برای ارتباطِ خودِ شما؛ شمارهٔ مطب جداست.</small></div>
+          <div class="form-field"><label for="profileFirstName">نام</label><input id="profileFirstName" maxlength="100" readonly /></div>
+          <div class="form-field"><label for="profileLastName">نام خانوادگی</label><input id="profileLastName" maxlength="100" readonly /></div>
+          <div class="form-field"><label for="profileMobile">موبایل شخصی</label><input id="profileMobile" inputmode="tel" maxlength="30" readonly /></div>
           <div class="form-field"><label for="profileNationalCode">کد ملی (ورود)</label><input id="profileNationalCode" readonly /></div>
           <div class="form-field"><label for="profileSpecialty">تخصص</label><input id="profileSpecialty" readonly /></div>
         </div>
-        <div class="form-actions"><button id="profileSaveButton" type="button" class="primary-button">ذخیرهٔ پروفایل</button></div>
-        <div id="profileStatus" class="status-message"></div>
       </section>`;
 
     function syncAuth() {
@@ -94,6 +102,7 @@
             if ($("profileMobile")) $("profileMobile").value = p.mobile || "";
             if ($("profileNationalCode")) $("profileNationalCode").value = p.nationalCode || "";
             if ($("profileSpecialty")) $("profileSpecialty").value = p.specialtyName || "—";
+            paintPhoto(p);
 
             if (!x.clinic) {
                 $("clinicName")?.closest(".settings-card")?.classList.add("hidden");
@@ -102,7 +111,6 @@
                 $("profileFirstName")?.closest(".settings-card")?.classList.add("hidden");
             }
             setStatus("clinicStatus", "", false);
-            setStatus("profileStatus", "", false);
         } catch (e) {
             setStatus("clinicStatus", e.message || "دریافت اطلاعات ناموفق بود.", true);
         }
@@ -133,39 +141,46 @@
         }
     }
 
-    async function saveProfile() {
-        const button = $("profileSaveButton");
-        button.disabled = true;
-        setStatus("profileStatus", "در حال ذخیره…", false);
-        try {
-            const r = await fetch("/api/profile", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    firstName: $("profileFirstName").value.trim(),
-                    lastName: $("profileLastName").value.trim(),
-                    mobile: $("profileMobile").value.trim()
-                })
-            });
-            const x = await r.json().catch(() => ({}));
-            if (!r.ok || !x.success) throw new Error(x.message || "ذخیره انجام نشد.");
-            setStatus("profileStatus", x.message || "ذخیره شد.", false);
+    function paintPhoto(profile) {
+        const box = $("profilePhotoBox");
+        if (!box) return;
+        const photo = profile?.photoRelativePath;
+        if (photo) {
+            box.classList.add("has-photo");
+            box.style.backgroundImage = `url("/api/profile/photo?v=${encodeURIComponent(photo)}")`;
+            box.textContent = "";
+        } else {
+            box.classList.remove("has-photo");
+            box.style.backgroundImage = "";
+            const first = (profile?.firstName || "").trim();
+            const last = (profile?.lastName || "").trim();
+            box.textContent = ((first ? first[0] : "") + (last ? last[0] : "")) || "R";
+        }
+    }
 
-            // هدر و نامِ نمایش‌داده‌شده همان لحظه به‌روز شوند.
-            if (window.reSiRaiCurrentUser) {
-                window.reSiRaiCurrentUser.firstName = x.firstName;
-                window.reSiRaiCurrentUser.lastName = x.lastName;
-            }
-            const nameEl = $("reSiRaiCurrentUserName");
-            if (nameEl) {
-                const specialty = window.reSiRaiCurrentUser?.specialtyName || window.reSiRaiCurrentUser?.SpecialtyName || "";
-                nameEl.textContent = ("دکتر " + `${x.firstName || ""} ${x.lastName || ""}`.trim() + (specialty ? " - " + specialty : "")).trim();
-            }
-            window.showToast?.("پروفایل ذخیره شد.");
+    async function uploadPhoto() {
+        const input = $("profilePhotoInput");
+        const file = input?.files?.[0];
+        if (!file) return;
+        const button = $("profilePhotoButton");
+        button.disabled = true;
+        setStatus("profilePhotoStatus", "در حال ارسال عکس…", false);
+        try {
+            const form = new FormData();
+            form.append("file", file);
+            const r = await fetch("/api/profile/photo", { method: "POST", body: form });
+            const x = await r.json().catch(() => ({}));
+            if (!r.ok || !x.success) throw new Error(x.message || "ذخیرهٔ عکس انجام نشد.");
+            paintPhoto({ photoRelativePath: x.photoRelativePath });
+            setStatus("profilePhotoStatus", x.message || "عکس ذخیره شد.", false);
+            // داشبورد دفعهٔ بعد عکسِ تازه را نشان دهد.
+            window.ReSiRaiDashboardProfileChanged?.();
+            window.showToast?.("عکس پروفایل ذخیره شد.");
         } catch (e) {
-            setStatus("profileStatus", e.message || "ذخیره انجام نشد.", true);
+            setStatus("profilePhotoStatus", e.message || "ذخیرهٔ عکس انجام نشد.", true);
         } finally {
             button.disabled = false;
+            if (input) input.value = "";
         }
     }
 
@@ -177,7 +192,8 @@
             load();
         });
         $("clinicSaveButton")?.addEventListener("click", saveClinic);
-        $("profileSaveButton")?.addEventListener("click", saveProfile);
+        $("profilePhotoButton")?.addEventListener("click", () => $("profilePhotoInput")?.click());
+        $("profilePhotoInput")?.addEventListener("change", uploadPhoto);
         document.addEventListener("resirai-auth-changed", syncAuth);
     }
 
