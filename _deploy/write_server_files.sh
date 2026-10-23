@@ -15,10 +15,12 @@ volumes:
     name: resirai_images
   backup:
     name: resirai_backup
+  keys:
+    name: resirai_keys
 
 services:
   resirai:
-    image: resirai:20261009
+    image: resirai:20261023c
     container_name: resirai
     restart: unless-stopped
     ports:
@@ -29,6 +31,7 @@ services:
       - ./config/ReSiRai.config.json:/app/config/ReSiRai.config.json:ro
       - images:/var/lib/ReSiRai/images
       - backup:/var/lib/ReSiRai/backup
+      - keys:/var/lib/ReSiRai/keys
 YML
 
 # config

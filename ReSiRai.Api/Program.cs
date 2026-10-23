@@ -4,6 +4,7 @@ using ReSiRai.Api.Services;
 using ReSiRai.Api.Services.Pos;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +72,25 @@ builder.Services.AddHttpClient("ShareImages", client => client.Timeout = TimeSpa
         Proxy = new ReSiRai.Api.Services.LoopbackBypassProxy()
     });
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+
+// Persist the Data Protection key ring so the authentication cookie survives a
+// service restart or a container redeploy. Without this the keys live inside the
+// container (or under the service profile) and every deploy logs everyone out.
+// Desktop installs use ProgramData; the hosted container mounts a volume at
+// /var/lib/ReSiRai/keys (see _deploy/docker-compose.yml).
+string dataProtectionKeysPath = builder.Configuration["DataProtection:KeysPath"] ?? string.Empty;
+if (string.IsNullOrWhiteSpace(dataProtectionKeysPath))
+{
+    dataProtectionKeysPath = OperatingSystem.IsWindows()
+        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+                       "ReSiRai", "keys")
+        : "/var/lib/ReSiRai/keys";
+}
+try { Directory.CreateDirectory(dataProtectionKeysPath); }
+catch { /* keep running; keys fall back to the framework default location */ }
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeysPath))
+    .SetApplicationName("ReSiRai");
 
 // ReSiRai is a browser application served by the same ASP.NET Core backend,
 // therefore an HttpOnly authentication cookie is simpler and safer than storing
