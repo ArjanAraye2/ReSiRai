@@ -1033,7 +1033,10 @@
   function validate(sec) {
     const body = sec.querySelector(".gsec-body");
     const miss = [];
-    if (sec.def.key && !sec.def.key(sec)) miss.push(sec.def.keyMsg || "بخشِ کلیدی ناقص است");
+    // در حالتِ «افزودن از رویِ یک فاکتور» (فرمِ فیلترشده) فقط همان فاکتور ثبت
+    // می‌شود؛ «کلیدِ» کلیِ بخش اجباری نیست، وگرنه تیکِ «چربی» بدونِ شکایتِ اصلی
+    // ذخیره نمی‌شد. در فرمِ کامل، همان قاعدهٔ قبلی برجاست.
+    if (sec.def.key && !sec.__focus && !sec.def.key(sec)) miss.push(sec.def.keyMsg || "بخشِ کلیدی ناقص است");
     qsa("[data-req]", body).forEach((i) => {
       if (!String(i.value || "").trim()) miss.push(i.dataset.label || i.placeholder || "موردِ کلیدی");
     });
@@ -1059,6 +1062,8 @@
     const miss = validate(sec);
     if (miss.length) {
       err.textContent = "لطفاً تکمیل کنید: " + miss.slice(0, 3).join("، ");
+      // اگر در حالتِ فیلترشده‌ایم، فیلتر برداشته شود تا فیلدهایِ ناقص حتماً دیده شوند.
+      if (sec.__focus) applyFocus(sec, null);
       return;
     }
     err.textContent = "";
@@ -1196,9 +1201,16 @@
       return words.some((w) => text.includes(w));
     };
     const flags = rows.map(hit);
-    if (!flags.some(Boolean)) return; // مچ فقط رویِ عنوان بود ⇒ همهٔ فیلدها بمانند
+    if (!flags.some(Boolean)) { sec.__focus = null; return; } // مچ فقط رویِ عنوان بود ⇒ همهٔ فیلدها بمانند
 
-    rows.forEach((n, i) => n.classList.toggle("gsec-focus-hidden", !flags[i]));
+    // ردیفِ نخستِ بخش (جایِ کلیدِ اصلی) و هر ردیفِ دارایِ فیلدِ اجباری هرگز
+    // پنهان نمی‌شود تا کاربر با اعتبارسنجیِ «لطفاً تکمیل کنید» گیر نکند.
+    rows.forEach((n, i) => {
+      const mustKeep = i === 0
+        || !!n.querySelector("[data-req]")
+        || !!n.querySelector('[data-group][data-required="1"]');
+      n.classList.toggle("gsec-focus-hidden", !(flags[i] || mustKeep));
+    });
     const bar = el("div", "gsec-focus-bar");
     bar.append(el("span", null, `فقط فیلدهای مرتبط با «${sec.__focus}»`));
     const all = el("button", "gsec-linkbtn", "نمایش همهٔ فیلدها");
