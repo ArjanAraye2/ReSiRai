@@ -1,4 +1,4 @@
-// ReSiRai shell navigation.
+﻿// ReSiRai shell navigation.
 // Keeps global navigation separate from Patient and Study actions and moves
 // administrative maintenance commands out of the application header.
 (() => {
@@ -14,59 +14,63 @@
     dashboard.id = "dashboardSection";
     dashboard.className = "card hidden shell-page";
     dashboard.innerHTML = `
-      <div class="section-header"><div><h2>داشبورد</h2><p>نمای کلی سامانه ReSiRai</p></div></div>
-      <h3 class="dashboard-group-title">آمار کلی</h3>
+      <div class="section-header"><div><h2>Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯</h2><p>Ù†Ù…Ø§ÛŒ Ú©Ù„ÛŒ Ø³Ø§Ù…Ø§Ù†Ù‡ ReSiRai</p></div></div>
+      <h3 class="dashboard-group-title">Ø¢Ù…Ø§Ø± Ú©Ù„ÛŒ</h3>
       <div class="dashboard-summary-grid dashboard-overall-grid">
-        <div class="dashboard-summary-card metric-blue"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.5"/><path d="M17.6 14.7c2.2.6 3.6 2.3 3.6 4.5"/></svg></span><strong id="dashboardTotalPatients">-</strong><span>کل بیماران</span></div>
-        <div class="dashboard-summary-card metric-green"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.4 2.6 2.6L16 9.6"/></svg></span><strong id="dashboardActivePatients">-</strong><span>بیماران فعال</span></div>
-        <div class="dashboard-summary-card metric-gray"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg></span><strong id="dashboardInactivePatients">-</strong><span>بیماران غیرفعال</span></div>
-        <div class="dashboard-summary-card metric-purple"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5a1.5 1.5 0 0 1 1.5-1.5h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5Z"/><path d="M8.5 3v18"/><path d="M12 8.5h5"/><path d="M12 12h5"/><path d="M12 15.5h3"/></svg></span><strong id="dashboardTotalStudies">-</strong><span>کل مطالعات</span></div>
-        <div class="dashboard-summary-card metric-cyan"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="15" rx="2"/><path d="m3.5 16 4.6-4.3a1.6 1.6 0 0 1 2.2 0l3.2 3"/><path d="m13.8 14 1.6-1.5a1.6 1.6 0 0 1 2.2 0l3.1 2.9"/><circle cx="9" cy="9.4" r="1.3"/></svg></span><strong id="dashboardTotalImages">-</strong><span>کل تصاویر</span></div>
+        <div class="dashboard-summary-card metric-blue"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.5"/><path d="M17.6 14.7c2.2.6 3.6 2.3 3.6 4.5"/></svg></span><strong id="dashboardTotalPatients">-</strong><span>Ú©Ù„ Ø¨ÛŒÙ…Ø§Ø±Ø§Ù†</span></div>
+        <div class="dashboard-summary-card metric-green"><span class="dashboard-metric-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8 12.4 2.6 2.6L16 9.6"/></svg></span><strong id="dashboardActivePatients">-</strong><span>Ø¨ÛŒÙ…Ø§Ø±Ø§Ù† ÙØ¹Ø§Ù„</span></div>
       </div>
-      <h3 class="dashboard-group-title">امروز</h3>
+      <h3 class="dashboard-group-title">Ø§Ù…Ø±ÙˆØ²</h3>
       <div class="dashboard-summary-grid dashboard-today-grid">
-        <div class="dashboard-summary-card today-card today-patients"><strong id="dashboardPatientsToday">-</strong><span>بیماران امروز</span></div>
-        <div class="dashboard-summary-card today-card today-studies"><strong id="dashboardStudiesToday">-</strong><span>مطالعات امروز</span></div>
-        <div class="dashboard-summary-card today-card today-images"><strong id="dashboardImagesToday">-</strong><span>تصاویر امروز</span></div>
-        <div class="dashboard-summary-card today-card today-new"><strong id="dashboardNewPatientsToday">-</strong><span>بیماران جدید امروز</span></div>
+        <div class="dashboard-summary-card today-card today-patients"><strong id="dashboardPatientsToday">-</strong><span>Ø¨ÛŒÙ…Ø§Ø±Ø§Ù† Ø§Ù…Ø±ÙˆØ²</span></div>
+        <div class="dashboard-summary-card today-card today-studies"><strong id="dashboardStudiesToday">-</strong><span>Ù…Ø·Ø§Ù„Ø¹Ø§Øª Ø§Ù…Ø±ÙˆØ²</span></div>
+        <div class="dashboard-summary-card today-card today-new"><strong id="dashboardNewPatientsToday">-</strong><span>Ø¨ÛŒÙ…Ø§Ø±Ø§Ù† Ø¬Ø¯ÛŒØ¯ Ø§Ù…Ø±ÙˆØ²</span></div>
       </div>
-      <section class="dashboard-panel dashboard-attention-panel">
+      <section id="dashboardAttentionPanel" class="dashboard-panel dashboard-attention-panel hidden">
         <div class="dashboard-panel-title">
-          <strong>نیازمند اطلاع‌رسانی</strong>
+          <strong>Ù†ÛŒØ§Ø²Ù…Ù†Ø¯ Ø§Ø·Ù„Ø§Ø¹â€ŒØ±Ø³Ø§Ù†ÛŒ</strong>
           <span id="attentionSummary">-</span>
         </div>
         <div id="dashboardAttention" class="attention-list"></div>
       </section>
       <div class="dashboard-detail-grid">
-        <section class="dashboard-panel"><div class="dashboard-panel-title"><strong>آخرین مطالعات</strong><span>۵ مورد اخیر</span></div><div id="dashboardRecentStudies" class="dashboard-recent-list"></div></section>
-        <section class="dashboard-panel"><div class="dashboard-panel-title"><strong>آخرین تصاویر</strong><span>۵ مورد اخیر</span></div><div id="dashboardRecentImages" class="dashboard-recent-list"></div></section>
+        <section class="dashboard-panel"><div class="dashboard-panel-title"><strong>Ø¢Ø®Ø±ÛŒÙ† Ù…Ø±Ø§Ø¬Ø¹Ø§Øª</strong><span>Ûµ Ù…ÙˆØ±Ø¯ Ø§Ø®ÛŒØ±</span></div><div id="dashboardRecentStudies" class="dashboard-recent-list"></div></section>
       </div>
-      <section class="dashboard-system-panel"><div><strong>وضعیت سامانه</strong><span id="dashboardGeneratedAt">-</span></div><div class="dashboard-system-items"><span id="dashboardDatabaseStatus">پایگاه‌داده: در حال بررسی</span><span id="dashboardStorageStatus">فضای تصاویر: در حال بررسی</span></div></section>`;
+      <section id="dashboardStoragePanel" class="dashboard-storage-panel hidden">
+        <div class="dashboard-storage-head"><strong>ÙØ¶Ø§ÛŒ Ù…Ø­Ù„ Ù†Ú¯Ù‡Ø¯Ø§Ø±ÛŒ ØªØµØ§ÙˆÛŒØ±</strong><code id="dashboardStoragePath">-</code></div>
+        <div class="dashboard-storage-bar"><i id="dashboardStorageFill"></i></div>
+        <div class="dashboard-storage-legend">
+          <span>Ø§Ø³ØªÙØ§Ø¯Ù‡â€ŒØ´Ø¯Ù‡: <b id="dashboardStorageUsed">-</b></span>
+          <span>Ø¢Ø²Ø§Ø¯: <b id="dashboardStorageFree">-</b></span>
+          <span>Ú©Ù„: <b id="dashboardStorageTotal">-</b></span>
+          <span id="dashboardStoragePct"></span>
+        </div>
+      </section>`;
     main.appendChild(dashboard);
 
     const settings = document.createElement("section");
     settings.id = "settingsSection";
     settings.className = "card hidden shell-page";
     settings.innerHTML = `
-      <div class="section-header"><div><h2>تنظیمات و مدیریت سیستم</h2><p>تعاریف پایه و دسترسی‌های مدیریتی ReSiRai</p></div></div>
+      <div class="section-header"><div><h2>ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ùˆ Ù…Ø¯ÛŒØ±ÛŒØª Ø³ÛŒØ³ØªÙ…</h2><p>ØªØ¹Ø§Ø±ÛŒÙ Ù¾Ø§ÛŒÙ‡ Ùˆ Ø¯Ø³ØªØ±Ø³ÛŒâ€ŒÙ‡Ø§ÛŒ Ù…Ø¯ÛŒØ±ÛŒØªÛŒ ReSiRai</p></div></div>
       <div id="settingsAdminActions" class="settings-admin-actions"></div>`;
     main.appendChild(settings);
 
-    // «گزارش‌ها» دیگر placeholder نیست: ماژولِ reports-ui.js صفحهٔ واقعی را می‌سازد.
+    // Â«Ú¯Ø²Ø§Ø±Ø´â€ŒÙ‡Ø§Â» Ø¯ÛŒÚ¯Ø± placeholder Ù†ÛŒØ³Øª: Ù…Ø§Ú˜ÙˆÙ„Ù reports-ui.js ØµÙØ­Ù‡Ù” ÙˆØ§Ù‚Ø¹ÛŒ Ø±Ø§ Ù…ÛŒâ€ŒØ³Ø§Ø²Ø¯.
     const placeholders = {};
     const placeholderSections = {};
     Object.entries(placeholders).forEach(([name, [title, description]]) => {
         const section = document.createElement("section");
         section.id = `${name}WorkspaceSection`;
         section.className = "card hidden shell-page";
-        section.innerHTML = `<div class="section-header"><div><h2>${title}</h2><p>${description}</p></div></div><div class="shell-empty-state">این بخش در مرحلهٔ بعد تکمیل می‌شود.</div>`;
+        section.innerHTML = `<div class="section-header"><div><h2>${title}</h2><p>${description}</p></div></div><div class="shell-empty-state">Ø§ÛŒÙ† Ø¨Ø®Ø´ Ø¯Ø± Ù…Ø±Ø­Ù„Ù‡Ù” Ø¨Ø¹Ø¯ ØªÚ©Ù…ÛŒÙ„ Ù…ÛŒâ€ŒØ´ÙˆØ¯.</div>`;
         main.appendChild(section);
         placeholderSections[name] = section;
     });
 
     function moveAdministrativeButtons() {
         const target = document.getElementById("settingsAdminActions");
-        const administrativeLabels = new Set(["مدیریت پرسنل", "مدیریت تخصص‌ها", "مدیریت انواع Study", "مدیریت انواع تصویر", "مدیریت کاربران"]);
+        const administrativeLabels = new Set(["Ù…Ø¯ÛŒØ±ÛŒØª Ù¾Ø±Ø³Ù†Ù„", "Ù…Ø¯ÛŒØ±ÛŒØª ØªØ®ØµØµâ€ŒÙ‡Ø§", "Ù…Ø¯ÛŒØ±ÛŒØª Ø§Ù†ÙˆØ§Ø¹ Study", "Ù…Ø¯ÛŒØ±ÛŒØª Ø§Ù†ÙˆØ§Ø¹ ØªØµÙˆÛŒØ±", "Ù…Ø¯ÛŒØ±ÛŒØª Ú©Ø§Ø±Ø¨Ø±Ø§Ù†"]);
         document.querySelectorAll(".header-content button").forEach(button => {
             if (!administrativeLabels.has(button.textContent.trim())) return;
             button.classList.add("settings-action-button");
@@ -111,17 +115,17 @@
             const overall = result.overall || {}, today = result.today || {};
             const connected = result.system?.databaseConnected !== false;
             const values = {
-                dashboardTotalPatients: overall.totalPatients, dashboardActivePatients: overall.activePatients,
-                dashboardInactivePatients: overall.inactivePatients, dashboardTotalStudies: overall.totalStudies,
-                dashboardTotalImages: overall.totalImages, dashboardPatientsToday: today.patientsToday,
-                dashboardStudiesToday: today.studiesToday, dashboardImagesToday: today.imagesToday,
+                dashboardTotalPatients: overall.totalPatients,
+                dashboardActivePatients: overall.activePatients,
+                dashboardPatientsToday: today.patientsToday,
+                dashboardStudiesToday: today.studiesToday,
                 dashboardNewPatientsToday: today.newPatientsToday
             };
             // Show a dash instead of a misleading 0 when the database is unreachable.
             Object.entries(values).forEach(([id, value]) => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                el.textContent = connected ? (value ?? 0) : "—";
+                el.textContent = connected ? (value ?? 0) : "â€”";
                 // Cards that track "today" turn green once they have activity.
                 const card = el.closest(".dashboard-summary-card");
                 if (card?.classList.contains("today-card")) {
@@ -129,27 +133,45 @@
                 }
             });
             renderRecentStudies(connected ? (result.recentStudies || []) : []);
-            renderRecentImages(connected ? (result.recentImages || []) : []);
-            document.getElementById("dashboardGeneratedAt").textContent = `آخرین به‌روزرسانی: ${formatPersianDateTime(result.generatedAt)}`;
-            document.getElementById("dashboardDatabaseStatus").textContent = connected ? "● پایگاه‌داده متصل است" : "● پایگاه‌داده در دسترس نیست";
-            document.getElementById("dashboardDatabaseStatus").className = connected ? "system-ok" : "system-error";
-            const storage = result.system?.storage || {};
-            document.getElementById("dashboardStorageStatus").textContent = storage.available
-                ? `● فضای تصاویر آماده است — ${formatBytes(storage.freeBytes)} آزاد`
-                : `● مسیر ${storage.rootPath || "تنظیم‌نشده"} در دسترس نیست`;
-            document.getElementById("dashboardStorageStatus").className = storage.available ? "system-ok" : "system-error";
-            renderNetworkAccess(result.system?.network || {});
-            renderSettingsNetworkLinks(result.system?.network || {});
+            renderStorage(connected ? (result.system?.storage || {}) : {});
             loadAttention();
         } catch {
             if (silent) return; // keep the last good snapshot on a background refresh
             dashboard.querySelectorAll(".dashboard-summary-card strong").forEach(x => x.textContent = "-");
-            document.getElementById("dashboardRecentStudies").textContent = "دریافت اطلاعات داشبورد ناموفق بود.";
-            document.getElementById("dashboardRecentImages").textContent = "دریافت اطلاعات داشبورد ناموفق بود.";
+            document.getElementById("dashboardRecentStudies").textContent = "Ø¯Ø±ÛŒØ§ÙØª Ø§Ø·Ù„Ø§Ø¹Ø§Øª Ø¯Ø§Ø´Ø¨ÙˆØ±Ø¯ Ù†Ø§Ù…ÙˆÙÙ‚ Ø¨ÙˆØ¯.";
         }
     }
 
-    const formatBytes = value => !Number.isFinite(Number(value)) ? "-" : `${(Number(value) / 1073741824).toLocaleString("fa-IR", { maximumFractionDigits: 1 })} گیگابایت`;
+    const formatBytes = value => {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return "-";
+        if (n < 1073741824) return `${Math.round(n / 1048576).toLocaleString("fa-IR")} Ù…Ú¯Ø§Ø¨Ø§ÛŒØª`;
+        return `${(n / 1073741824).toLocaleString("fa-IR", { maximumFractionDigits: 1 })} Ú¯ÛŒÚ¯Ø§Ø¨Ø§ÛŒØª`;
+    };
+
+    // ÙØ¶Ø§ÛŒ Ù…Ø­Ù„ Ù†Ú¯Ù‡Ø¯Ø§Ø±ÛŒ ØªØµØ§ÙˆÛŒØ±: ÙÙ‚Ø· ÙˆÙ‚ØªÛŒ Ù…Ø³ÛŒØ± Ø¯Ø± Ø¯Ø³ØªØ±Ø³ Ø§Ø³Øª Ù†Ù…Ø§ÛŒØ´ Ø¯Ø§Ø¯Ù‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯
+    // (Ø±ÙˆÛŒ Ù†ØµØ¨Ù Ø¯Ø³Ú©ØªØ§Ù¾ÛŒ Ù‡Ù…Ø§Ù† Ø¯ÛŒØ³Ú©Ù Ú©Ø§Ù…Ù¾ÛŒÙˆØªØ±Ù Ù…Ø·Ø¨ Ø§Ø³Øª).
+    function renderStorage(storage) {
+        const panel = document.getElementById("dashboardStoragePanel");
+        if (!panel) return;
+        const total = Number(storage?.totalBytes);
+        const free = Number(storage?.freeBytes);
+        if (!storage?.available || !Number.isFinite(total) || total <= 0) {
+            panel.classList.add("hidden");
+            return;
+        }
+        const used = Math.max(0, total - (Number.isFinite(free) ? free : 0));
+        const pct = Math.min(100, Math.max(0, Math.round((used / total) * 100)));
+        document.getElementById("dashboardStoragePath").textContent = storage.rootPath || "-";
+        document.getElementById("dashboardStorageUsed").textContent = formatBytes(used);
+        document.getElementById("dashboardStorageFree").textContent = formatBytes(free);
+        document.getElementById("dashboardStorageTotal").textContent = formatBytes(total);
+        document.getElementById("dashboardStoragePct").textContent = `${pct.toLocaleString("fa-IR")}Ùª Ø§Ø³ØªÙØ§Ø¯Ù‡`;
+        const fill = document.getElementById("dashboardStorageFill");
+        fill.style.width = `${pct}%`;
+        fill.style.background = pct >= 90 ? "#ef4444" : pct >= 70 ? "#f59e0b" : "linear-gradient(90deg,#22c55e,#16a34a)";
+        panel.classList.remove("hidden");
+    }
 
     // Who needs a message today, gathered from appointments, due follow-ups and
     // outstanding balances. Nothing is sent from here automatically; each row has a
@@ -157,22 +179,24 @@
     async function loadAttention() {
         const root = document.getElementById("dashboardAttention");
         const summary = document.getElementById("attentionSummary");
+        const panel = document.getElementById("dashboardAttentionPanel");
         if (!root) return;
-        root.textContent = "در حال بررسی...";
+        root.textContent = "Ø¯Ø± Ø­Ø§Ù„ Ø¨Ø±Ø±Ø³ÛŒ...";
         try {
             const r = await fetch("/api/attention", { cache: "no-store" });
             const x = await r.json();
             if (!r.ok || !x.success) throw new Error();
 
             const rows = []
-                .concat((x.appointments || []).map(i => ({ ...i, kindLabel: "نوبت پیش‌رو" })))
-                .concat((x.followUps || []).map(i => ({ ...i, kindLabel: "پیگیری سررسیده" })))
-                .concat((x.balances || []).map(i => ({ ...i, kindLabel: "مانده حساب" })));
+                .concat((x.appointments || []).map(i => ({ ...i, kindLabel: "Ù†ÙˆØ¨Øª Ù¾ÛŒØ´â€ŒØ±Ùˆ" })))
+                .concat((x.followUps || []).map(i => ({ ...i, kindLabel: "Ù¾ÛŒÚ¯ÛŒØ±ÛŒ Ø³Ø±Ø±Ø³ÛŒØ¯Ù‡" })))
+                .concat((x.balances || []).map(i => ({ ...i, kindLabel: "Ù…Ø§Ù†Ø¯Ù‡ Ø­Ø³Ø§Ø¨" })));
 
-            summary.textContent = rows.length ? `${rows.length} مورد` : "موردی نیست";
+            summary.textContent = rows.length ? `${rows.length} Ù…ÙˆØ±Ø¯` : "Ù…ÙˆØ±Ø¯ÛŒ Ù†ÛŒØ³Øª";
             root.replaceChildren();
+            // Â«Ù†ÛŒØ§Ø²Ù…Ù†Ø¯ Ø§Ø·Ù„Ø§Ø¹â€ŒØ±Ø³Ø§Ù†ÛŒÂ» ÙÙ‚Ø· ÙˆÙ‚ØªÛŒ Ù…ÙˆØ±Ø¯ÛŒ Ù‡Ø³Øª Ù†Ù…Ø§ÛŒØ´ Ø¯Ø§Ø¯Ù‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯.
+            panel?.classList.toggle("hidden", !rows.length);
             if (!rows.length) {
-                root.innerHTML = '<div class="attention-empty">همه‌چیز به‌روز است. کاری برای اطلاع‌رسانی باقی نمانده.</div>';
                 return;
             }
             rows.forEach(item => {
@@ -184,20 +208,21 @@
                 name.textContent = item.patientName || "-";
                 const meta = document.createElement("small");
                 meta.textContent = item.kind === "balance"
-                    ? `${item.kindLabel} — ${Number(item.balance || 0).toLocaleString("fa-IR")} تومان`
-                    : `${item.kindLabel} — ${item.dueDate ? formatPersianDateTime(item.dueDate) : ""}`;
+                    ? `${item.kindLabel} â€” ${Number(item.balance || 0).toLocaleString("fa-IR")} ØªÙˆÙ…Ø§Ù†`
+                    : `${item.kindLabel} â€” ${item.dueDate ? formatPersianDateTime(item.dueDate) : ""}`;
                 text.append(name, meta);
                 const send = document.createElement("button");
                 send.type = "button";
                 send.className = "attention-send";
-                send.textContent = "ارسال پیامک";
+                send.textContent = "Ø§Ø±Ø³Ø§Ù„ Ù¾ÛŒØ§Ù…Ú©";
                 send.onclick = () => openAttentionMessage(item);
                 row.append(text, send);
                 root.appendChild(row);
             });
         } catch {
+            panel?.classList.add("hidden");
             if (summary) summary.textContent = "-";
-            root.textContent = "دریافت فهرست اطلاع‌رسانی ناموفق بود.";
+            root.textContent = "";
         }
     }
 
@@ -215,48 +240,47 @@
 
     function renderNetworkAccess(network) {
         latestNetwork = network;
-        // ReSiRai اکنون روی سرور ابری اجرا می‌شود؛ بخش دسترسی شبکه حذف شده است.
+        // ReSiRai Ø§Ú©Ù†ÙˆÙ† Ø±ÙˆÛŒ Ø³Ø±ÙˆØ± Ø§Ø¨Ø±ÛŒ Ø§Ø¬Ø±Ø§ Ù…ÛŒâ€ŒØ´ÙˆØ¯Ø› Ø¨Ø®Ø´ Ø¯Ø³ØªØ±Ø³ÛŒ Ø´Ø¨Ú©Ù‡ Ø­Ø°Ù Ø´Ø¯Ù‡ Ø§Ø³Øª.
     }
     function renderSettingsNetworkLinks(network) {
         latestNetwork = network;
-        if (network.serverNameUrl) root.appendChild(createAccessLink(network.serverNameUrl, "نام سرور"));
-        if (network.publicUrl) root.appendChild(createAccessLink(network.publicUrl, "IP استاتیک"));
+        // Ø¨Ø®Ø´ Ø¯Ø³ØªØ±Ø³ÛŒ Ø´Ø¨Ú©Ù‡ Ø§Ø² ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ø­Ø°Ù Ø´Ø¯Ù‡ Ø§Ø³ØªØ› Ø§ÛŒÙ† ØªØ§Ø¨Ø¹ ÙÙ‚Ø· Ø­Ø§ÙØ¸Ù‡Ù” Ø¢Ø®Ø±ÛŒÙ† ÙˆØ¶Ø¹ÛŒØª Ø±Ø§ Ù†Ú¯Ù‡ Ù…ÛŒâ€ŒØ¯Ø§Ø±Ø¯.
     }
 
-    // IP عمومی همان عددی است که کاوه‌نگار هنگام ارسال پیامک می‌بیند. چون IP
-    // مطب معمولاً داینامیک است، نمایش همین‌جا کنار لینک‌های اجرا باعث می‌شود
-    // وقتی از محدودهٔ ثبت‌شده در پنل کاوه‌نگار بیرون رفت، همان اول دیده شود.
+    // IP Ø¹Ù…ÙˆÙ…ÛŒ Ù‡Ù…Ø§Ù† Ø¹Ø¯Ø¯ÛŒ Ø§Ø³Øª Ú©Ù‡ Ú©Ø§ÙˆÙ‡â€ŒÙ†Ú¯Ø§Ø± Ù‡Ù†Ú¯Ø§Ù… Ø§Ø±Ø³Ø§Ù„ Ù¾ÛŒØ§Ù…Ú© Ù…ÛŒâ€ŒØ¨ÛŒÙ†Ø¯. Ú†ÙˆÙ† IP
+    // Ù…Ø·Ø¨ Ù…Ø¹Ù…ÙˆÙ„Ø§Ù‹ Ø¯Ø§ÛŒÙ†Ø§Ù…ÛŒÚ© Ø§Ø³ØªØŒ Ù†Ù…Ø§ÛŒØ´ Ù‡Ù…ÛŒÙ†â€ŒØ¬Ø§ Ú©Ù†Ø§Ø± Ù„ÛŒÙ†Ú©â€ŒÙ‡Ø§ÛŒ Ø§Ø¬Ø±Ø§ Ø¨Ø§Ø¹Ø« Ù…ÛŒâ€ŒØ´ÙˆØ¯
+    // ÙˆÙ‚ØªÛŒ Ø§Ø² Ù…Ø­Ø¯ÙˆØ¯Ù‡Ù” Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡ Ø¯Ø± Ù¾Ù†Ù„ Ú©Ø§ÙˆÙ‡â€ŒÙ†Ú¯Ø§Ø± Ø¨ÛŒØ±ÙˆÙ† Ø±ÙØªØŒ Ù‡Ù…Ø§Ù† Ø§ÙˆÙ„ Ø¯ÛŒØ¯Ù‡ Ø´ÙˆØ¯.
     function createPublicIpRow() {
         const row = document.createElement("div");
         row.className = "dashboard-access-row";
         const title = document.createElement("span");
-        title.textContent = "آی‌پی عمومی اینترنت";
+        title.textContent = "Ø¢ÛŒâ€ŒÙ¾ÛŒ Ø¹Ù…ÙˆÙ…ÛŒ Ø§ÛŒÙ†ØªØ±Ù†Øª";
         const value = document.createElement("code");
         value.className = "dashboard-access-ip";
-        value.textContent = "در حال دریافت...";
+        value.textContent = "Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª...";
         const copy = document.createElement("button");
-        copy.type = "button"; copy.className = "secondary-button"; copy.textContent = "کپی";
+        copy.type = "button"; copy.className = "secondary-button"; copy.textContent = "Ú©Ù¾ÛŒ";
         copy.onclick = async () => {
-            try { await navigator.clipboard.writeText(value.textContent); copy.textContent = "کپی شد"; setTimeout(() => copy.textContent = "کپی", 1500); }
-            catch { window.prompt("آی‌پی را کپی کنید:", value.textContent); }
+            try { await navigator.clipboard.writeText(value.textContent); copy.textContent = "Ú©Ù¾ÛŒ Ø´Ø¯"; setTimeout(() => copy.textContent = "Ú©Ù¾ÛŒ", 1500); }
+            catch { window.prompt("Ø¢ÛŒâ€ŒÙ¾ÛŒ Ø±Ø§ Ú©Ù¾ÛŒ Ú©Ù†ÛŒØ¯:", value.textContent); }
         };
         const refresh = document.createElement("button");
-        refresh.type = "button"; refresh.className = "secondary-button"; refresh.textContent = "تازه‌سازی";
+        refresh.type = "button"; refresh.className = "secondary-button"; refresh.textContent = "ØªØ§Ø²Ù‡â€ŒØ³Ø§Ø²ÛŒ";
         const hint = document.createElement("small");
-        hint.textContent = "کاوه‌نگار پیامک را فقط از IP های ثبت‌شده در «تنظیمات ← تنظیمات آی‌پی مجاز ← وب‌سرویس» می‌پذیرد؛ اگر این عدد از محدودهٔ ثبت‌شده بیرون رفت، پیامک ارسال نمی‌شود.";
+        hint.textContent = "Ú©Ø§ÙˆÙ‡â€ŒÙ†Ú¯Ø§Ø± Ù¾ÛŒØ§Ù…Ú© Ø±Ø§ ÙÙ‚Ø· Ø§Ø² IP Ù‡Ø§ÛŒ Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡ Ø¯Ø± Â«ØªÙ†Ø¸ÛŒÙ…Ø§Øª â† ØªÙ†Ø¸ÛŒÙ…Ø§Øª Ø¢ÛŒâ€ŒÙ¾ÛŒ Ù…Ø¬Ø§Ø² â† ÙˆØ¨â€ŒØ³Ø±ÙˆÛŒØ³Â» Ù…ÛŒâ€ŒÙ¾Ø°ÛŒØ±Ø¯Ø› Ø§Ú¯Ø± Ø§ÛŒÙ† Ø¹Ø¯Ø¯ Ø§Ø² Ù…Ø­Ø¯ÙˆØ¯Ù‡Ù” Ø«Ø¨Øªâ€ŒØ´Ø¯Ù‡ Ø¨ÛŒØ±ÙˆÙ† Ø±ÙØªØŒ Ù¾ÛŒØ§Ù…Ú© Ø§Ø±Ø³Ø§Ù„ Ù†Ù…ÛŒâ€ŒØ´ÙˆØ¯.";
         row.append(title, value, copy, refresh, hint);
 
         const load = async () => {
-            value.textContent = "در حال دریافت...";
+            value.textContent = "Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª...";
             refresh.disabled = true;
             try {
                 const r = await fetch("/api/communications/public-ip", { cache: "no-store" });
-                // پاسخ 401/403 بدنهٔ خالی دارد؛ اگر JSON نبود نباید کل بارگذاری بترسد.
+                // Ù¾Ø§Ø³Ø® 401/403 Ø¨Ø¯Ù†Ù‡Ù” Ø®Ø§Ù„ÛŒ Ø¯Ø§Ø±Ø¯Ø› Ø§Ú¯Ø± JSON Ù†Ø¨ÙˆØ¯ Ù†Ø¨Ø§ÛŒØ¯ Ú©Ù„ Ø¨Ø§Ø±Ú¯Ø°Ø§Ø±ÛŒ Ø¨ØªØ±Ø³Ø¯.
                 let d = {}; try { d = await r.json(); } catch { d = {}; }
                 value.textContent = r.ok && d.success
                     ? d.ip
-                    : (d.message || ((r.status === 401 || r.status === 403) ? "نیاز به دسترسی مدیر سیستم" : "دریافت IP ممکن نشد"));
-            } catch { value.textContent = "ارتباط با سرور برقرار نشد."; }
+                    : (d.message || ((r.status === 401 || r.status === 403) ? "Ù†ÛŒØ§Ø² Ø¨Ù‡ Ø¯Ø³ØªØ±Ø³ÛŒ Ù…Ø¯ÛŒØ± Ø³ÛŒØ³ØªÙ…" : "Ø¯Ø±ÛŒØ§ÙØª IP Ù…Ù…Ú©Ù† Ù†Ø´Ø¯"));
+            } catch { value.textContent = "Ø§Ø±ØªØ¨Ø§Ø· Ø¨Ø§ Ø³Ø±ÙˆØ± Ø¨Ø±Ù‚Ø±Ø§Ø± Ù†Ø´Ø¯."; }
             finally { refresh.disabled = false; }
         };
         refresh.onclick = load;
@@ -267,8 +291,8 @@
         const row = document.createElement("div"); row.className = "dashboard-access-row";
         const title = document.createElement("span"); title.textContent = label;
         const link = document.createElement("a"); link.href = url; link.target = "_blank"; link.rel = "noopener"; link.textContent = url;
-        const copy = document.createElement("button"); copy.type = "button"; copy.className = "secondary-button"; copy.textContent = "کپی";
-        copy.onclick = async () => { try { await navigator.clipboard.writeText(url); copy.textContent = "کپی شد"; setTimeout(() => copy.textContent = "کپی", 1500); } catch { window.prompt("لینک را کپی کنید:", url); } };
+        const copy = document.createElement("button"); copy.type = "button"; copy.className = "secondary-button"; copy.textContent = "Ú©Ù¾ÛŒ";
+        copy.onclick = async () => { try { await navigator.clipboard.writeText(url); copy.textContent = "Ú©Ù¾ÛŒ Ø´Ø¯"; setTimeout(() => copy.textContent = "Ú©Ù¾ÛŒ", 1500); } catch { window.prompt("Ù„ÛŒÙ†Ú© Ø±Ø§ Ú©Ù¾ÛŒ Ú©Ù†ÛŒØ¯:", url); } };
         row.append(title, link, copy);
         const qr = createAccessQr(url, label);
         if (qr) row.appendChild(qr);
@@ -291,13 +315,13 @@
             code.make();
             const box = document.createElement("div");
             box.className = "dashboard-access-qr";
-            box.innerHTML = code.createSvgTag({ cellSize: 4, margin: 16, scalable: true, alt: `کیوکد لینک ${label}` });
+            box.innerHTML = code.createSvgTag({ cellSize: 4, margin: 16, scalable: true, alt: `Ú©ÛŒÙˆÚ©Ø¯ Ù„ÛŒÙ†Ú© ${label}` });
             const hint = document.createElement("small");
-            hint.textContent = "برای باز کردن ReSiRai روی موبایل، دوربین را روی این کد بگیرید. برای اسکن آسان‌تر، روی کد کلیک کنید.";
+            hint.textContent = "Ø¨Ø±Ø§ÛŒ Ø¨Ø§Ø² Ú©Ø±Ø¯Ù† ReSiRai Ø±ÙˆÛŒ Ù…ÙˆØ¨Ø§ÛŒÙ„ØŒ Ø¯ÙˆØ±Ø¨ÛŒÙ† Ø±Ø§ Ø±ÙˆÛŒ Ø§ÛŒÙ† Ú©Ø¯ Ø¨Ú¯ÛŒØ±ÛŒØ¯. Ø¨Ø±Ø§ÛŒ Ø§Ø³Ú©Ù† Ø¢Ø³Ø§Ù†â€ŒØªØ±ØŒ Ø±ÙˆÛŒ Ú©Ø¯ Ú©Ù„ÛŒÚ© Ú©Ù†ÛŒØ¯.";
             box.append(hint);
             box.tabIndex = 0;
             box.setAttribute("role", "button");
-            box.setAttribute("aria-label", `بزرگ‌نمایی کیوآرکد ${label}`);
+            box.setAttribute("aria-label", `Ø¨Ø²Ø±Ú¯â€ŒÙ†Ù…Ø§ÛŒÛŒ Ú©ÛŒÙˆØ¢Ø±Ú©Ø¯ ${label}`);
             return box;
         } catch {
             // A broken QR must never take the dashboard down; the plain link stays.
@@ -305,9 +329,9 @@
         }
     }
 
-    // بزرگ‌نمایی همهٔ کیوآرکدهای برنامه — لینک‌های اجرا، جفت‌سازی، دانلود و
-    // دریافت تصویر. با یک شنوندهٔ سراسری، پنجره‌هایی که بعداً ساخته می‌شوند هم
-    // خودکار پوشش داده می‌شوند و لازم نیست هر جا دوباره سیم‌کشی شود.
+    // Ø¨Ø²Ø±Ú¯â€ŒÙ†Ù…Ø§ÛŒÛŒ Ù‡Ù…Ù‡Ù” Ú©ÛŒÙˆØ¢Ø±Ú©Ø¯Ù‡Ø§ÛŒ Ø¨Ø±Ù†Ø§Ù…Ù‡ â€” Ù„ÛŒÙ†Ú©â€ŒÙ‡Ø§ÛŒ Ø§Ø¬Ø±Ø§ØŒ Ø¬ÙØªâ€ŒØ³Ø§Ø²ÛŒØŒ Ø¯Ø§Ù†Ù„ÙˆØ¯ Ùˆ
+    // Ø¯Ø±ÛŒØ§ÙØª ØªØµÙˆÛŒØ±. Ø¨Ø§ ÛŒÚ© Ø´Ù†ÙˆÙ†Ø¯Ù‡Ù” Ø³Ø±Ø§Ø³Ø±ÛŒØŒ Ù¾Ù†Ø¬Ø±Ù‡â€ŒÙ‡Ø§ÛŒÛŒ Ú©Ù‡ Ø¨Ø¹Ø¯Ø§Ù‹ Ø³Ø§Ø®ØªÙ‡ Ù…ÛŒâ€ŒØ´ÙˆÙ†Ø¯ Ù‡Ù…
+    // Ø®ÙˆØ¯Ú©Ø§Ø± Ù¾ÙˆØ´Ø´ Ø¯Ø§Ø¯Ù‡ Ù…ÛŒâ€ŒØ´ÙˆÙ†Ø¯ Ùˆ Ù„Ø§Ø²Ù… Ù†ÛŒØ³Øª Ù‡Ø± Ø¬Ø§ Ø¯ÙˆØ¨Ø§Ø±Ù‡ Ø³ÛŒÙ…â€ŒÚ©Ø´ÛŒ Ø´ÙˆØ¯.
     function attachQrZoomDelegation() {
         const findBox = (target) => (target && target.closest ? target.closest(".dashboard-access-qr, .pair-qr") : null);
         document.addEventListener("click", (e) => {
@@ -315,7 +339,7 @@
             if (!box) return;
             const svg = box.querySelector("svg");
             if (!svg) return;
-            const alt = (svg.getAttribute("alt") || "").replace(/^کیوکد\s+|^کیوآرکد\s+/, "");
+            const alt = (svg.getAttribute("alt") || "").replace(/^Ú©ÛŒÙˆÚ©Ø¯\s+|^Ú©ÛŒÙˆØ¢Ø±Ú©Ø¯\s+/, "");
             ReSiRaiQrZoom(box, alt);
         });
         document.addEventListener("keydown", (e) => {
@@ -323,12 +347,12 @@
             const box = findBox(e.target);
             if (!box || !box.querySelector("svg")) return;
             e.preventDefault();
-            ReSiRaiQrZoom(box, (box.querySelector("svg").getAttribute("alt") || "").replace(/^کیوکد\s+|^کیوآرکد\s+/, ""));
+            ReSiRaiQrZoom(box, (box.querySelector("svg").getAttribute("alt") || "").replace(/^Ú©ÛŒÙˆÚ©Ø¯\s+|^Ú©ÛŒÙˆØ¢Ø±Ú©Ø¯\s+/, ""));
         });
     }
     attachQrZoomDelegation();
 
-    // نمای تمام‌صفحهٔ یک کیوآرکد؛ همان کد، فقط بزرگ‌تر تا هر دوربینی بگیردش.
+    // Ù†Ù…Ø§ÛŒ ØªÙ…Ø§Ù…â€ŒØµÙØ­Ù‡Ù” ÛŒÚ© Ú©ÛŒÙˆØ¢Ø±Ú©Ø¯Ø› Ù‡Ù…Ø§Ù† Ú©Ø¯ØŒ ÙÙ‚Ø· Ø¨Ø²Ø±Ú¯â€ŒØªØ± ØªØ§ Ù‡Ø± Ø¯ÙˆØ±Ø¨ÛŒÙ†ÛŒ Ø¨Ú¯ÛŒØ±Ø¯Ø´.
     function ReSiRaiQrZoom(box, label) {
         let overlay = document.getElementById("qrZoomOverlay");
         if (!overlay) {
@@ -337,7 +361,7 @@
             overlay.className = "qr-zoom-overlay hidden";
             overlay.innerHTML =
                 '<div class="qr-zoom-card">' +
-                '<button class="modal-close-button" type="button" aria-label="بستن">×</button>' +
+                '<button class="modal-close-button" type="button" aria-label="Ø¨Ø³ØªÙ†">Ã—</button>' +
                 '<div class="qr-zoom-body"></div>' +
                 '<small class="qr-zoom-hint"></small>' +
                 "</div>";
@@ -349,20 +373,20 @@
         }
         const svg = box?.querySelector("svg");
         const body = overlay.querySelector(".qr-zoom-body");
-        body.replaceChildren(svg ? svg.cloneNode(true) : document.createTextNode("کیوآرکد در دسترس نیست."));
+        body.replaceChildren(svg ? svg.cloneNode(true) : document.createTextNode("Ú©ÛŒÙˆØ¢Ø±Ú©Ø¯ Ø¯Ø± Ø¯Ø³ØªØ±Ø³ Ù†ÛŒØ³Øª."));
         overlay.querySelector(".qr-zoom-hint").textContent =
-            `${label ? `کیوآرکد ${label} — ` : ""}گوشی را ۱۰ تا ۱۵ سانتی‌متر از صفحه فاصله بدهید و ثابت نگه دارید.`;
+            `${label ? `Ú©ÛŒÙˆØ¢Ø±Ú©Ø¯ ${label} â€” ` : ""}Ú¯ÙˆØ´ÛŒ Ø±Ø§ Û±Û° ØªØ§ Û±Ûµ Ø³Ø§Ù†ØªÛŒâ€ŒÙ…ØªØ± Ø§Ø² ØµÙØ­Ù‡ ÙØ§ØµÙ„Ù‡ Ø¨Ø¯Ù‡ÛŒØ¯ Ùˆ Ø«Ø§Ø¨Øª Ù†Ú¯Ù‡ Ø¯Ø§Ø±ÛŒØ¯.`;
         overlay.classList.remove("hidden");
     }
     window.ReSiRaiQrZoom = ReSiRaiQrZoom;
     function renderRecentStudies(items) {
         const root = document.getElementById("dashboardRecentStudies"); root.replaceChildren();
-        if (!items.length) { root.textContent = "مطالعه‌ای ثبت نشده است."; return; }
+        if (!items.length) { root.textContent = "Ù…Ø·Ø§Ù„Ø¹Ù‡â€ŒØ§ÛŒ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª."; return; }
         items.forEach(item => {
             const row = document.createElement("button");
             row.type = "button";
             row.className = "dashboard-recent-row dashboard-recent-clickable";
-            row.title = "باز کردن پرونده بیمار و همین مطالعه";
+            row.title = "Ø¨Ø§Ø² Ú©Ø±Ø¯Ù† Ù¾Ø±ÙˆÙ†Ø¯Ù‡ Ø¨ÛŒÙ…Ø§Ø± Ùˆ Ù‡Ù…ÛŒÙ† Ù…Ø·Ø§Ù„Ø¹Ù‡";
 
             // Prefer a real thumbnail; fall back to the study icon when the study
             // has no image (or only PDFs).
@@ -373,14 +397,14 @@
             if (item.thumbnailImageID) {
                 media.src = `/api/radiologyimages/${item.thumbnailImageID}`;
                 media.alt = ""; media.loading = "lazy";
-                media.onerror = () => { media.removeAttribute("src"); media.textContent = "▣"; };
-            } else media.textContent = "▣";
+                media.onerror = () => { media.removeAttribute("src"); media.textContent = "â–£"; };
+            } else media.textContent = "â–£";
 
             const text = document.createElement("span");
             const name = document.createElement("strong");
             name.textContent = item.patientName;
             const meta = document.createElement("small");
-            meta.textContent = `${item.studyTypeName}${item.bodyPart ? ` — ${item.bodyPart}` : ""}`;
+            meta.textContent = `${item.studyTypeName}${item.bodyPart ? ` â€” ${item.bodyPart}` : ""}`;
             text.append(name, meta);
 
             const time = document.createElement("time");
@@ -393,12 +417,12 @@
     }
     function renderRecentImages(items) {
         const root = document.getElementById("dashboardRecentImages"); root.replaceChildren();
-        if (!items.length) { root.textContent = "تصویری ثبت نشده است."; return; }
+        if (!items.length) { root.textContent = "ØªØµÙˆÛŒØ±ÛŒ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª."; return; }
         items.forEach(item => {
             const row = document.createElement("button");
             row.type = "button";
             row.className = "dashboard-recent-row dashboard-recent-clickable";
-            row.title = item.contentType === "application/pdf" ? "باز کردن PDF در تب جدید" : "نمایش تصویر بزرگ";
+            row.title = item.contentType === "application/pdf" ? "Ø¨Ø§Ø² Ú©Ø±Ø¯Ù† PDF Ø¯Ø± ØªØ¨ Ø¬Ø¯ÛŒØ¯" : "Ù†Ù…Ø§ÛŒØ´ ØªØµÙˆÛŒØ± Ø¨Ø²Ø±Ú¯";
 
             const isPdf = item.contentType === "application/pdf";
             const media = isPdf ? document.createElement("span") : document.createElement("img");
@@ -459,7 +483,7 @@
         document.getElementById("patientsSection")?.classList.remove("hidden");
         setActive("patients");
         if (typeof window.loadPatients === "function") window.loadPatients();
-        // ناحیهٔ «معرفیِ بیمار» (کدِ ملی اول) همیشه بالایِ فهرست سوار شود.
+        // Ù†Ø§Ø­ÛŒÙ‡Ù” Â«Ù…Ø¹Ø±ÙÛŒÙ Ø¨ÛŒÙ…Ø§Ø±Â» (Ú©Ø¯Ù Ù…Ù„ÛŒ Ø§ÙˆÙ„) Ù‡Ù…ÛŒØ´Ù‡ Ø¨Ø§Ù„Ø§ÛŒÙ ÙÙ‡Ø±Ø³Øª Ø³ÙˆØ§Ø± Ø´ÙˆØ¯.
         if (window.ReSiRaiPatientDraft && window.ReSiRaiPatientDraft.mount) window.ReSiRaiPatientDraft.mount();
         window.scrollTo(0, 0);
     }
@@ -497,7 +521,7 @@
             if (!patients.length) {
                 const empty = document.createElement("div");
                 empty.className = "global-search-empty";
-                empty.textContent = "بیماری با این مشخصات یافت نشد.";
+                empty.textContent = "Ø¨ÛŒÙ…Ø§Ø±ÛŒ Ø¨Ø§ Ø§ÛŒÙ† Ù…Ø´Ø®ØµØ§Øª ÛŒØ§ÙØª Ù†Ø´Ø¯.";
                 results.appendChild(empty);
             } else {
                 patients.slice(0, 8).forEach(p => {
@@ -510,14 +534,14 @@
                     const img = document.createElement("img");
                     img.alt = ""; img.loading = "lazy";
                     img.src = `/api/patients/${p.patientID}/photo`;
-                    img.onerror = () => { img.remove(); avatar.textContent = "👤"; };
+                    img.onerror = () => { img.remove(); avatar.textContent = "ðŸ‘¤"; };
                     avatar.appendChild(img);
                     const text = document.createElement("span");
                     text.className = "global-search-text";
                     const name = document.createElement("strong");
                     name.textContent = `${p.firstName || ""} ${p.lastName || ""}`.trim() || "-";
                     const meta = document.createElement("small");
-                    meta.textContent = `${p.nationalCode || "-"}${p.mobile ? ` — ${p.mobile}` : ""}`;
+                    meta.textContent = `${p.nationalCode || "-"}${p.mobile ? ` â€” ${p.mobile}` : ""}`;
                     text.append(name, meta);
                     item.append(avatar, text);
                     item.addEventListener("click", () => { close(); input.value = ""; openSearchResult(p); });
@@ -566,9 +590,9 @@
         if (name === "patients") { dashboardVisible = false; stopDashboardAutoRefresh(); return openPatients(); }
         if (name === "settings") { dashboardVisible = false; stopDashboardAutoRefresh(); return openSettings(); }
         if (name === "help") { dashboardVisible = false; stopDashboardAutoRefresh(); return openHelp(); }
-        // گزارش‌ها: دسترسی در خودِ ماژول بررسی می‌شود (مدیرِ سیستم یا پرچمِ گزارش‌ها).
+        // Ú¯Ø²Ø§Ø±Ø´â€ŒÙ‡Ø§: Ø¯Ø³ØªØ±Ø³ÛŒ Ø¯Ø± Ø®ÙˆØ¯Ù Ù…Ø§Ú˜ÙˆÙ„ Ø¨Ø±Ø±Ø³ÛŒ Ù…ÛŒâ€ŒØ´ÙˆØ¯ (Ù…Ø¯ÛŒØ±Ù Ø³ÛŒØ³ØªÙ… ÛŒØ§ Ù¾Ø±Ú†Ù…Ù Ú¯Ø²Ø§Ø±Ø´â€ŒÙ‡Ø§).
         if (name === "reports") { dashboardVisible = false; stopDashboardAutoRefresh(); return window.ReSiRaiReports?.open(); }
-        // لاگِ رویدادها فقط برای مدیرِ سیستم است؛ ماژولِ خودش دسترسی را بررسی می‌کند.
+        // Ù„Ø§Ú¯Ù Ø±ÙˆÛŒØ¯Ø§Ø¯Ù‡Ø§ ÙÙ‚Ø· Ø¨Ø±Ø§ÛŒ Ù…Ø¯ÛŒØ±Ù Ø³ÛŒØ³ØªÙ… Ø§Ø³ØªØ› Ù…Ø§Ú˜ÙˆÙ„Ù Ø®ÙˆØ¯Ø´ Ø¯Ø³ØªØ±Ø³ÛŒ Ø±Ø§ Ø¨Ø±Ø±Ø³ÛŒ Ù…ÛŒâ€ŒÚ©Ù†Ø¯.
         if (name === "events") { dashboardVisible = false; stopDashboardAutoRefresh(); return window.ReSiRaiEvents?.open(); }
         if (placeholderSections[name]) { dashboardVisible = false; stopDashboardAutoRefresh(); return openPlaceholder(name); }
     }

@@ -5707,3 +5707,72 @@ textarea.visit-input{resize:vertical}
 .study-card-sections{margin-top:12px}
 @media(max-width:700px){.visit-field-row{grid-template-columns:1fr;align-items:start}.visit-field-error-text{grid-column:1/-1}}
 
+/* ==========================================================
+   داشبورد — کارت‌های شاد، خلاصه و فضای نگهداری تصاویر
+   ========================================================== */
+#dashboardSection .dashboard-summary-grid { gap: 14px; margin: 12px 0 18px; }
+#dashboardSection .dashboard-overall-grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+#dashboardSection .dashboard-today-grid { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+#dashboardSection .dashboard-detail-grid { grid-template-columns: 1fr; }
+
+#dashboardSection .dashboard-summary-card {
+    position: relative;
+    min-height: 122px;
+    padding: 18px 16px;
+    gap: 6px;
+    border: 1px solid transparent;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 24px rgba(12, 55, 70, .14);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+#dashboardSection .dashboard-summary-card:hover { transform: translateY(-3px); box-shadow: 0 16px 32px rgba(12, 55, 70, .2); }
+#dashboardSection .dashboard-summary-card strong { font-size: 34px; line-height: 1.05; }
+#dashboardSection .dashboard-summary-card span { font-size: 13px; font-weight: 600; }
+#dashboardSection .dashboard-metric-icon svg { width: 26px; height: 26px; }
+
+/* آمار کلی: گرادیانِ شاد + متنِ سفید */
+#dashboardSection .dashboard-overall-grid .dashboard-summary-card { color: #fff; }
+#dashboardSection .dashboard-overall-grid .dashboard-summary-card strong { color: #fff; text-shadow: 0 2px 10px rgba(0, 0, 0, .16); }
+#dashboardSection .dashboard-overall-grid .dashboard-summary-card span { color: rgba(255, 255, 255, .94); }
+#dashboardSection .dashboard-overall-grid .metric-blue {
+    background-color: #2f80ed;
+    background-image: radial-gradient(circle at 18% 12%, rgba(255,255,255,.30), transparent 46%), linear-gradient(135deg, #2f80ed, #06b6d4);
+}
+#dashboardSection .dashboard-overall-grid .metric-green {
+    background-color: #10b981;
+    background-image: radial-gradient(circle at 18% 12%, rgba(255,255,255,.30), transparent 46%), linear-gradient(135deg, #10b981, #84cc16);
+}
+
+/* امروز: پاستیلی با عددِ رنگی */
+#dashboardSection .today-card { color: #17364a; background-color: #eef6ff; }
+#dashboardSection .today-card strong { font-size: 30px; text-shadow: none; }
+#dashboardSection .today-card span { color: #4a6474; }
+#dashboardSection .today-patients { background-image: linear-gradient(160deg, #eef6ff, #dbeafe); border-color: #c7defa; }
+#dashboardSection .today-patients strong { color: #1d4ed8; }
+#dashboardSection .today-studies { background-image: linear-gradient(160deg, #f5f0ff, #e9ddff); border-color: #ddd0f7; }
+#dashboardSection .today-studies strong { color: #7c3aed; }
+#dashboardSection .today-new { background-image: linear-gradient(160deg, #fff7ec, #ffe6cc); border-color: #f7d9b8; }
+#dashboardSection .today-new strong { color: #c2410c; }
+#dashboardSection .today-card:not(.has-value) { opacity: .9; }
+#dashboardSection .today-card.has-value { box-shadow: 0 14px 28px rgba(12, 55, 70, .18); }
+
+/* فضای محل نگهداری تصاویر */
+#dashboardSection .dashboard-storage-panel {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 14px 16px;
+    border: 1px solid #d8e7ec;
+    border-radius: 14px;
+    background: #f7fbfd;
+}
+#dashboardSection .dashboard-storage-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+#dashboardSection .dashboard-storage-head strong { color: #0f5165; font-size: 13.5px; }
+#dashboardSection .dashboard-storage-head code { direction: ltr; font-size: 11.5px; color: #5b7180; background: #eef4f8; border-radius: 6px; padding: 2px 8px; }
+#dashboardSection .dashboard-storage-bar { height: 12px; background: #e3edf2; border-radius: 999px; overflow: hidden; }
+#dashboardSection .dashboard-storage-bar i { display: block; height: 100%; width: 0; border-radius: 999px; background: #22c55e; transition: width .4s ease; }
+#dashboardSection .dashboard-storage-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; color: #4a6474; }
+#dashboardSection .dashboard-storage-legend b { color: #123; }
+#dashboardSection .dashboard-storage-legend #dashboardStoragePct { margin-inline-start: auto; color: #0e7d55; font-weight: 700; }
+
