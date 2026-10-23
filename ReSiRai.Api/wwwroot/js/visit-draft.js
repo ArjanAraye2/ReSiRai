@@ -257,7 +257,7 @@
         console.info("[مراجعه] hydrate: رشته=" + specialtyID + " دلیل مراجعه=" + typeItems.length + " پزشکان=" + ctx.doctors.length);
         if (!typeItems.length) { const st = host.__state; if (st) st.textContent = "فهرستِ «دلیل مراجعه» نیامد — کنسولِ مرورگر (F12) را ببینید. (HTTP: " + (window.__lastTypeHTTP || "?") + ")"; }
         fillSelect(rows.type.input, typeItems.map(t => ({
-            value: t.StudyTypeID, text: t.StudyTypeName
+            value: t.studyTypeID, text: t.studyTypeName
         })), study ? (study.studyTypeID ?? "") : "");
 
         fillSelect(rows.waitStage.input, (await loadWaitStages(specialtyID)).map(w => ({
@@ -292,7 +292,7 @@
             const sid = (doc && doc.specialtyID) || ctx.specialtyID || 0;
             const keep = rows.type.input.value;
             fillSelect(rows.type.input, (await loadTypes(sid)).items.map(t => ({
-            value: t.StudyTypeID, text: t.StudyTypeName
+            value: t.studyTypeID, text: t.studyTypeName
         })), keep);
             fillSelect(rows.waitStage.input, (await loadWaitStages(sid)).map(w => ({ value: w.waitStageID, text: w.name })), rows.waitStage.input.value);
             host.__syncConditionals && host.__syncConditionals();
