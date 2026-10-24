@@ -655,7 +655,7 @@
         section.className = "study-form-card";
         const title = document.createElement("h3");
         title.className = "study-form-card-title";
-        title.textContent = "شرایط فعلی بیمار";
+        title.textContent = "شرایط فعلی بیمار و فاکتورهای بالینی";
         host = document.createElement("div");
         host.id = "studyFactorsPanel";
         host.className = "factors-panel";
@@ -696,7 +696,7 @@
             section.className = "study-form-card factors-card-section";
             const title = document.createElement("h3");
             title.className = "study-form-card-title";
-            title.textContent = "شرایط فعلی بیمار";
+            title.textContent = "شرایط فعلی بیمار و فاکتورهای بالینی";
             host = document.createElement("div");
             host.className = "factors-panel";
             section.append(title, host);

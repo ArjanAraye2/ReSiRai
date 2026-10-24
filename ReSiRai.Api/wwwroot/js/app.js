@@ -684,6 +684,7 @@ let sectionsHome=null;
      imageActions.className="study-card-image-actions";
      [["عکس/فایل جدید (دوربین یا کامپیوتر)",()=>openUploadImageForm(study),false],
       ["الصاق تصویر موجود از پرونده",()=>{selectVisit(study);window.ReSiRaiImagePickup.open();},true],
+      ["استخراج آزمایش از برگه",()=>{selectVisit(study);window.ReSiRaiLabExtract?.open(study.studyID);},true],
       ["عکس با دوربین گوشی",()=>{selectVisit(study);window.ReSiRaiReceive?.open({purpose:1,study,patientID:study.patientID});},false],
       ["دریافت لینک رادیولوژی از گوشی",()=>{selectVisit(study);window.ReSiRaiReceive?.open({purpose:2,study,patientID:study.patientID});},false],
       ["ارسال لینک تصویر با پیامک",()=>{selectVisit(study);window.ReSiRaiShareImages&&window.ReSiRaiShareImages.open();},false]]
