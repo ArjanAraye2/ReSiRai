@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head><meta charset="utf-8"><title>smoke16</title></head>
+<body>
+<!-- نگهبانِ باگِ «انصرافِ ویرایشِ بیمار»:
+     صفحهٔ واقعی دیگر دکمه/بخشِ «بیمار جدید»ِ قدیمی را ندارد؛ app.js هنگامِ
+     راه‌اندازی روی همان دکمه‌های حذف‌شده onclick می‌گذاشت و با TypeError
+     می‌مُرد، پس هندلرِ انصرافِ ویرایش هرگز وصل نمی‌شد. این آزمون همان DOMِ
+     واقعی (بدونِ دکمه‌های قدیمی) را می‌سازد و وصل‌بودنِ هندلر را قفل می‌کند. -->
+<script>
+  window.__requests = [];
+  (function(){
+    const json = obj => new Response(JSON.stringify(obj), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    const realFetch = window.fetch.bind(window);
+    window.fetch = function(url, opts){
+      const u = String(url);
+      if (u.indexOf('/api/auth/me') >= 0)
+        return Promise.resolve(json({ success: true, user: { userID: 1, userName: '0010000001', staffID: 1, firstName: 'ت', lastName: 'آ', staffType: 1, isSuperAdmin: false, viewReports: false } }));
+      if (u.indexOf('/api/patients') >= 0 && u.indexOf('/details') >= 0)
+        return Promise.resolve(new Response(JSON.stringify({ success: false }), { status: 404, headers: { 'Content-Type': 'application/json' } }));
+      if (u.indexOf('/api/patients') >= 0)
+        return Promise.resolve(json({ success: true, count: 0, totalCount: 0, offset: 0, pageSize: 100, hasMore: false, statistics: {}, patients: [] }));
+      return realFetch(url, opts);
+    };
+  })();
+</script>
+<!-- DOMِ لازم برای راه‌اندازیِ app.js؛ عمداً بدونِ cancelNewPatientButton و newPatientSection -->
+<section id="patientsSection"><table class="patient-table patient-table-compact"><thead><tr><th>بیمار</th><th>تماس</th><th>بیمه</th><th>مراجعات</th><th>آخرین مراجعه</th><th>پیگیری</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody id="patientsTableBody"></tbody></table></section>
+<div id="statusMessage" class="status-message"></div>
+<div class="search-panel"><input id="patientSearch" type="text" /><button id="searchButton" type="button"></button><button id="clearSearchButton" type="button"></button><button id="newPatientButton" type="button"></button></div>
+<label class="checkbox-row"><input id="includeInactivePatients" type="checkbox" /></label>
+<label class="checkbox-row"><input id="openStudiesOnly" type="checkbox" /></label>
+<label class="checkbox-row"><input id="dueFollowUpOnly" type="checkbox" /></label>
+<span id="statTotalPatients"></span><span id="statActivePatients"></span><span id="statInactivePatients"></span><span id="statPatientsWithStudies"></span><span id="statPatientsWithOpenStudies"></span>
+<form id="editPatientForm"></form><form id="newStudyForm"></form><form id="uploadImageForm"></form><form id="mergePatientForm"></form>
+<section id="editPatientSection" class="hidden">
+  <button id="cancelEditPatientButton" type="button">انصراف</button>
+  <button id="cancelEditPatientButtonBottom" type="button">انصراف</button>
+</section>
+<button id="backToPatientsButton" type="button"></button><button id="cancelNewStudyButtonBottom" type="button"></button><button id="cancelUploadImageButton" type="button"></button><button id="cancelUploadImageButtonBottom" type="button"></button><button id="cancelMergePatientButton" type="button"></button><button id="cancelMergePatientButtonBottom" type="button"></button>
+<section id="patientDetailsSection" class="hidden">
+  <h2 id="patientFullName"></h2><p id="patientDisplayCode"></p><p id="patientNationalCode"></p><span id="patientStatusBadge"></span>
+  <div id="studiesContainer"></div><div id="recentStudiesSummary"></div><span id="studyCount"></span><span id="totalImageCount"></span><span id="lastStudyDateSummary"></span>
+</section>
+<section id="newStudySection" class="hidden"></section><section id="uploadImageSection" class="hidden"></section><section id="mergePatientSection" class="hidden"></section><section id="studyDetailsSection" class="hidden"></section><section id="studyImagesSection" class="hidden"></section>
+<input id="imageFileInput" type="file" /><input id="cameraFileInput" type="file" /><div id="cameraPreviewPanel" class="hidden"></div>
+<div id="imageModal"><img id="largeImage" /></div>
+<button id="zoomInImageButton" type="button"></button><button id="zoomOutImageButton" type="button"></button><button id="rotateLeftImageButton" type="button"></button><button id="rotateRightImageButton" type="button"></button><button id="flipHorizontalImageButton" type="button"></button><button id="resetImageViewButton" type="button"></button><button id="closeImageModalButton" type="button"></button>
+<div id="toastContainer"></div>
+<script src="/app.js"></script>
+<script>
+(async () => {
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  await wait(900);
+  const top = document.getElementById('cancelEditPatientButton');
+  const bottom = document.getElementById('cancelEditPatientButtonBottom');
+  const edit = document.getElementById('editPatientSection');
+  const patients = document.getElementById('patientsSection');
+  const out = {
+    topFn: typeof top?.onclick === 'function',
+    bottomFn: typeof bottom?.onclick === 'function'
+  };
+  patients.classList.add('hidden');
+  edit.classList.remove('hidden');
+  bottom?.onclick?.();
+  await wait(150);
+  out.editHidden = edit.classList.contains('hidden');
+  const pass = out.topFn && out.bottomFn && out.editHidden;
+  document.title = (pass ? 'SMOKE16-PASS' : 'SMOKE16-FAIL')
+    + ' top=' + out.topFn + ' bottom=' + out.bottomFn + ' hidden=' + out.editHidden;
+})();
+</script>
+</body>
+</html>

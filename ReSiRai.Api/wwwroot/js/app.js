@@ -1269,7 +1269,7 @@ E.mergePatientButton?.addEventListener("click",openMergePatientForm);
 E.editPatientForm?.addEventListener("submit",e=>{e.preventDefault();updatePatient();});
 E.uploadImageForm?.addEventListener("submit",e=>{e.preventDefault();uploadImage();});
 E.mergePatientForm?.addEventListener("submit",e=>{e.preventDefault();mergePatient();});
-[[E.cancelNewPatientButton,E.cancelNewPatientButtonBottom]].flat().forEach(b=>b.onclick=()=>{E.newPatientSection?.classList.add("hidden");E.patientsSection?.classList.remove("hidden");showPatientsScreen();});[E.cancelEditPatientButton,E.cancelEditPatientButtonBottom,E.cancelNewStudyButtonBottom,E.cancelMergePatientButton,E.cancelMergePatientButtonBottom].forEach(b=>b&&(b.onclick=()=>{E.editPatientSection?.classList.add("hidden");E.patientsSection?.classList.remove("hidden");openPatient(selectedPatientID);}));// بازگشت از فرم آپلود به همان‌جایی که فراخوانده شده (برچسب: «بازگشت به مراجعه»).
+[[E.cancelNewPatientButton,E.cancelNewPatientButtonBottom]].flat().forEach(b=>b&&(b.onclick=()=>{E.newPatientSection?.classList.add("hidden");E.patientsSection?.classList.remove("hidden");showPatientsScreen();}));[E.cancelEditPatientButton,E.cancelEditPatientButtonBottom,E.cancelNewStudyButtonBottom,E.cancelMergePatientButton,E.cancelMergePatientButtonBottom].forEach(b=>b&&(b.onclick=()=>{E.editPatientSection?.classList.add("hidden");E.patientsSection?.classList.remove("hidden");openPatient(selectedPatientID);}));// بازگشت از فرم آپلود به همان‌جایی که فراخوانده شده (برچسب: «بازگشت به مراجعه»).
 function goBackFromUpload(){
  const r = uploadReturnTo;
  if (r && r.kind === "images" && r.study) return openStudyImages(r.study);
