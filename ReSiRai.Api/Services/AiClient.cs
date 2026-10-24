@@ -377,7 +377,7 @@ public sealed class AiClient
     public async Task<byte[]> UprightAsync(byte[] bytes, CancellationToken cancellationToken)
     {
         string exe = TesseractExe;
-        if (exe.Length == 0 || !OperatingSystem.IsWindows()) return bytes;
+        if (exe.Length == 0) return bytes;
         string temp = Path.Combine(Path.GetTempPath(), "resirai-upright-" + Guid.NewGuid().ToString("N") + ".jpg");
         try
         {
@@ -423,7 +423,7 @@ public sealed class AiClient
             catch (AiException) { /* بدونِ چرخش ادامه می‌دهیم */ }
             var match = System.Text.RegularExpressions.Regex.Match(osd, @"Rotate:\s*(\d+)");
             bool turned = false;
-            if (match.Success && OperatingSystem.IsWindows())
+            if (match.Success)
             {
                 int angle = int.Parse(match.Groups[1].Value) % 360;
                 if (angle != 0)
