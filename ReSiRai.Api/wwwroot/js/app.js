@@ -259,7 +259,7 @@ async function loadStudyDetailsImages(study){
  E.studyDetailsImagesGrid.replaceChildren();setFormStatus(E.studyDetailsImagesStatus,"در حال دریافت فایل‌ها...",false);
  try{const r=await fetch(`/api/radiologyimages/study/${study.studyID}`),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"فایل‌های مراجعه دریافت نشد."));
   const all=x.images||[],docs=all.filter(isCardDocumentImage),xrays=all.filter(im=>!isCardDocumentImage(im));
-  renderImagesInGrid(xrays,E.studyDetailsImagesGrid);
+  renderImagesInGrid(xrays,E.studyDetailsImagesGrid,{_flat:true});
   setFormStatus(E.studyDetailsImagesStatus,xrays.length?"":(docs.length?"برای این مراجعه فقط کارت سابقه ثبت شده است.":"هنوز فایلی به این مراجعه متصل نشده است."),false);
  }catch(e){setFormStatus(E.studyDetailsImagesStatus,e.message||"فایل‌های مراجعه دریافت نشد.",true);}
 }
@@ -776,7 +776,7 @@ async function hydrateStudyCard(study,chart,status,grid,docsSection){
  // همان render بالا با لیست خالی انجام شده است).
  const teethLine=chart?chart.closest(".study-scroll-chart")?.querySelector(".study-chart-teeth"):null;
  if(teethLine){teethLine.textContent=toothLineText(teeth);teethLine.title=teethLine.textContent;}
- if(imagesResult.status==="fulfilled"){const {r,x}=imagesResult.value;if(r.ok&&x.success){const all=x.images||[],docs=all.filter(isCardDocumentImage),xrays=all.filter(im=>!isCardDocumentImage(im));renderImagesInGrid(xrays,grid);if(docsSection){docsSection.classList.toggle("hidden",!docs.length);renderImagesInGrid(docs,docsSection.querySelector(".images-grid"),{docs:true});}const parts=[];if(xrays.length)parts.push(`${xrays.length} تصویر / فایل`);if(docs.length)parts.push(`${docs.length} سند`);status.textContent=parts.length?parts.join(" · "):"برای این مراجعه هنوز تصویری ثبت نشده است.";return;}status.textContent=getApiError(x,"تصاویر مطالعه دریافت نشد.");}
+ if(imagesResult.status==="fulfilled"){const {r,x}=imagesResult.value;if(r.ok&&x.success){const all=x.images||[],docs=all.filter(isCardDocumentImage),xrays=all.filter(im=>!isCardDocumentImage(im));renderImagesInGrid(xrays,grid,{_flat:true});if(docsSection){docsSection.classList.toggle("hidden",!docs.length);renderImagesInGrid(docs,docsSection.querySelector(".images-grid"),{docs:true,_flat:true});}const parts=[];if(xrays.length)parts.push(`${xrays.length} تصویر / فایل`);if(docs.length)parts.push(`${docs.length} سند`);status.textContent=parts.length?parts.join(" · "):"برای این مراجعه هنوز تصویری ثبت نشده است.";return;}status.textContent=getApiError(x,"تصاویر مطالعه دریافت نشد.");}
  else status.textContent="تصاویر مطالعه دریافت نشد.";status.classList.toggle("error",!imagesResult.value?.r?.ok);
 }
 
