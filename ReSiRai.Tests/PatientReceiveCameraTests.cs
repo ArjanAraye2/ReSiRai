@@ -36,7 +36,7 @@ public class PatientReceiveCameraTests : IDisposable
         var inbox = new SmsInboxService(_db, new StubHttpClientFactory(), storage, NullLogger<SmsInboxService>.Instance);
         var config = new ConfigurationBuilder().Build();
         _controller = new PatientReceiveController(
-            _db, inbox, new StubEnvironment(), config, new AppEventLogger(_db));
+            _db, inbox, new StubEnvironment(), config, new AppEventLogger(_db), storage);
     }
 
     public void Dispose()
@@ -110,6 +110,38 @@ public class PatientReceiveCameraTests : IDisposable
         var result = await _controller.UploadFromCamera(token, Jpeg(), default);
 
         Assert.IsType<NotFoundObjectResult>(result);
+        Assert.Equal(0, _db.RadiologyImages.Count());
+    }
+
+    [Fact]
+    public async Task PatientPhoto_WithValidToken_SetsProfilePhoto_WithoutNeedingStudy()
+    {
+        var (token, _) = await AddPatientStudyAndToken(withStudy: false);
+
+        var result = await _controller.UploadPatientPhoto(token, Jpeg(), default);
+
+        Assert.IsType<OkObjectResult>(result);
+        var patient = _db.Patients.Single();
+        Assert.False(string.IsNullOrWhiteSpace(patient.PhotoRelativePath));
+        Assert.True(System.IO.File.Exists(Path.Combine(_root, patient.PhotoRelativePath!)));
+        Assert.Equal(0, _db.RadiologyImages.Count());
+    }
+
+    [Fact]
+    public async Task PatientPhoto_NonImageBytes_IsRejected()
+    {
+        var (token, _) = await AddPatientStudyAndToken();
+        var bytes = System.Text.Encoding.UTF8.GetBytes("not a photo");
+        var file = new FormFile(new MemoryStream(bytes), 0, bytes.Length, "file", "photo.jpg")
+        {
+            Headers = new HeaderDictionary(),
+            ContentType = "image/jpeg"
+        };
+
+        var result = await _controller.UploadPatientPhoto(token, file, default);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Null(_db.Patients.Single().PhotoRelativePath);
         Assert.Equal(0, _db.RadiologyImages.Count());
     }
 

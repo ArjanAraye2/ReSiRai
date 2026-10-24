@@ -29,19 +29,22 @@ namespace ReSiRai.Api.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly IConfiguration _configuration;
         private readonly AppEventLogger _events;
+        private readonly RadiologyStorageService _storage;
 
         public PatientReceiveController(
             ReSiRaiDbContext db,
             SmsInboxService inbox,
             IWebHostEnvironment environment,
             IConfiguration configuration,
-            AppEventLogger events)
+            AppEventLogger events,
+            RadiologyStorageService storage)
         {
             _db = db;
             _inbox = inbox;
             _environment = environment;
             _configuration = configuration;
             _events = events;
+            _storage = storage;
         }
 
         public sealed record ReceiveRequest(string? Text);
@@ -297,6 +300,66 @@ namespace ReSiRai.Api.Controllers
                 studyID,
                 message = "عکس با موفقیت به این مراجعه اضافه شد."
             });
+        }
+
+        // ------------------------------------------------------------
+        // The patient's own portrait, taken with the same phone camera.
+        // It belongs to the patient record, so it does not need a Study.
+        // ------------------------------------------------------------
+        [AllowAnonymous]
+        [HttpPost("/api/receive/{token}/patient-photo")]
+        [RequestSizeLimit(30_000_000)]
+        public async Task<IActionResult> UploadPatientPhoto(string token, IFormFile? file, CancellationToken cancellationToken)
+        {
+            var record = await ResolveAsync(token, cancellationToken);
+            if (record == null)
+                return NotFound(new { success = false, message = "این لینک دیگر معتبر نیست." });
+
+            if (record.Token.UseCount >= 50)
+                return BadRequest(new { success = false, message = "این لینک به سقفِ استفاده رسیده است؛ از مطب لینک تازه بگیرید." });
+            if (file == null || file.Length == 0)
+                return BadRequest(new { success = false, message = "عکسی انتخاب نشده است." });
+            if (file.Length > 10 * 1024 * 1024)
+                return BadRequest(new { success = false, message = "حجم عکس چهره بیشتر از ۱۰ مگابایت است؛ عکس کوچک‌تری بگیرید." });
+
+            byte[] bytes;
+            await using (var buffer = new MemoryStream())
+            {
+                await file.CopyToAsync(buffer, cancellationToken);
+                bytes = buffer.ToArray();
+            }
+
+            var kind = DetectCameraImage(bytes);
+            if (kind == null)
+                return BadRequest(new { success = false, message = "فقط عکسِ JPEG یا PNG قابل ارسال است." });
+
+            var patient = await _db.Patients
+                .FirstOrDefaultAsync(x => x.PatientID == record.PatientID, cancellationToken);
+            if (patient == null)
+                return NotFound(new { success = false, message = "بیمار پیدا نشد." });
+
+            string relativePath = Path.Combine(
+                "Patients", patient.PatientID.ToString(), "Profile",
+                $"patient-{Guid.NewGuid():N}{kind.Value.Extension}");
+            string root = _storage.GetRootPath();
+            string fullPath = Path.Combine(root, relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+            await System.IO.File.WriteAllBytesAsync(fullPath, bytes, cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(patient.PhotoRelativePath))
+            {
+                string oldPath = Path.Combine(root, patient.PhotoRelativePath);
+                try { if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath); } catch { }
+            }
+
+            patient.PhotoRelativePath = relativePath;
+            patient.ModifiedDate = DateTime.Now;
+            await _db.SaveChangesAsync(cancellationToken);
+            await TouchAsync(record, cancellationToken);
+            await _events.LogAsync("PatientReceivePatientPhoto", "ok",
+                $"patient={patient.PatientID}; bytes={bytes.Length}", userName: "receive-token");
+
+            return Ok(new { success = true, message = "عکس بیمار ثبت شد." });
         }
 
         // ------------------------------------------------------------

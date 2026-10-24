@@ -55,16 +55,16 @@
   }
 
   .card h2 { margin:0 0 8px; font-size:16px; color:var(--ink); }
-  #cameraPreview { margin-top:12px; }
-  #cameraPreviewImage {
+  #cameraPreview, #patientPhotoPreview { margin-top:12px; }
+  #cameraPreviewImage, #patientPhotoPreviewImage {
     width:100%; max-height:55vh; object-fit:contain; display:block;
     border:1px solid var(--line); border-radius:12px; background:#0b222b;
   }
 
-  #result, #cameraResult { display:none; margin-top:14px; padding:14px; border-radius:12px; font-size:14.5px; }
-  #result.ok, #cameraResult.ok { display:block; background:#e8f7f0; color:#0e7d55; border:1px solid #bfe7d7; }
-  #result.warn, #cameraResult.warn { display:block; background:#fff4e0; color:#a06400; border:1px solid #f4ddae; }
-  #result.err, #cameraResult.err { display:block; background:#fdecec; color:#b42318; border:1px solid #f3c2c0; }
+  #result, #cameraResult, #patientPhotoResult { display:none; margin-top:14px; padding:14px; border-radius:12px; font-size:14.5px; }
+  #result.ok, #cameraResult.ok, #patientPhotoResult.ok { display:block; background:#e8f7f0; color:#0e7d55; border:1px solid #bfe7d7; }
+  #result.warn, #cameraResult.warn, #patientPhotoResult.warn { display:block; background:#fff4e0; color:#a06400; border:1px solid #f4ddae; }
+  #result.err, #cameraResult.err, #patientPhotoResult.err { display:block; background:#fdecec; color:#b42318; border:1px solid #f3c2c0; }
 
   footer { max-width:640px; margin:18px auto 0; padding:0 16px; color:var(--muted); font-size:12.5px; text-align:center; }
 </style>
@@ -91,6 +91,22 @@
       <button id="retakePhotoButton" class="secondary" type="button">گرفتن عکس دوباره</button>
     </div>
     <div id="cameraResult"></div>
+  </div>
+
+  <div class="card" id="patientPhotoCard" hidden>
+    <h2>عکس بیمار (چهره)</h2>
+    <p class="steps" style="padding:0">
+      برای پروندهٔ بیمار، روبه‌روی دوربین و با نور کافی عکس بگیرید.
+      این عکس روی پروندهٔ خودِ بیمار ذخیره می‌شود.
+    </p>
+    <input id="patientPhotoInput" type="file" accept="image/jpeg,image/png" capture="user" hidden />
+    <button id="patientPhotoButton" class="primary" type="button">گرفتن عکس چهره</button>
+    <div id="patientPhotoPreview" hidden>
+      <img id="patientPhotoPreviewImage" alt="پیش‌نمایش عکس بیمار" />
+      <button id="sendPatientPhotoButton" class="primary" type="button">ثبت عکس بیمار</button>
+      <button id="retakePatientPhotoButton" class="secondary" type="button">گرفتن عکس دوباره</button>
+    </div>
+    <div id="patientPhotoResult"></div>
   </div>
 
   <div class="card">
@@ -186,11 +202,76 @@
       });
   });
 
+  var patientPhotoCard = $("patientPhotoCard"), patientPhotoInput = $("patientPhotoInput");
+  var patientPhotoButton = $("patientPhotoButton"), patientPhotoPreview = $("patientPhotoPreview");
+  var patientPhotoImage = $("patientPhotoPreviewImage");
+
+  function showPatientPhoto(kind, text) {
+    var box = $("patientPhotoResult");
+    box.className = kind;
+    box.textContent = text;
+    box.style.display = "block";
+  }
+
+  function clearPatientPhoto() {
+    var box = $("patientPhotoResult");
+    box.className = ""; box.textContent = ""; box.style.display = "none";
+  }
+
+  patientPhotoButton.addEventListener("click", function () { patientPhotoInput.click(); });
+
+  patientPhotoInput.addEventListener("change", function () {
+    var file = patientPhotoInput.files && patientPhotoInput.files[0];
+    if (!file) return;
+    clearPatientPhoto();
+    patientPhotoImage.src = URL.createObjectURL(file);
+    patientPhotoPreview.hidden = false;
+    patientPhotoButton.hidden = true;
+  });
+
+  $("retakePatientPhotoButton").addEventListener("click", function () {
+    patientPhotoInput.value = "";
+    patientPhotoPreview.hidden = true;
+    patientPhotoButton.hidden = false;
+    clearPatientPhoto();
+    patientPhotoInput.click();
+  });
+
+  $("sendPatientPhotoButton").addEventListener("click", function () {
+    var file = patientPhotoInput.files && patientPhotoInput.files[0];
+    if (!file) { showPatientPhoto("warn", "اول عکس بگیرید."); return; }
+    var button = $("sendPatientPhotoButton");
+    button.disabled = true;
+    button.textContent = "در حال ثبت…";
+    clearPatientPhoto();
+    var form = new FormData();
+    form.append("file", file);
+    fetch(api + "/patient-photo", { method: "POST", body: form })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        var d = res.d || {};
+        if (!res.ok || !d.success) { showPatientPhoto("err", d.message || "ثبت عکس بیمار انجام نشد."); return; }
+        showPatientPhoto("ok", d.message || "عکس بیمار ثبت شد.");
+        patientPhotoInput.value = "";
+        patientPhotoPreview.hidden = true;
+        patientPhotoButton.hidden = false;
+        patientPhotoButton.textContent = "گرفتن عکس دیگر";
+      })
+      .catch(function () { showPatientPhoto("err", "اتصال برقرار نشد؛ دوباره تلاش کنید."); })
+      .finally(function () {
+        button.disabled = false;
+        button.textContent = "ثبت عکس بیمار";
+      });
+  });
+
   fetch(api, { cache: "no-store" })
     .then(function (r) { return r.json(); })
     .then(function (d) {
       $("who").textContent = d.success && d.firstName ? "بیمار: " + d.firstName : "صفحهٔ دریافت تصویر";
-      if (d.success && d.canCapture) cameraCard.hidden = false;
+      if (d.success) {
+        cameraCard.hidden = !d.canCapture;
+        patientPhotoCard.hidden = false;
+      }
       if (!d.success) show("err", d.message || "این لینک معتبر نیست.");
     })
     .catch(function () { $("who").textContent = "دریافت تصویر"; });
