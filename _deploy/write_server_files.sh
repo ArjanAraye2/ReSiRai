@@ -39,6 +39,7 @@ cat > ~/reSirai/config/ReSiRai.config.json <<'CFG'
 {
   "Database": { "Provider": "Postgres" },
   "ConnectionStrings": { "Postgres": "Host=db;Port=5432;Database=resirai;Username=resirai;Password=R7s8R84ai-Clinic" },
+  "RemoteAccess": { "PublicHost": "resirai.ir", "PublicScheme": "https", "PublicPort": 443 },
   "RadiologyStorage": { "RootPath": "/var/lib/ReSiRai/images" },
   "Backup": { "RootPath": "/var/lib/ReSiRai/backup", "KeepBackups": 7 }
 }
