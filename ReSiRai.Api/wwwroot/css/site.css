@@ -5820,3 +5820,336 @@ textarea.visit-input{resize:vertical}
     #patientsSection .table-container .patient-list-toolbar .search-container { grid-template-columns: 1fr; }
 }
 
+/* ==========================================================
+   Patients workspace — soft aurora (۱۴۰۵/۰۸/۰۲)
+   رنگ‌های آرام و شادِ برند برای فهرستِ بیماران؛
+   فقط رنگ/عمق/گردی — چیدمان و رفتار دست‌نخورده.
+   ========================================================== */
+
+#patientsSection {
+    position: relative;
+    background:
+        linear-gradient(90deg, #6fc3e8, #7e8ff2 34%, #d9a6d2 68%, #f6c48e) top center / 100% 5px no-repeat,
+        radial-gradient(760px 220px at 100% -10%, rgba(126, 143, 242, .10), transparent 60%),
+        radial-gradient(620px 200px at 0% 0%, rgba(111, 195, 232, .12), transparent 58%),
+        #ffffff;
+    border-color: #ddeaf5;
+    box-shadow: 0 18px 42px rgba(23, 74, 104, .08);
+}
+
+/* سربرگِ روشن + نوارِ باریکِ رنگین */
+#patientsSection .section-header {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(190px 130px at 18% 125%, rgba(111, 195, 232, .20), transparent 70%),
+        radial-gradient(170px 170px at 100% -18%, rgba(126, 143, 242, .18), transparent 70%),
+        radial-gradient(160px 140px at 62% 130%, rgba(217, 166, 210, .14), transparent 72%),
+        linear-gradient(115deg, #f7fdff 0%, #f4f8ff 52%, #fdf8ff 100%);
+    border: 1px solid #e4eef9;
+    border-radius: 14px;
+    box-shadow: inset 0 1px 0 #ffffff;
+}
+#patientsSection .section-header::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #6fc3e8, #7e8ff2 52%, #d9a6d2);
+}
+#patientsSection .section-header h2 { position: relative; color: #10465b; }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    #patientsSection .section-header h2 {
+        background: linear-gradient(90deg, #0f7a95, #5b8def 58%, #9a7bd0);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+}
+#patientsSection .section-header p { color: #6f8398; }
+
+/* پنج کارتِ آمار: هر کدام یک گرادیانِ آرام و متمایز */
+#patientsSection .patient-statistics {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+#patientsSection .patient-statistics > div {
+    position: relative;
+    overflow: hidden;
+    border: 0;
+    border-radius: 15px;
+    color: #ffffff;
+    box-shadow: 0 10px 22px rgba(23, 74, 104, .14);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+#patientsSection .patient-statistics > div:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 28px rgba(23, 74, 104, .20);
+}
+#patientsSection .patient-statistics > div::after {
+    content: "";
+    position: absolute;
+    inset-inline-end: -24px;
+    bottom: -40px;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .15);
+}
+#patientsSection .patient-statistics strong {
+    position: relative;
+    z-index: 1;
+    color: #ffffff;
+    font-size: 20px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, .14);
+}
+#patientsSection .patient-statistics span {
+    position: relative;
+    z-index: 1;
+    color: rgba(255, 255, 255, .94);
+    font-weight: 600;
+}
+#patientsSection .patient-statistics > div:nth-child(1) { background: linear-gradient(135deg, #5b8def, #6fc3e8); }
+#patientsSection .patient-statistics > div:nth-child(2) { background: linear-gradient(135deg, #2fae87, #7ed6a8); }
+#patientsSection .patient-statistics > div:nth-child(3) { background: linear-gradient(135deg, #e2849f, #f3b4c4); }
+#patientsSection .patient-statistics > div:nth-child(4) { background: linear-gradient(135deg, #8579d9, #b8a7f2); }
+#patientsSection .patient-statistics > div:nth-child(5) { background: linear-gradient(135deg, #ec9a63, #f6c48e); }
+
+/* جستجو و فیلترها: یک نوارِ منظم؛ فیلترها در یک ردیف */
+#patientsSection .table-container .patient-list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    border-bottom-color: #e8eef8;
+}
+#patientsSection .table-container .patient-list-toolbar .search-container {
+    flex: 1 1 100%;
+    width: 100%;
+}
+#patientsSection .table-container .patient-list-toolbar .checkbox-row { margin-top: 0; }
+#patientsSection .table-container .patient-list-toolbar .patient-reminder-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+}
+#patientsSection .table-container .patient-list-toolbar .patient-reminder-filters .checkbox-row { margin-top: 0; }
+#patientsSection #patientSearch {
+    background: #ffffff;
+    border-color: #d9e6f5;
+    box-shadow: 0 2px 8px rgba(91, 141, 239, .06);
+}
+#patientsSection #patientSearch:focus {
+    border-color: #8f9cf0;
+    box-shadow: 0 0 0 4px rgba(126, 143, 242, .14);
+    outline: 0;
+}
+#patientsSection .search-container button:not(.secondary-button) {
+    background: linear-gradient(135deg, #0e7f95, #5b8def);
+    border: 0;
+    color: #ffffff;
+    font-weight: 700;
+    box-shadow: 0 6px 14px rgba(14, 127, 149, .22);
+}
+#patientsSection .search-container button:not(.secondary-button):hover { filter: brightness(1.06); }
+#patientsSection .checkbox-row input[type="checkbox"] { accent-color: #7e8ff2; }
+#patientsSection .patient-list-toolbar .checkbox-row {
+    padding: 4px 10px;
+    background: #ffffff;
+    border: 1px solid #e6eef8;
+    border-radius: 999px;
+}
+#patientsSection #statusMessage:not(.error):not(:empty) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    padding: 4px 11px;
+    background: #eef6ff;
+    color: #3f63b8;
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+/* جدول: سرستونِ روشن، ردیف‌های نفس‌کشیده و انتخابِ آبیِ آرام */
+#patientsSection .table-container {
+    border-color: #e1ecf7;
+    border-radius: 14px;
+    box-shadow: 0 8px 22px rgba(23, 74, 104, .05);
+}
+#patientsSection .patient-table th {
+    background: linear-gradient(180deg, #f4fbff, #f5f4ff);
+    color: #2f6279;
+    border-bottom: 2px solid #e1ebf8;
+    font-weight: 800;
+}
+#patientsSection .patient-table td { border-bottom-color: #eef3fa; }
+#patientsSection .patient-table tbody tr:nth-child(even) { background: #fafcff; }
+#patientsSection .patient-table tbody tr:hover { background: #f2f9fe; }
+#patientsSection .patient-list-row.selected,
+#patientsSection .patient-list-row.selected td { background: #eef5ff !important; }
+#patientsSection .patient-list-row.selected .patient-identity-cell {
+    position: relative;
+}
+#patientsSection .patient-list-row.selected .patient-identity-cell::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: 0;
+    top: 6px;
+    bottom: 6px;
+    width: 3px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #6fc3e8, #7e8ff2);
+}
+
+.patient-row-name strong { color: #143f52; }
+.patient-row-name small { color: #7e8ff2; }
+.patient-contact-cell span { color: #2a4d5e; font-weight: 600; }
+.patient-contact-cell small { color: #9aa3c4; }
+.patient-row-avatar {
+    background: linear-gradient(135deg, #ddf3fd, #e6e8ff);
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 2px #d9ecf8, 0 4px 12px rgba(23, 74, 104, .12);
+}
+.patient-row-avatar-empty { color: #7e8ff2; }
+
+/* نشان‌ها */
+#patientsSection .status-badge {
+    padding: 3px 10px;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 800;
+}
+#patientsSection .status-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, .6);
+}
+#patientsSection .status-badge.active {
+    background: linear-gradient(135deg, #e6f9f0, #d3f5e5);
+    color: #0e7d55;
+    box-shadow: inset 0 0 0 1px #b8e8d2;
+}
+#patientsSection .status-badge.inactive {
+    background: linear-gradient(135deg, #fdeef1, #fae2e8);
+    color: #b3425c;
+    box-shadow: inset 0 0 0 1px #f2cbd5;
+}
+#patientsSection .patient-studies-cell strong { color: #355a6e; }
+#patientsSection .patient-studies-cell .study-count-open {
+    background: linear-gradient(135deg, #fff3e0, #ffe8cc);
+    color: #b26811;
+    box-shadow: inset 0 0 0 1px #f4d6aa;
+}
+#patientsSection .followup-due-badge {
+    background: linear-gradient(135deg, #fdecef, #fbe0e6);
+    color: #b3425c;
+    box-shadow: inset 0 0 0 1px #f2cbd5;
+}
+
+/* دکمه‌های هر ردیف */
+#patientsSection .patient-open-button {
+    background: linear-gradient(135deg, #0e7f95, #5b8def);
+    border: 0;
+    color: #ffffff;
+    font-weight: 800;
+    box-shadow: 0 5px 13px rgba(14, 127, 149, .22);
+}
+#patientsSection .patient-open-button:hover { filter: brightness(1.06); }
+#patientsSection .patient-edit-button {
+    background: #ffffff;
+    color: #5f62b4;
+    border: 1px solid #dedcf8;
+}
+#patientsSection .patient-edit-button:hover {
+    background: #f6f4ff;
+    border-color: #c9c3ef;
+}
+#patientsSection .patients-load-more button {
+    background: #ffffff;
+    color: #41528f;
+    border: 1px solid #dcd9f6;
+}
+
+/* ناحیهٔ معرفیِ بیمار */
+#patientsSection .patient-draft-card {
+    padding: 10px 12px 12px;
+    background:
+        radial-gradient(340px 120px at 90% 0%, rgba(126, 143, 242, .12), transparent 60%),
+        linear-gradient(135deg, #fbfdff, #f8f6ff);
+    border: 1px dashed #d3daf5;
+    border-radius: 14px;
+    box-shadow: 0 6px 18px rgba(23, 74, 104, .05);
+}
+#patientsSection .patient-draft-badge {
+    background: linear-gradient(135deg, #eef2ff, #f7edff);
+    color: #5b5bb0;
+    border: 1px solid #dddaf8;
+}
+#patientsSection .visit-field-label { color: #3d5f86; }
+#patientsSection .visit-field-row { border-bottom-color: #e8edf8; }
+#patientsSection .visit-input:focus {
+    border-color: #8f9cf0;
+    box-shadow: 0 0 0 3px rgba(126, 143, 242, .12);
+    outline: 0;
+}
+#patientsSection .visit-field-save {
+    background: linear-gradient(135deg, #0e7f95, #5b8def);
+    border-color: #0e7f95;
+}
+
+/* کارتِ پروندهٔ انتخاب‌شده: همان زبانِ رنگین، ملایم‌تر */
+#patientsSection + #patientDetailsSection:not(.hidden) {
+    background:
+        radial-gradient(720px 200px at 100% 0%, rgba(126, 143, 242, .07), transparent 60%),
+        #ffffff;
+    border-color: #e2ecf7;
+    box-shadow: 0 16px 34px rgba(23, 74, 104, .07);
+}
+#patientDetailsSection .patient-overview-column {
+    background: linear-gradient(160deg, #ffffff, #fbfcff);
+    border-color: #e6eef9;
+    box-shadow: 0 4px 14px rgba(23, 74, 104, .04);
+}
+#patientDetailsSection .patient-overview-identity {
+    background: linear-gradient(160deg, #f8fdff, #f8f6ff);
+}
+#patientsSection + #patientDetailsSection .patient-identity-hero .patient-photo-frame {
+    padding: 4px;
+    border: 0;
+    background: conic-gradient(from 210deg, #6fc3e8, #7e8ff2, #d9a6d2, #6fc3e8);
+    box-shadow: 0 8px 18px rgba(23, 74, 104, .16);
+}
+#patientDetailsSection .info-item {
+    background: linear-gradient(135deg, #fbfdff, #f8f7ff);
+    border-color: #e7eff9;
+}
+#patientDetailsSection .study-tab {
+    background: #f8fbff;
+    border-color: #e1e9f6;
+    color: #48637a;
+}
+#patientDetailsSection .study-tab.active {
+    border-color: #cfd9f4;
+    background: #ffffff;
+    color: #4f54a8;
+    box-shadow: inset 0 -3px 0 #7e8ff2;
+}
+#patientsSection + #patientDetailsSection .recent-studies-card {
+    background: linear-gradient(160deg, #f9fdff, #faf8ff);
+    border-color: #e6eef9;
+}
+
+@media (max-width: 1100px) {
+    #patientsSection .patient-statistics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+    #patientsSection .patient-statistics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #patientsSection .patient-statistics > div { border-radius: 13px; }
+}
+
