@@ -109,7 +109,7 @@
     <div id="patientPhotoResult"></div>
   </div>
 
-  <div class="card">
+  <div class="card" id="smsCard">
     <h2>یا متن پیامک رادیولوژی</h2>
     <ol class="steps">
       <li>پیامکی که از طرف رادیولوژیست آمده را باز کنید.</li>
@@ -270,7 +270,16 @@
       $("who").textContent = d.success && d.firstName ? "بیمار: " + d.firstName : "صفحهٔ دریافت تصویر";
       if (d.success) {
         cameraCard.hidden = !d.canCapture;
-        patientPhotoCard.hidden = false;
+        patientPhotoCard.hidden = !d.canPatientPhoto;
+        var smsCard = document.getElementById("smsCard");
+        if (smsCard) smsCard.hidden = !d.canSms;
+        var titles = {
+          1: "عکس رادیولوژی با دوربین گوشی",
+          2: "دریافت لینک رادیولوژی از گوشی",
+          3: "عکس بیمار (چهره)"
+        };
+        var heading = document.querySelector("header h1");
+        if (heading && titles[d.purpose]) heading.textContent = titles[d.purpose];
       }
       if (!d.success) show("err", d.message || "این لینک معتبر نیست.");
     })

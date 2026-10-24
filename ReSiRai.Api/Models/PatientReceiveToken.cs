@@ -23,6 +23,10 @@ namespace ReSiRai.Api.Models
         // می‌روند؛ در غیر این صورت تصویر به آخرین Study بیمار وصل می‌شود.
         public int? StudyID { get; set; }
 
+        // 1 = عکسِ رادیولوژی با دوربین گوشی، 2 = دریافتِ لینک/پیامک،
+        // 3 = عکسِ چهرهٔ بیمار. توکن‌های قدیمی (پیش از این ستون) پیامک‌اند.
+        public short Purpose { get; set; } = 2;
+
         [Required]
         [MaxLength(64)]
         public string Token { get; set; } = string.Empty;

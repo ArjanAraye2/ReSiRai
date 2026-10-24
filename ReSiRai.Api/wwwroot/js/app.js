@@ -682,7 +682,8 @@ let sectionsHome=null;
      imageActions.className="study-card-image-actions";
      [["عکس/فایل جدید (دوربین یا کامپیوتر)",()=>openUploadImageForm(study),false],
       ["الصاق تصویر موجود از پرونده",()=>{selectVisit(study);window.ReSiRaiImagePickup.open();},true],
-      ["دریافت از بیمار با لینک/کیوآرکد",()=>{selectVisit(study);window.ReSiRaiReceive&&window.ReSiRaiReceive.open();},false],
+      ["عکس با دوربین گوشی",()=>{selectVisit(study);window.ReSiRaiReceive?.open({purpose:1,study,patientID:study.patientID});},false],
+      ["دریافت لینک رادیولوژی از گوشی",()=>{selectVisit(study);window.ReSiRaiReceive?.open({purpose:2,study,patientID:study.patientID});},false],
       ["ارسال لینک تصویر با پیامک",()=>{selectVisit(study);window.ReSiRaiShareImages&&window.ReSiRaiShareImages.open();},false]]
      .forEach(([label,run,needsImages],i)=>{
        const b=document.createElement("button");
@@ -1280,6 +1281,10 @@ function goBackFromUpload(){
 // دکمهٔ «عکس/فایل جدید» در هدر مراجعه (کنار بقیهٔ کارهای تصویر)
 document.getElementById("visitHeaderUploadButton")?.addEventListener("click",()=>{if(selectedStudy)openUploadImageForm(selectedStudy);});
 E.patientPhotoButton?.addEventListener("click",()=>E.patientPhotoInput?.click());
+document.getElementById("patientPhotoCameraButton")?.addEventListener("click",()=>{
+ if(!selectedPatientID)return;
+ window.ReSiRaiReceive?.open({purpose:3,patientID:selectedPatientID});
+});
 E.patientPhotoInput?.addEventListener("change",async()=>{const file=E.patientPhotoInput.files?.[0];if(!file||!selectedPatientID)return;try{const fd=new FormData();fd.append("file",file);const r=await fetch(`/api/patients/${selectedPatientID}/photo`,{method:"POST",body:fd}),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"ذخیره تصویر بیمار انجام نشد."));E.patientProfilePhoto.src=`/api/patients/${selectedPatientID}/photo?v=${Date.now()}`;E.patientProfilePhoto.classList.remove("empty");showToast("تصویر بیمار ذخیره شد.");}catch(e){showToast(e.message||"ذخیره تصویر بیمار انجام نشد.","error");}finally{E.patientPhotoInput.value="";}});
 E.zoomInImageButton.onclick=()=>{imageViewScale=Math.min(5,imageViewScale+0.25);applyImageView();};E.zoomOutImageButton.onclick=()=>{imageViewScale=Math.max(0.25,imageViewScale-0.25);applyImageView();};E.rotateLeftImageButton.onclick=()=>{imageViewRotation-=90;applyImageView();};E.rotateRightImageButton.onclick=()=>{imageViewRotation+=90;applyImageView();};E.flipHorizontalImageButton.onclick=()=>{imageViewFlipX*=-1;applyImageView();};E.resetImageViewButton.onclick=resetImageView;E.imageModal.addEventListener("pointerdown",e=>{if(e.target!==E.largeImage)return;e.preventDefault();imageDragging=true;imageDragStartX=e.clientX-imageViewX;imageDragStartY=e.clientY-imageViewY;try{E.imageModal.setPointerCapture(e.pointerId);}catch{}});E.imageModal.addEventListener("pointermove",e=>{if(!imageDragging)return;e.preventDefault();imageViewX=e.clientX-imageDragStartX;imageViewY=e.clientY-imageDragStartY;applyImageView();});const endImageDrag=e=>{if(!imageDragging)return;imageDragging=false;try{E.imageModal.releasePointerCapture(e.pointerId);}catch{}};E.imageModal.addEventListener("pointerup",endImageDrag);E.imageModal.addEventListener("pointercancel",endImageDrag);E.imageModal.addEventListener("lostpointercapture",()=>{imageDragging=false;});E.closeImageModalButton.onclick=closeLargeImage;E.imageModal.onclick=e=>{if(imageDragging){e.preventDefault();e.stopPropagation();return;}/* The viewer closes only with the explicit close button or Escape. This prevents a completed image drag from being interpreted as a backdrop click. */};document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLargeImage();});
 // Initial load. On first paint the login form is shown, so these requests are

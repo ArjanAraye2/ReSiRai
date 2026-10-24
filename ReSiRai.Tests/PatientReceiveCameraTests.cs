@@ -116,7 +116,7 @@ public class PatientReceiveCameraTests : IDisposable
     [Fact]
     public async Task PatientPhoto_WithValidToken_SetsProfilePhoto_WithoutNeedingStudy()
     {
-        var (token, _) = await AddPatientStudyAndToken(withStudy: false);
+        var (token, _) = await AddPatientStudyAndToken(withStudy: false, purpose: PatientReceiveController.PurposePatientPhoto);
 
         var result = await _controller.UploadPatientPhoto(token, Jpeg(), default);
 
@@ -130,7 +130,7 @@ public class PatientReceiveCameraTests : IDisposable
     [Fact]
     public async Task PatientPhoto_NonImageBytes_IsRejected()
     {
-        var (token, _) = await AddPatientStudyAndToken();
+        var (token, _) = await AddPatientStudyAndToken(purpose: PatientReceiveController.PurposePatientPhoto);
         var bytes = System.Text.Encoding.UTF8.GetBytes("not a photo");
         var file = new FormFile(new MemoryStream(bytes), 0, bytes.Length, "file", "photo.jpg")
         {
@@ -145,9 +145,67 @@ public class PatientReceiveCameraTests : IDisposable
         Assert.Equal(0, _db.RadiologyImages.Count());
     }
 
+    [Fact]
+    public async Task Camera_WithSmsToken_IsRejected()
+    {
+        var (token, _) = await AddPatientStudyAndToken(purpose: PatientReceiveController.PurposeSmsLink);
+
+        var result = await _controller.UploadFromCamera(token, Jpeg(), default);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal(0, _db.RadiologyImages.Count());
+    }
+
+    [Fact]
+    public async Task PatientPhoto_WithCameraToken_IsRejected()
+    {
+        var (token, _) = await AddPatientStudyAndToken(purpose: PatientReceiveController.PurposeRadiologyCamera);
+
+        var result = await _controller.UploadPatientPhoto(token, Jpeg(), default);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Null(_db.Patients.Single().PhotoRelativePath);
+    }
+
+    [Fact]
+    public async Task Create_CameraWithoutStudy_IsRejected()
+    {
+        await AddPatientStudyAndToken();
+        int patientID = _db.Patients.Single().PatientID;
+        _controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+
+        var result = await _controller.Create(
+            patientID,
+            new PatientReceiveController.CreateRequest(1, null, PatientReceiveController.PurposeRadiologyCamera),
+            default);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Create_PatientPhotoToken_DropsStudy()
+    {
+        var (_, studyID) = await AddPatientStudyAndToken();
+        int patientID = _db.Patients.Single().PatientID;
+        var http = new DefaultHttpContext();
+        http.Request.Scheme = "https";
+        http.Request.Host = new HostString("resirai.test");
+        _controller.ControllerContext = new ControllerContext { HttpContext = http };
+
+        var result = await _controller.Create(
+            patientID,
+            new PatientReceiveController.CreateRequest(1, studyID, PatientReceiveController.PurposePatientPhoto),
+            default);
+
+        Assert.IsType<OkObjectResult>(result);
+        var token = _db.PatientReceiveTokens.OrderByDescending(x => x.ReceiveID).First();
+        Assert.Equal(PatientReceiveController.PurposePatientPhoto, token.Purpose);
+        Assert.Null(token.StudyID);
+    }
+
     // ------------------------------------------------------------------
     private async Task<(string Token, int StudyID)> AddPatientStudyAndToken(
-        bool withStudy = true, bool expired = false)
+        bool withStudy = true, bool expired = false, short purpose = PatientReceiveController.PurposeRadiologyCamera)
     {
         var patient = new Patient
         {
@@ -178,6 +236,7 @@ public class PatientReceiveCameraTests : IDisposable
         {
             PatientID = patient.PatientID,
             StudyID = withStudy ? study.StudyID : null,
+            Purpose = purpose,
             Token = "tok-" + Guid.NewGuid().ToString("N"),
             CreatedDate = DateTime.Now.AddMinutes(expired ? -10 : 0),
             ExpiresDate = DateTime.Now.AddMinutes(expired ? -5 : 60)

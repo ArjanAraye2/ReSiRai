@@ -1,14 +1,21 @@
-// ReSiRai - receiving images for one specific Study.
+// ReSiRai - dedicated QR links for one patient / one Study.
 //
-// Two ways in, both entered from the Study itself, and neither installs
-// anything on the patient's phone:
-//   1) a QR the patient scans with the plain camera and pastes the SMS into
-//   2) the patient forwards the SMS to the clinic phone, and the secretary
-//      pulls it here - pictures land in this Study only.
+// سه کارِ جدا، سه توکن و سه کیوآرکدِ مستقل:
+//   ۱) عکس رادیولوژی با دوربین گوشی  (به همین Study وصل می‌شود)
+//   ۲) دریافت لینک/پیامک رادیولوژی از گوشی  (به همین Study وصل می‌شود)
+//   ۳) عکس چهرهٔ بیمار  (روی پروندهٔ خودِ بیمار ذخیره می‌شود)
+//
+// صفحهٔ عمومی هر توکن فقط کارتِ مربوط به همان هدف را نشان می‌دهد؛
+// سرور هم در endpointها هدفِ توکن را بررسی می‌کند.
 (() => {
   "use strict";
 
   const $ = id => document.getElementById(id);
+  const PURPOSE_CAMERA = 1;
+  const PURPOSE_SMS = 2;
+  const PURPOSE_PHOTO = 3;
+
+  let current = { purpose: PURPOSE_SMS, study: null, patientID: null };
 
   function buildDialog() {
     if ($("studyReceiveDialog")) return;
@@ -17,17 +24,12 @@
     wrap.className = "confirm-overlay hidden";
     wrap.innerHTML = `
       <div class="confirm-dialog">
-        <h3>دریافت تصویر برای این Study</h3>
+        <h3 id="studyReceiveDialogTitle">دریافت تصویر برای این Study</h3>
         <p class="share-dialog-hint" id="studyReceiveInfo"></p>
 
-        <div class="inbox-card">
-          <strong>روش ۱ — کیوآرکد برای بیمار</strong>
-          <p class="share-dialog-hint">
-            از بیمار بخواهید این کد را با <strong>دوربین خودِ گوشی</strong> اسکن کند
-            (بدون نصب هیچ برنامه‌ای). در صفحه‌ای که باز می‌شود می‌تواند
-            <strong>با دوربین گوشی عکس بگیرد</strong> و بفرستد، یا متن پیامک
-            رادیولوژی را بچسباند. تصویر مستقیماً به همین Study می‌آید.
-          </p>
+        <div class="inbox-card" id="studyReceiveQrCard">
+          <strong id="studyReceiveQrTitle">کیوآرکد اختصاصی</strong>
+          <p class="share-dialog-hint" id="studyReceiveQrHint"></p>
           <div class="pair-qr" id="studyReceiveQr"></div>
           <div class="pair-payload" id="studyReceiveUrl"></div>
           <div class="form-actions">
@@ -35,7 +37,7 @@
           </div>
         </div>
 
-        <div class="inbox-card">
+        <div class="inbox-card" id="studyReceiveClinicCard">
           <strong>روش ۲ — فوروارد به گوشی مطب</strong>
           <p class="share-dialog-hint">
             شمارهٔ مطب: <strong id="studyClinicMobile">—</strong><br />
@@ -48,7 +50,7 @@
           <div id="studyPullStatus" class="status-message"></div>
         </div>
 
-        <div class="inbox-card">
+        <div class="inbox-card" id="studyReceiveManualCard">
           <strong>روش ۳ — لینکی که خودتان دارید</strong>
           <p class="share-dialog-hint">
             لینک را از پیامک، ایمیل یا هرجای دیگر کپی کنید و اینجا بچپانید؛
@@ -94,31 +96,71 @@
     return window.selectedStudy || null;
   }
 
-  async function openDialog() {
-    const study = selectedStudy();
-    if (!study) { window.showToast?.("ابتدا Study را باز کنید.", "error"); return; }
+  function patientName() {
+    const p = window.selectedPatient;
+    return p ? `${p.firstName || ""} ${p.lastName || ""}`.trim() : "";
+  }
+
+  function open(options) {
+    const opts = options || {};
+    const purpose = [PURPOSE_CAMERA, PURPOSE_SMS, PURPOSE_PHOTO].includes(Number(opts.purpose))
+      ? Number(opts.purpose)
+      : PURPOSE_SMS;
+    const study = opts.study || selectedStudy();
+    const patientID = Number(opts.patientID)
+      || Number(window.selectedPatient?.patientID)
+      || Number(study?.patientID)
+      || 0;
+
+    if (!patientID) { window.showToast?.("اول پروندهٔ بیمار را باز کنید.", "error"); return; }
+    if ((purpose === PURPOSE_CAMERA || purpose === PURPOSE_SMS) && !study) {
+      window.showToast?.("ابتدا Study را باز کنید.", "error");
+      return;
+    }
+
+    current = { purpose, study, patientID };
     buildDialog();
 
-    const patientID = (window.selectedPatient && window.selectedPatient.patientID) || study.patientID;
-    $("studyReceiveInfo").textContent =
-      `بیمار: ${window.selectedPatient ? `${window.selectedPatient.firstName || ""} ${window.selectedPatient.lastName || ""}`.trim() : "-"} — Study شمارهٔ ${study.studyID}`;
+    const title = purpose === PURPOSE_CAMERA
+      ? "عکس رادیولوژی با دوربین گوشی"
+      : purpose === PURPOSE_PHOTO
+        ? "عکس بیمار (چهره)"
+        : "دریافت لینک رادیولوژی از گوشی";
+    $("studyReceiveDialogTitle").textContent = title;
+    $("studyReceiveQrTitle").textContent = purpose === PURPOSE_PHOTO
+      ? "کیوآرکد عکس چهره"
+      : "کیوآرکد اختصاصی این کار";
+    $("studyReceiveQrHint").textContent = purpose === PURPOSE_CAMERA
+      ? "این کد را با دوربین گوشی اسکن کنید و از فیلم/عکس رادیولوژی عکس بگیرید؛ عکس مستقیماً به همین مراجعه وصل می‌شود."
+      : purpose === PURPOSE_PHOTO
+        ? "این کد را با دوربین گوشی اسکن کنید و از چهرهٔ بیمار عکس بگیرید؛ عکس روی پروندهٔ همین بیمار ذخیره می‌شود."
+        : "این کد را با دوربین گوشی اسکن کنید و متن پیامک رادیولوژی را در صفحه بچسبانید؛ تصاویر به همین مراجعه می‌آیند.";
+
+    const who = patientName() || "همین بیمار";
+    $("studyReceiveInfo").textContent = purpose === PURPOSE_PHOTO
+      ? `بیمار: ${who}`
+      : `بیمار: ${who} — Study شمارهٔ ${study.studyID}`;
+
+    $("studyReceiveClinicCard").hidden = purpose !== PURPOSE_SMS;
+    $("studyReceiveManualCard").hidden = purpose !== PURPOSE_SMS;
+
     $("studyReceiveUrl").textContent = "";
     $("studyReceiveQr").replaceChildren();
     $("studyPullStatus").textContent = "";
     if ($("manualLinkInput")) $("manualLinkInput").value = "";
     if ($("manualImportStatus")) $("manualImportStatus").textContent = "";
-    $("studyReceiveDialog").classList.remove("hidden");
 
-    loadClinicMobile();
-    await issueToken(patientID, study.studyID);
+    $("studyReceiveDialog").classList.remove("hidden");
+    if (purpose === PURPOSE_SMS) loadClinicMobile();
+    issueToken(patientID, purpose === PURPOSE_PHOTO ? null : study.studyID, purpose);
   }
 
-  async function issueToken(patientID, studyID) {
+  async function issueToken(patientID, studyID, purpose) {
     try {
       const res = await fetch(`/api/patients/${patientID}/receive-link`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ expiresInDays: 1, studyID })
+        body: JSON.stringify({ expiresInDays: 1, studyID, purpose })
       });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "ساخت کیوآرکد انجام نشد.");
@@ -150,7 +192,7 @@
   }
 
   async function pullFromClinicPhone() {
-    const study = selectedStudy();
+    const study = current.study || selectedStudy();
     if (!study) return;
     const status = $("studyPullStatus");
     const button = $("studyPullInbox");
@@ -164,7 +206,6 @@
       status.textContent = data.message;
       if (data.imported > 0 || data.fetched > 0) {
         window.showToast?.(data.message);
-        // تصاویر تازه را همان‌جا نشان بده
         if (typeof window.openStudyImages === "function") window.openStudyImages(study);
       }
     } catch (e) {
@@ -177,7 +218,7 @@
 
   /** روش ۳: لینک از قبل در دست است و داخل همین Study دانلود می‌شود. */
   async function importFromLink() {
-    const study = selectedStudy();
+    const study = current.study || selectedStudy();
     if (!study) return;
     const status = $("manualImportStatus");
     const button = $("manualImportButton");
@@ -217,21 +258,29 @@
     btn.type = "button";
     btn.id = "studyReceiveImagesButton";
     btn.className = "secondary-button";
-    btn.textContent = "دریافت از بیمار با لینک/کیوآرکد";
-    btn.onclick = openDialog;
+    btn.textContent = "دریافت لینک رادیولوژی از گوشی";
+    btn.onclick = () => open({ purpose: PURPOSE_SMS, study: selectedStudy() });
     toolbar.appendChild(btn);
   }
 
-  // دکمه در index.html هست؛ اگر جایی حذف شد دوباره ساخته می‌شود.
+  // دکمه‌ها در index.html هستند؛ اگر جایی حذف شدند دوباره ساخته می‌شوند.
   function wire() {
-    const direct = $("studyReceiveImagesButton");
-    if (direct) direct.onclick = openDialog;
+    const sms = $("studyReceiveImagesButton");
+    if (sms) sms.onclick = () => open({ purpose: PURPOSE_SMS, study: selectedStudy() });
     else addButton();
-    // نسخهٔ همین دکمه در نوار صفحهٔ تصاویر (همهٔ کارهای تصویر یکسان و هر سه جا)
-    const inImages = $("imagesToolbarReceiveButton");
-    if (inImages && !inImages.dataset.wired) {
-      inImages.dataset.wired = "1";
-      inImages.onclick = openDialog;
+
+    const camera = $("studyCameraPhoneButton");
+    if (camera) camera.onclick = () => open({ purpose: PURPOSE_CAMERA, study: selectedStudy() });
+
+    const imagesSms = $("imagesToolbarReceiveButton");
+    if (imagesSms && !imagesSms.dataset.wired) {
+      imagesSms.dataset.wired = "1";
+      imagesSms.onclick = () => open({ purpose: PURPOSE_SMS, study: selectedStudy() });
+    }
+    const imagesCamera = $("imagesToolbarCameraButton");
+    if (imagesCamera && !imagesCamera.dataset.wired) {
+      imagesCamera.dataset.wired = "1";
+      imagesCamera.onclick = () => open({ purpose: PURPOSE_CAMERA, study: selectedStudy() });
     }
   }
 
@@ -243,6 +292,6 @@
   if (host) observer.observe(host, { childList: true, subtree: true, attributes: true, attributeFilter: ["class"] });
 
   // برای کارتِ مراجعه در پروندهٔ بیمار: فراخواننده اول selectedStudy را روی
-  // همان مراجعه تنظیم می‌کند، بعد این را صدا می‌زند.
-  window.ReSiRaiReceive = { open: openDialog };
+  // همان مراجعه تنظیم می‌کند، بعد این را با {purpose, study, patientID} صدا می‌زند.
+  window.ReSiRaiReceive = { open };
 })();

@@ -75,6 +75,7 @@ public static class DbBootstrap
                 ALTER TABLE "tblPatients" ADD COLUMN IF NOT EXISTS "FileNumber" text NULL;
                 ALTER TABLE "tblPatients" ADD COLUMN IF NOT EXISTS "ContactPreference" text NULL;
                 ALTER TABLE "tblStaff" ADD COLUMN IF NOT EXISTS "PhotoRelativePath" text NULL;
+                ALTER TABLE "tblReceiveTokens" ADD COLUMN IF NOT EXISTS "Purpose" smallint NOT NULL DEFAULT 2;
                 """);
         }
         catch { }
@@ -240,6 +241,7 @@ public static class DbBootstrap
                 IF COL_LENGTH('tblPatients', 'FileNumber') IS NULL ALTER TABLE tblPatients ADD FileNumber nvarchar(50) NULL;
                 IF COL_LENGTH('tblPatients', 'ContactPreference') IS NULL ALTER TABLE tblPatients ADD ContactPreference nvarchar(20) NULL;
                 IF COL_LENGTH('tblStaff', 'PhotoRelativePath') IS NULL ALTER TABLE tblStaff ADD PhotoRelativePath nvarchar(500) NULL;
+                IF COL_LENGTH('tblReceiveTokens', 'Purpose') IS NULL ALTER TABLE tblReceiveTokens ADD Purpose smallint NOT NULL CONSTRAINT DF_tblReceiveTokens_Purpose DEFAULT (2);
                 """);
         }
         catch { }

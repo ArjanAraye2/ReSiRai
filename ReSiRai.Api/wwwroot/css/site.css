@@ -6154,3 +6154,17 @@ textarea.visit-input{resize:vertical}
     #patientsSection .patient-statistics > div { border-radius: 13px; }
 }
 
+/* دکمهٔ عکس چهره در کنارِ «انتخاب فایل تصویر» — دو کارِ جدا در یک ستونِ آرام */
+#patientsSection + #patientDetailsSection .patient-photo-action {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+}
+#patientsSection + #patientDetailsSection .patient-photo-action #patientPhotoCameraButton {
+    background: #ffffff;
+    color: #0c687e;
+    border: 1px solid #b9e2ea;
+    box-shadow: none;
+}
+

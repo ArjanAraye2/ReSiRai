@@ -36,7 +36,7 @@
 })();
 </script>
     <link rel="stylesheet" href="/css/fonts.css?v=20261001.19" />
-    <link rel="stylesheet" href="/css/site.css?v=20261024.6" />
+    <link rel="stylesheet" href="/css/site.css?v=20261024.7" />
     <link rel="stylesheet" href="/css/study-finance.css?v=20261008.7" />
 <link rel="stylesheet" href="/css/factors.css?v=20261023.3" />
 <link rel="stylesheet" href="/css/study-sections.css?v=20261023.11" />
@@ -93,7 +93,7 @@
       <div class="patient-identity-hero">
         <div class="patient-photo-frame"><img id="patientProfilePhoto" alt="تصویر بیمار" /></div>
         <div class="patient-identity-copy"><h2 id="patientFullName">پرونده بیمار</h2><p id="patientDisplayCode" class="patient-identity-line">شناسه پرونده: -</p><span id="patientStatusBadge" class="status-badge"></span></div>
-        <div class="patient-photo-action"><p id="patientNationalCode">کد ملی: -</p><input id="patientPhotoInput" type="file" accept="image/*" capture="environment" class="hidden" /><button id="patientPhotoButton" type="button">تغییر تصویر</button></div>
+        <div class="patient-photo-action"><p id="patientNationalCode">کد ملی: -</p><input id="patientPhotoInput" type="file" accept="image/*" capture="environment" class="hidden" /><button id="patientPhotoButton" type="button">انتخاب فایل تصویر</button><button id="patientPhotoCameraButton" type="button">عکس بیمار (چهره)</button></div>
       </div>
       <!-- بنر ایمنی: گروه خونیِ ثبت‌شده همان‌جایی می‌درخشد که چشمِ پزشک اول می‌افتد؛
            نه برایِ قشنگی، برایِ اینکه در لحظهٔ تصاحب پرونده دیده شود. -->
@@ -166,7 +166,8 @@
     <div class="section-header study-header">
       <div><h2 id="studyDetailsTitle">Study</h2><p id="studyDetailsDate"></p></div>
       <div class="section-header-actions">
-        <button id="studyReceiveImagesButton" type="button" class="secondary-button">دریافت از بیمار با لینک/کیوآرکد</button>
+        <button id="studyCameraPhoneButton" type="button">عکس با دوربین گوشی</button>
+        <button id="studyReceiveImagesButton" type="button" class="secondary-button">دریافت لینک رادیولوژی از گوشی</button>
         <button id="visitHeaderUploadButton" type="button">عکس/فایل جدید (دوربین یا کامپیوتر)</button>
         <button id="pickupHeaderButton" type="button" data-needs-images="1">الصاق تصویر موجود از پرونده</button>
         <span id="voiceStatus" class="voice-status hidden"></span>
@@ -285,7 +286,7 @@
       <button type="button" id="cancelNewStudyButtonBottom" class="secondary-button">انصراف</button>
     </div>
   </form>
-</section><section id="studyImagesSection" class="card hidden"><div class="details-toolbar"><button id="backToStudyDetailsButton" type="button" class="secondary-button">← بازگشت به Study</button><button id="imagesToolbarReceiveButton" type="button" class="secondary-button">دریافت از بیمار با لینک/کیوآرکد</button><button id="studyDetailsUploadButton" type="button">عکس/فایل جدید (دوربین یا کامپیوتر)</button><button id="pickupUnlinkedImageButton" type="button" data-needs-images="1">الصاق تصویر موجود از پرونده</button></div><div class="section-header"><div><h2 id="studyImagesTitle">تصاویر Study</h2></div></div><div id="studyDetailsImagesStatus" class="status-message"></div><div id="studyDetailsImagesGrid" class="images-grid"></div></section>
+</section><section id="studyImagesSection" class="card hidden"><div class="details-toolbar"><button id="backToStudyDetailsButton" type="button" class="secondary-button">← بازگشت به Study</button><button id="imagesToolbarCameraButton" type="button">عکس با دوربین گوشی</button><button id="imagesToolbarReceiveButton" type="button" class="secondary-button">دریافت لینک رادیولوژی از گوشی</button><button id="studyDetailsUploadButton" type="button">عکس/فایل جدید (دوربین یا کامپیوتر)</button><button id="pickupUnlinkedImageButton" type="button" data-needs-images="1">الصاق تصویر موجود از پرونده</button></div><div class="section-header"><div><h2 id="studyImagesTitle">تصاویر Study</h2></div></div><div id="studyDetailsImagesStatus" class="status-message"></div><div id="studyDetailsImagesGrid" class="images-grid"></div></section>
 
 <!-- New files still enter through a Study. The input accepts PDF and mobile camera capture; ReSiRai itself imposes no explicit size cap. -->
 <section id="uploadImageSection" class="card hidden"><div class="details-toolbar"><button id="cancelUploadImageButton" type="button" class="secondary-button hidden">بازگشت به مراجعه</button></div><div class="section-header"><div><h2>آپلود تصویر یا PDF جدید</h2><p id="uploadImageStudyInfo"></p></div></div><form id="uploadImageForm"><div class="form-field"><label>نوع تصویر</label><small class="field-hint">لازم نیست انتخاب کنید — هوش مصنوعی نوع تصویر را خودش تشخیص می‌دهد.</small></div><div class="form-field"><label for="imageFileInput">انتخاب فایل موجود</label><div class="file-picker"><input id="imageFileInput" type="file" accept="image/*,.pdf,application/pdf" required /><span class="file-picker-face"><span class="file-picker-button">انتخاب فایل</span><span class="file-picker-name">فایلی انتخاب نشده</span></span></div><small class="field-hint">تمام فرمت‌های تصویری قابل‌شناسایی و PDF</small></div><div class="form-field"><label for="cameraFileInput">یا عکس‌برداری با دوربین</label><div class="file-picker"><input id="cameraFileInput" type="file" accept="image/*" capture="environment" /><span class="file-picker-face"><span class="file-picker-button">گرفتن عکس با دوربین</span><span class="file-picker-name">عکسی گرفته نشده</span></span></div><small class="field-hint">در موبایل می‌توانید مستقیماً از دوربین دستگاه استفاده کنید.</small></div><div id="cameraPreviewPanel" class="hidden"><img id="cameraPreviewImage" alt="پیش‌نمایش تصویر دوربین" /><div class="form-actions"><button id="confirmCameraButton" type="button">تأیید تصویر</button><button id="retakeCameraButton" type="button" class="secondary-button">عکس‌برداری مجدد</button></div></div><div id="uploadImageStatus" class="status-message"></div><div class="form-actions"><button type="submit" id="uploadImageSubmitButton">ذخیره و اتصال به Study</button><button id="cancelUploadImageButtonBottom" type="button" class="secondary-button">بازگشت به مراجعه</button></div></form></section>
@@ -324,7 +325,7 @@ window.addEventListener('DOMContentLoaded',function(){
 <!-- لینکِ مستقلِ ثبتنامِ پزشک (خارج از JS: همیشه، حتی با کشِ قدیمی اسکریپتها) -->
 <div id="loginSignupLink" style="display:none;position:fixed;bottom:14px;left:0;right:0;text-align:center;z-index:1040;font:600 14px/1.9 Tahoma,Arial"><a href="/signup.html" style="color:#0f766e;text-decoration:none;background:#fff;border:1px solid #0f766e;border-radius:999px;padding:6px 18px">ثبت‌نام پزشک جدید — خرید حساب</a></div>
 <script src="/js/login-ui.js?v=20261024.1"></script>
-<script src="/js/app.js?v=20261024.2"></script>
+<script src="/js/app.js?v=20261024.3"></script>
 <script src="/js/visit-draft.js?v=20261023.6"></script>
 <script src="/js/patient-draft.js?v=20261023.2"></script>
 <script src="/js/study-delete.js?v=20261001.19"></script>
@@ -345,7 +346,7 @@ window.addEventListener('DOMContentLoaded',function(){
 <script id="qrcode" src="/js/qrcode.js?v=1.4.5"></script>
 <script src="/js/qr-float.js?v=20261016.1"></script>
 <script src="/js/inbox-ui.js?v=20261024.1"></script>
-<script src="/js/study-receive.js?v=20261024.1"></script>
+<script src="/js/study-receive.js?v=20261024.2"></script>
 <script src="/js/navigation.js?v=20261024.3"></script>
 <script src="/js/clinic-settings.js?v=20261024.3"></script>
 <script src="/js/pos-settings.js?v=20261001.19"></script>

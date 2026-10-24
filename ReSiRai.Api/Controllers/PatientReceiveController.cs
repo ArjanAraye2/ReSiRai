@@ -48,7 +48,11 @@ namespace ReSiRai.Api.Controllers
         }
 
         public sealed record ReceiveRequest(string? Text);
-        public sealed record CreateRequest(int? ExpiresInDays, int? StudyID);
+        public sealed record CreateRequest(int? ExpiresInDays, int? StudyID, short? Purpose);
+
+        public const short PurposeRadiologyCamera = 1;
+        public const short PurposeSmsLink = 2;
+        public const short PurposePatientPhoto = 3;
 
         // ------------------------------------------------------------
         // Issuing the QR (staff only - protected by the login fallback)
@@ -71,10 +75,19 @@ namespace ReSiRai.Api.Controllers
                 studyID = request.StudyID;
             }
 
+            short purpose = request.Purpose is PurposeRadiologyCamera or PurposeSmsLink or PurposePatientPhoto
+                ? request.Purpose.Value
+                : PurposeSmsLink;
+            if (purpose == PurposeRadiologyCamera && !studyID.HasValue)
+                return BadRequest(new { success = false, message = "برای عکس با دوربین گوشی، اول یک مراجعه انتخاب کنید." });
+            if (purpose == PurposePatientPhoto)
+                studyID = null;   // عکس چهره به خودِ بیمار تعلق دارد، نه به مراجعه
+
             var token = new PatientReceiveToken
             {
                 PatientID = patient.PatientID,
                 StudyID = studyID,
+                Purpose = purpose,
                 Token = NewToken(),
                 CreatedDate = DateTime.Now,
                 ExpiresDate = request.ExpiresInDays is > 0
@@ -91,6 +104,7 @@ namespace ReSiRai.Api.Controllers
                 token.ReceiveID,
                 token.Token,
                 token.StudyID,
+                purpose,
                 url,
                 patientName = $"{patient.FirstName} {patient.LastName}".Trim()
             });
@@ -104,7 +118,7 @@ namespace ReSiRai.Api.Controllers
                 .OrderByDescending(x => x.CreatedDate)
                 .Select(x => new
                 {
-                    x.ReceiveID, x.CreatedDate, x.ExpiresDate, x.LastUsedAt, x.UseCount,
+                    x.ReceiveID, x.CreatedDate, x.ExpiresDate, x.LastUsedAt, x.UseCount, x.Purpose,
                     url = "/r/" + x.Token
                 })
                 .Take(10)
@@ -141,7 +155,15 @@ namespace ReSiRai.Api.Controllers
             var record = await ResolveAsync(token, cancellationToken);
             if (record == null)
                 return NotFound(new { success = false, message = "این لینک دیگر معتبر نیست." });
-            return Ok(new { success = true, firstName = record.FirstName, canCapture = record.Token.StudyID.HasValue });
+            return Ok(new
+            {
+                success = true,
+                firstName = record.FirstName,
+                purpose = record.Token.Purpose,
+                canCapture = record.Token.Purpose == PurposeRadiologyCamera && record.Token.StudyID.HasValue,
+                canSms = record.Token.Purpose == PurposeSmsLink,
+                canPatientPhoto = record.Token.Purpose == PurposePatientPhoto
+            });
         }
 
         // ------------------------------------------------------------
@@ -154,6 +176,9 @@ namespace ReSiRai.Api.Controllers
             var record = await ResolveAsync(token, cancellationToken);
             if (record == null)
                 return NotFound(new { success = false, message = "این لینک دیگر معتبر نیست." });
+
+            if (record.Token.Purpose != PurposeSmsLink)
+                return BadRequest(new { success = false, message = "این لینک برای دریافت پیامک ساخته نشده است." });
 
             string text = (request.Text ?? string.Empty).Trim();
             if (text.Length < 5)
@@ -244,6 +269,9 @@ namespace ReSiRai.Api.Controllers
             if (record == null)
                 return NotFound(new { success = false, message = "این لینک دیگر معتبر نیست." });
 
+            if (record.Token.Purpose != PurposeRadiologyCamera)
+                return BadRequest(new { success = false, message = "این لینک برای عکس با دوربین ساخته نشده است." });
+
             if (!record.Token.StudyID.HasValue)
                 return BadRequest(new { success = false, message = "این لینک به یک مراجعه وصل نیست؛ از مطب لینک تازه بگیرید." });
 
@@ -314,6 +342,9 @@ namespace ReSiRai.Api.Controllers
             var record = await ResolveAsync(token, cancellationToken);
             if (record == null)
                 return NotFound(new { success = false, message = "این لینک دیگر معتبر نیست." });
+
+            if (record.Token.Purpose != PurposePatientPhoto)
+                return BadRequest(new { success = false, message = "این لینک برای عکس چهره ساخته نشده است." });
 
             if (record.Token.UseCount >= 50)
                 return BadRequest(new { success = false, message = "این لینک به سقفِ استفاده رسیده است؛ از مطب لینک تازه بگیرید." });
