@@ -86,10 +86,18 @@
     if (!list) return;
     const chip = host.querySelector("[data-labtests-summary]");
     const totalFields = tests.reduce((s, t) => s + (t.fields?.length || 0), 0);
+    // بدونِ آزمایش، کلِ این بخش دیده نمی‌شود؛ فقط وقتی داده هست ظاهر می‌شود.
+    if (!tests.length) {
+      host.classList.add("hidden");
+      list.replaceChildren();
+      if (chip) chip.textContent = "";
+      const descEmpty = host.querySelector("[data-labtests-desc]");
+      if (descEmpty) descEmpty.textContent = "";
+      return;
+    }
+    host.classList.remove("hidden");
     if (chip) {
-      chip.textContent = tests.length
-        ? `${faNum(tests.length)} آزمایش · ${faNum(totalFields)} فیلد`
-        : "بدونِ آزمایش";
+      chip.textContent = `${faNum(tests.length)} آزمایش · ${faNum(totalFields)} فیلد`;
     }
     const descEl = host.querySelector("[data-labtests-desc]");
     if (descEl) {
@@ -98,10 +106,6 @@
       descEl.title = text;
     }
     list.replaceChildren();
-    if (!tests.length) {
-      list.innerHTML = '<div class="study-labtests-empty">هنوز آزمایشی برای این مراجعه ثبت نشده است.</div>';
-      return;
-    }
     tests.forEach((t) => {
       const card = document.createElement("article");
       card.className = "labtest-card";
@@ -127,7 +131,7 @@
 
   function createPanel(studyID) {
     const root = document.createElement("section");
-    root.className = "study-labtests";
+    root.className = "study-labtests hidden";
     root.dataset.studyId = String(studyID);
 
     const head = document.createElement("button");
@@ -212,5 +216,11 @@
   const observer = new MutationObserver(enhance);
   const host = document.getElementById("studiesContainer");
   if (host) observer.observe(host, { childList: true, subtree: true });
+  window.addEventListener("resirai-lab-tests-changed", (e) => {
+    const studyID = Number(e.detail?.studyID) || 0;
+    document.querySelectorAll(".study-labtests").forEach((panel) => {
+      if (!studyID || Number(panel.dataset.studyId) === studyID) load(panel);
+    });
+  });
   enhance();
 })();

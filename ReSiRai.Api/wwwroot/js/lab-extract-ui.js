@@ -739,6 +739,7 @@
                 if (!r.ok || !x.success) throw new Error(x.message || "ثبت مقادیر ناموفق بود.");
                 savedCount = Number(x.saved) || items.length;
                 window.ReSiRaiFactors?.render({ studyID });
+                window.dispatchEvent(new CustomEvent("resirai-lab-tests-changed", { detail: { studyID } }));
             }
             // A summary that stays on the screen: how many rows made it, how many
             // did not, and why. The doctor must not depend on a vanishing toast.
