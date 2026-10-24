@@ -598,6 +598,7 @@
     function navigate(name) {
         if (name === "dashboard") return openDashboard();
         if (name === "patients") { dashboardVisible = false; stopDashboardAutoRefresh(); return openPatients(); }
+        if (name === "messages") { dashboardVisible = false; stopDashboardAutoRefresh(); hidePages(); setActive("messages"); return window.ReSiRaiMessages?.open(); }
         if (name === "settings") { dashboardVisible = false; stopDashboardAutoRefresh(); return openSettings(); }
         if (name === "help") { dashboardVisible = false; stopDashboardAutoRefresh(); return openHelp(); }
         // گزارش‌ها: دسترسی در خودِ ماژول بررسی می‌شود (مدیرِ سیستم یا پرچمِ گزارش‌ها).

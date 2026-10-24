@@ -48,6 +48,7 @@
     <link rel="stylesheet" href="/css/pos-settings.css?v=20261001.19" />
     <link rel="stylesheet" href="/css/patient-messages.css?v=20261001.19" />
     <link rel="stylesheet" href="/css/study-status.css?v=20261001.19" />
+<link rel="stylesheet" href="/css/messages.css?v=20261025.1" />
 </head>
 <body>
 <aside class="app-sidebar">
@@ -55,6 +56,7 @@
   <nav class="sidebar-nav" aria-label="منوی اصلی">
     <a href="#" class="sidebar-link active" data-nav="dashboard"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.2 12 3l9 7.2"/><path d="M5 9.6V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.6"/><path d="M9.5 21v-5.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V21"/></svg></span>داشبورد</a>
     <a href="#" class="sidebar-link" data-nav="patients"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.5"/><path d="M17.6 14.7c2.2.6 3.6 2.3 3.6 4.5"/></svg></span>بیماران</a>
+    <a href="#" class="sidebar-link" data-nav="messages"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-3.8-.8L3 21l1.9-5.2A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5Z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg></span>پیام‌ها<span id="messagesUnreadBadge" class="nav-badge hidden"></span></a>
     <a href="#" class="sidebar-link hidden" data-nav="reports"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M8.5 13.5h7"/><path d="M8.5 17h4.5"/></svg></span>گزارش‌ها</a>
     <a href="#" class="sidebar-link" data-nav="help"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H19v3H6.5A2.5 2.5 0 0 1 4 20.5z"/><path d="M8 7.5h7"/><path d="M8 11h5"/></svg></span>راهنما</a>
     <a href="#" class="sidebar-link hidden" data-nav="events"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>لاگ رویدادها</a>
@@ -331,6 +333,7 @@ window.addEventListener('DOMContentLoaded',function(){
 <script src="/js/study-delete.js?v=20261001.19"></script>
 <script src="/js/study-finance.js?v=20261001.19"></script>
 <script src="/js/study-lab-tests.js?v=20261024.1"></script>
+<script src="/js/message-center.js?v=20261025.1"></script>
 <script src="/js/study-sections.js?v=20261023.11"></script>
 <script src="/js/study-type-ui.js?v=20261007.2"></script>
 <script src="/js/factors-ui.js?v=20261025.1"></script>
@@ -347,7 +350,7 @@ window.addEventListener('DOMContentLoaded',function(){
 <script src="/js/qr-float.js?v=20261016.1"></script>
 <script src="/js/inbox-ui.js?v=20261024.1"></script>
 <script src="/js/study-receive.js?v=20261024.2"></script>
-<script src="/js/navigation.js?v=20261024.3"></script>
+<script src="/js/navigation.js?v=20261025.1"></script>
 <script src="/js/clinic-settings.js?v=20261024.3"></script>
 <script src="/js/pos-settings.js?v=20261001.19"></script>
 <script src="/js/patient-messages.js?v=20261001.19"></script>

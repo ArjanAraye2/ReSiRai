@@ -32,6 +32,7 @@ namespace ReSiRai.Api.Data
         public DbSet<PairedDevice> PairedDevices { get; set; }
         public DbSet<InboxMessage> InboxMessages { get; set; }
         public DbSet<PatientReceiveToken> PatientReceiveTokens { get; set; }
+        public DbSet<UserMessage> UserMessages { get; set; }
         public DbSet<AIImageAnalysis> AIImageAnalyses { get; set; }
         public DbSet<AppEvent> AppEvents { get; set; }
         public DbSet<ClinicalFactor> ClinicalFactors { get; set; }

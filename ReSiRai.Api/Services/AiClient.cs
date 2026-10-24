@@ -337,7 +337,9 @@ public sealed class AiClient
             {
                 Path.Combine(AppContext.BaseDirectory, "Tools", "Tesseract-OCR", "tesseract.exe"),
                 @"C:\Program Files\Tesseract-OCR\tesseract.exe",
-                @"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe"
+                @"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+                "/usr/bin/tesseract",
+                "/usr/local/bin/tesseract"
             };
             return candidates.FirstOrDefault(File.Exists) ?? string.Empty;
         }
