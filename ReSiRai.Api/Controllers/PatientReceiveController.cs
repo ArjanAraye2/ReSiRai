@@ -28,17 +28,20 @@ namespace ReSiRai.Api.Controllers
         private readonly SmsInboxService _inbox;
         private readonly IWebHostEnvironment _environment;
         private readonly IConfiguration _configuration;
+        private readonly AppEventLogger _events;
 
         public PatientReceiveController(
             ReSiRaiDbContext db,
             SmsInboxService inbox,
             IWebHostEnvironment environment,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            AppEventLogger events)
         {
             _db = db;
             _inbox = inbox;
             _environment = environment;
             _configuration = configuration;
+            _events = events;
         }
 
         public sealed record ReceiveRequest(string? Text);
@@ -123,6 +126,7 @@ namespace ReSiRai.Api.Controllers
                 .Replace("{{TOKEN}}", WebUtility.HtmlEncode(token))
                 .Replace("{{API}}", WebUtility.HtmlEncode($"/api/receive/{token}"))
                 .Replace("{{INFO}}", WebUtility.HtmlEncode($"/api/receive/{token}"));
+            Response.Headers.CacheControl = "no-store";
             return Content(html, "text/html; charset=utf-8");
         }
 
@@ -134,7 +138,7 @@ namespace ReSiRai.Api.Controllers
             var record = await ResolveAsync(token, cancellationToken);
             if (record == null)
                 return NotFound(new { success = false, message = "این لینک دیگر معتبر نیست." });
-            return Ok(new { success = true, firstName = record.FirstName });
+            return Ok(new { success = true, firstName = record.FirstName, canCapture = record.Token.StudyID.HasValue });
         }
 
         // ------------------------------------------------------------
@@ -225,6 +229,77 @@ namespace ReSiRai.Api.Controllers
         }
 
         // ------------------------------------------------------------
+        // A photo taken with the patient's own phone camera (public -
+        // the same short-lived token is the credential).
+        // ------------------------------------------------------------
+        [AllowAnonymous]
+        [HttpPost("/api/receive/{token}/image")]
+        [RequestSizeLimit(30_000_000)]
+        public async Task<IActionResult> UploadFromCamera(string token, IFormFile? file, CancellationToken cancellationToken)
+        {
+            var record = await ResolveAsync(token, cancellationToken);
+            if (record == null)
+                return NotFound(new { success = false, message = "این لینک دیگر معتبر نیست." });
+
+            if (!record.Token.StudyID.HasValue)
+                return BadRequest(new { success = false, message = "این لینک به یک مراجعه وصل نیست؛ از مطب لینک تازه بگیرید." });
+
+            // یک لینکِ یک‌روزه نباید به ابزارِ آپلودِ بی‌نهایت تبدیل شود.
+            if (record.Token.UseCount >= 50)
+                return BadRequest(new { success = false, message = "این لینک به سقفِ استفاده رسیده است؛ از مطب لینک تازه بگیرید." });
+
+            int studyID = record.Token.StudyID.Value;
+            bool belongs = await _db.RadiologyStudies.AsNoTracking()
+                .AnyAsync(x => x.StudyID == studyID && x.PatientID == record.PatientID, cancellationToken);
+            if (!belongs)
+                return BadRequest(new { success = false, message = "این مراجعه دیگر معتبر نیست؛ از مطب لینک تازه بگیرید." });
+
+            if (file == null || file.Length == 0)
+                return BadRequest(new { success = false, message = "عکسی انتخاب نشده است." });
+            if (file.Length > 25 * 1024 * 1024)
+                return BadRequest(new { success = false, message = "حجم عکس بیشتر از ۲۵ مگابایت است؛ عکس کوچک‌تری بگیرید." });
+
+            byte[] bytes;
+            await using (var buffer = new MemoryStream())
+            {
+                await file.CopyToAsync(buffer, cancellationToken);
+                bytes = buffer.ToArray();
+            }
+
+            var kind = DetectCameraImage(bytes);
+            if (kind == null)
+                return BadRequest(new { success = false, message = "فقط عکسِ JPEG یا PNG قابل ارسال است." });
+
+            var photo = new SmsInboxService.FetchedImage(
+                bytes, "camera" + kind.Value.Extension, kind.Value.ContentType, null);
+            var result = await _inbox.ImportToPatientAsync(record.PatientID, new[] { photo }, studyID, cancellationToken);
+            await TouchAsync(record, cancellationToken);
+
+            if (result.Imported == 0)
+            {
+                await _events.LogAsync("PatientReceivePhoto", "duplicate",
+                    $"patient={record.PatientID}; study={studyID}; bytes={bytes.Length}", userName: "receive-token");
+                return Ok(new
+                {
+                    success = true,
+                    outcome = "duplicate",
+                    studyID,
+                    message = "این عکس قبلاً برای همین بیمار ثبت شده بود."
+                });
+            }
+
+            await _events.LogAsync("PatientReceivePhoto", "ok",
+                $"patient={record.PatientID}; study={studyID}; bytes={bytes.Length}", userName: "receive-token");
+            return Ok(new
+            {
+                success = true,
+                outcome = "imported",
+                studyID,
+                message = "عکس با موفقیت به این مراجعه اضافه شد."
+            });
+        }
+
+        // ------------------------------------------------------------
         // helpers
         // ------------------------------------------------------------
         private sealed record Resolved(PatientReceiveToken Token, int PatientID, string FirstName);
@@ -288,6 +363,18 @@ namespace ReSiRai.Api.Controllers
             Span<byte> bytes = stackalloc byte[18];
             RandomNumberGenerator.Fill(bytes);
             return Convert.ToBase64String(bytes).Replace('+', '-').Replace('/', '_').TrimEnd('=');
+        }
+
+        /// <summary>Only formats the storage layer accepts (JPG/PNG), detected from bytes.</summary>
+        private static (string Extension, string ContentType)? DetectCameraImage(byte[] bytes)
+        {
+            if (bytes.Length >= 3 && bytes[0] == 0xFF && bytes[1] == 0xD8 && bytes[2] == 0xFF)
+                return (".jpg", "image/jpeg");
+            if (bytes.Length >= 8 &&
+                bytes[0] == 137 && bytes[1] == 80 && bytes[2] == 78 && bytes[3] == 71 &&
+                bytes[4] == 13 && bytes[5] == 10 && bytes[6] == 26 && bytes[7] == 10)
+                return (".png", "image/png");
+            return null;
         }
 
         private string ExpiredPage() =>

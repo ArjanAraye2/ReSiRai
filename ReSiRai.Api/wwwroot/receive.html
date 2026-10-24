@@ -6,6 +6,7 @@
 <title>دریافت تصویر رادیولوژی</title>
 <!-- این صفحه فقط با شناسهٔ کیوآرکد باز می‌شود و نباید در جست‌وجو بیاید. -->
 <meta name="robots" content="noindex, nofollow, noarchive" />
+<meta name="referrer" content="no-referrer" />
 <link rel="icon" href="/images/resirai.ico" />
 <link rel="stylesheet" href="/css/fonts.css" />
 <style>
@@ -47,10 +48,23 @@
   }
   button.primary:disabled { opacity:.6; }
 
-  #result { display:none; margin-top:14px; padding:14px; border-radius:12px; font-size:14.5px; }
-  #result.ok { display:block; background:#e8f7f0; color:#0e7d55; border:1px solid #bfe7d7; }
-  #result.warn { display:block; background:#fff4e0; color:#a06400; border:1px solid #f4ddae; }
-  #result.err { display:block; background:#fdecec; color:#b42318; border:1px solid #f3c2c0; }
+  button.secondary {
+    width:100%; min-height:46px; margin-top:8px; border:1px solid var(--line);
+    border-radius:12px; background:#fff; color:var(--brand); font-family:inherit;
+    font-size:14.5px; font-weight:700; cursor:pointer;
+  }
+
+  .card h2 { margin:0 0 8px; font-size:16px; color:var(--ink); }
+  #cameraPreview { margin-top:12px; }
+  #cameraPreviewImage {
+    width:100%; max-height:55vh; object-fit:contain; display:block;
+    border:1px solid var(--line); border-radius:12px; background:#0b222b;
+  }
+
+  #result, #cameraResult { display:none; margin-top:14px; padding:14px; border-radius:12px; font-size:14.5px; }
+  #result.ok, #cameraResult.ok { display:block; background:#e8f7f0; color:#0e7d55; border:1px solid #bfe7d7; }
+  #result.warn, #cameraResult.warn { display:block; background:#fff4e0; color:#a06400; border:1px solid #f4ddae; }
+  #result.err, #cameraResult.err { display:block; background:#fdecec; color:#b42318; border:1px solid #f3c2c0; }
 
   footer { max-width:640px; margin:18px auto 0; padding:0 16px; color:var(--muted); font-size:12.5px; text-align:center; }
 </style>
@@ -58,12 +72,29 @@
 <body>
 <header>
   <div class="brand">ReSiRai — دریافت تصویر</div>
-  <h1>ارسال پیامک رادیولوژی به مطب</h1>
+  <h1>ارسال تصویر رادیولوژی به مطب</h1>
   <div class="who" id="who">در حال بررسی…</div>
 </header>
 
 <main>
+  <div class="card" id="cameraCard" hidden>
+    <h2>عکس با دوربین گوشی</h2>
+    <p class="steps" style="padding:0">
+      فیلم/عکس رادیولوژی را در نور کافی، روبه‌رو و بدونِ بازتابِ فلاش بگیرید.
+      عکس مستقیم به همین مراجعه وصل می‌شود.
+    </p>
+    <input id="cameraInput" type="file" accept="image/jpeg,image/png" capture="environment" hidden />
+    <button id="cameraButton" class="primary" type="button">گرفتن عکس با دوربین</button>
+    <div id="cameraPreview" hidden>
+      <img id="cameraPreviewImage" alt="پیش‌نمایش عکس" />
+      <button id="sendPhotoButton" class="primary" type="button">ارسال عکس به این مراجعه</button>
+      <button id="retakePhotoButton" class="secondary" type="button">گرفتن عکس دوباره</button>
+    </div>
+    <div id="cameraResult"></div>
+  </div>
+
   <div class="card">
+    <h2>یا متن پیامک رادیولوژی</h2>
     <ol class="steps">
       <li>پیامکی که از طرف رادیولوژیست آمده را باز کنید.</li>
       <li><strong>کل متن آن را انتخاب و کپی کنید</strong> (لمس طولانی روی متن ← کپی).</li>
@@ -92,10 +123,74 @@
     box.style.display = "block";
   }
 
+  function showCamera(kind, text) {
+    var box = $("cameraResult");
+    box.className = kind;
+    box.textContent = text;
+    box.style.display = "block";
+  }
+
+  function clearCamera() {
+    var box = $("cameraResult");
+    box.className = ""; box.textContent = ""; box.style.display = "none";
+  }
+
+  var cameraCard = $("cameraCard"), cameraInput = $("cameraInput");
+  var cameraButton = $("cameraButton"), cameraPreview = $("cameraPreview");
+  var cameraImage = $("cameraPreviewImage");
+
+  cameraButton.addEventListener("click", function () { cameraInput.click(); });
+
+  cameraInput.addEventListener("change", function () {
+    var file = cameraInput.files && cameraInput.files[0];
+    if (!file) return;
+    clearCamera();
+    cameraImage.src = URL.createObjectURL(file);
+    cameraPreview.hidden = false;
+    cameraButton.hidden = true;
+  });
+
+  $("retakePhotoButton").addEventListener("click", function () {
+    cameraInput.value = "";
+    cameraPreview.hidden = true;
+    cameraButton.hidden = false;
+    clearCamera();
+    cameraInput.click();
+  });
+
+  $("sendPhotoButton").addEventListener("click", function () {
+    var file = cameraInput.files && cameraInput.files[0];
+    if (!file) { showCamera("warn", "اول عکس بگیرید."); return; }
+    var button = $("sendPhotoButton");
+    button.disabled = true;
+    button.textContent = "در حال ارسال…";
+    clearCamera();
+    var form = new FormData();
+    form.append("file", file);
+    fetch(api + "/image", { method: "POST", body: form })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        var d = res.d || {};
+        if (!res.ok || !d.success) { showCamera("err", d.message || "ارسال عکس انجام نشد."); return; }
+        if (d.outcome === "duplicate") { showCamera("warn", d.message || "این عکس قبلاً ثبت شده بود."); return; }
+        showCamera("ok", d.message || "عکس با موفقیت ثبت شد.");
+        cameraInput.value = "";
+        cameraPreview.hidden = true;
+        cameraButton.hidden = false;
+        cameraButton.textContent = "گرفتن عکس دیگر";
+      })
+      .catch(function () { showCamera("err", "اتصال برقرار نشد؛ دوباره تلاش کنید."); })
+      .finally(function () {
+        button.disabled = false;
+        button.textContent = "ارسال عکس به این مراجعه";
+      });
+  });
+
   fetch(api, { cache: "no-store" })
     .then(function (r) { return r.json(); })
     .then(function (d) {
       $("who").textContent = d.success && d.firstName ? "بیمار: " + d.firstName : "صفحهٔ دریافت تصویر";
+      if (d.success && d.canCapture) cameraCard.hidden = false;
       if (!d.success) show("err", d.message || "این لینک معتبر نیست.");
     })
     .catch(function () { $("who").textContent = "دریافت تصویر"; });
