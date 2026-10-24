@@ -915,9 +915,18 @@ function applyAttachAvailability(hasImages){
 // همان‌جایی برگردد که آپلود از آنجا صدا زده شده (مراجعه، صفحهٔ تصاویر، یا پرونده).
 let uploadReturnTo = null;
 async function openUploadImageForm(study){
- uploadReturnTo = !E.studyImagesSection.classList.contains("hidden") ? {kind:"images",study}
-   : !E.studyDetailsSection.classList.contains("hidden") ? {kind:"details",study}
-   : {kind:"record",patientID:selectedPatientID};
+ const imagesOpen=!E.studyImagesSection.classList.contains("hidden");
+ const detailsOpen=!E.studyDetailsSection.classList.contains("hidden");
+ uploadReturnTo = imagesOpen ? {kind:"images",study}
+   : detailsOpen ? {kind:"details",study}
+   : {kind:"record",study,patientID:selectedPatientID,
+      sections:{
+       patients:!E.patientsSection.classList.contains("hidden"),
+       details:!E.patientDetailsSection.classList.contains("hidden"),
+       studyDetails:!E.studyDetailsSection.classList.contains("hidden"),
+       studyImages:!E.studyImagesSection.classList.contains("hidden")
+      },
+      scrollY:window.scrollY};
  selectVisit(study);
  E.imageFileInput.value="";if(E.uploadImageType)E.uploadImageType.value="";resetCameraCapture();setFormStatus(E.uploadImageStatus,"",false);E.uploadImageStudyInfo.textContent=`مراجعهٔ شمارهٔ ${study.studyID} — ${study.studyType||""}`;hideMainSections();E.uploadImageSection.classList.remove("hidden");try{await loadImageTypes();}catch(e){setFormStatus(E.uploadImageStatus,e.message,true);}window.scrollTo(0,0);}
 E.cameraFileInput?.addEventListener("change",()=>{const f=E.cameraFileInput.files?.[0];if(!f)return;pendingCameraFile=f;if(cameraPreviewUrl)URL.revokeObjectURL(cameraPreviewUrl);cameraPreviewUrl=URL.createObjectURL(f);E.cameraPreviewImage.src=cameraPreviewUrl;E.cameraPreviewPanel.classList.remove("hidden");setFormStatus(E.uploadImageStatus,"پیش‌نمایش را بررسی و سپس «تأیید تصویر» را انتخاب کنید.",false);});
@@ -930,7 +939,7 @@ function syncFilePickerNames(){[["imageFileInput","فایلی انتخاب نش�
 ["imageFileInput","cameraFileInput"].forEach(id=>byId(id)?.addEventListener("change",syncFilePickerNames));
 syncFilePickerNames();
 E.retakeCameraButton?.addEventListener("click",()=>{resetCameraCapture();E.cameraFileInput.click();});
-async function uploadImage(){try{if(!selectedStudyID)throw new Error("مراجعه انتخاب نشده است.");/* نوع تصویر را هوش مصنوعی پس از آپلود تعیین می‌کند */const file=pendingCameraFile||E.imageFileInput.files?.[0];if(!file)throw new Error("یک فایل یا تصویر دوربین انتخاب کنید.");const isImage=(file.type||"").toLowerCase().startsWith("image/"),isPdf=(file.type||"").toLowerCase()==="application/pdf"||(file.name||"").toLowerCase().endsWith(".pdf");if(!isImage&&!isPdf)throw new Error("فایل انتخاب‌شده باید تصویر یا PDF باشد.");const send=(allowDuplicate)=>{const fd=new FormData();fd.append("file",file);return fetch(`/api/radiologyimages?studyID=${selectedStudyID}${allowDuplicate?"&allowDuplicate=true":""}`,{method:"POST",body:fd});};setFormStatus(E.uploadImageStatus,"در حال ذخیره و اتصال فایل...",false);let r=await send(false),x=await readApiJson(r);if(r.status===409&&x&&x.duplicate){/* The same picture was already stored for this patient. The server stopped before saving; only the operator can decide it is not a mistake. */const when=x.existing?.createdDate?new Date(x.existing.createdDate).toLocaleDateString("fa-IR"):"";const go=await askConfirmation({title:"تصویر تکراری",message:`${x.message}${when?` تاریخ ثبت قبلی: ${when}.`: ""} آیا می‌خواهید با این حال ذخیره شود؟`,confirmText:"ذخیره شود",danger:false});if(!go){setFormStatus(E.uploadImageStatus,"ذخیره لغو شد؛ تصویر تکراری ثبت نشد.",false);return;}r=await send(true);x=await readApiJson(r);}if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"ذخیره فایل انجام نشد."));resetCameraCapture();if(x.imageID&&!x.converted){setFormStatus(E.uploadImageStatus,"در حال تشخیص نوع تصویر با هوش مصنوعی...",false);try{const cr=await fetch(`/api/ai/images/${x.imageID}/classify`,{method:"POST"}),cx=await readApiJson(cr);if(cr.ok&&cx.success&&cx.imageTypeName)x.aiTypeName=cx.imageTypeName;}catch{/* تشخیصِ نوع اختیاری است؛ تصویر بدونِ نوع هم ذخیره می‌ماند */}}if(selectedStudy){selectedStudy.imageCount=(selectedStudy.imageCount||0)+1;applyAttachAvailability(true);openStudyImages(selectedStudy);}else await openPatient(selectedPatientID);showToast(x.converted?`PDF به ${x.imageCount} تصویر تبدیل و ذخیره شد.`:`فایل با موفقیت ذخیره شد: ${x.fileName}`);}catch(e){setFormStatus(E.uploadImageStatus,e.message,true);/* The status line sits above the buttons and is easy to miss on a phone, so failures are repeated as a toast. */showToast(e.message,"error");}}
+async function uploadImage(){try{if(!selectedStudyID)throw new Error("مراجعه انتخاب نشده است.");/* نوع تصویر را هوش مصنوعی پس از آپلود تعیین می‌کند */const file=pendingCameraFile||E.imageFileInput.files?.[0];if(!file)throw new Error("یک فایل یا تصویر دوربین انتخاب کنید.");const isImage=(file.type||"").toLowerCase().startsWith("image/"),isPdf=(file.type||"").toLowerCase()==="application/pdf"||(file.name||"").toLowerCase().endsWith(".pdf");if(!isImage&&!isPdf)throw new Error("فایل انتخاب‌شده باید تصویر یا PDF باشد.");const send=(allowDuplicate)=>{const fd=new FormData();fd.append("file",file);return fetch(`/api/radiologyimages?studyID=${selectedStudyID}${allowDuplicate?"&allowDuplicate=true":""}`,{method:"POST",body:fd});};setFormStatus(E.uploadImageStatus,"در حال ذخیره و اتصال فایل...",false);let r=await send(false),x=await readApiJson(r);if(r.status===409&&x&&x.duplicate){/* The same picture was already stored for this patient. The server stopped before saving; only the operator can decide it is not a mistake. */const when=x.existing?.createdDate?new Date(x.existing.createdDate).toLocaleDateString("fa-IR"):"";const go=await askConfirmation({title:"تصویر تکراری",message:`${x.message}${when?` تاریخ ثبت قبلی: ${when}.`: ""} آیا می‌خواهید با این حال ذخیره شود؟`,confirmText:"ذخیره شود",danger:false});if(!go){setFormStatus(E.uploadImageStatus,"ذخیره لغو شد؛ تصویر تکراری ثبت نشد.",false);return;}r=await send(true);x=await readApiJson(r);}if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"ذخیره فایل انجام نشد."));resetCameraCapture();if(x.imageID&&!x.converted){setFormStatus(E.uploadImageStatus,"در حال تشخیص نوع تصویر با هوش مصنوعی...",false);try{const cr=await fetch(`/api/ai/images/${x.imageID}/classify`,{method:"POST"}),cx=await readApiJson(cr);if(cr.ok&&cx.success&&cx.imageTypeName)x.aiTypeName=cx.imageTypeName;}catch{/* تشخیصِ نوع اختیاری است؛ تصویر بدونِ نوع هم ذخیره می‌ماند */}}if(selectedStudy){selectedStudy.imageCount=(selectedStudy.imageCount||0)+1;applyAttachAvailability(true);returnFromUpload(true);}else await openPatient(selectedPatientID);showToast(x.converted?`PDF به ${x.imageCount} تصویر تبدیل و ذخیره شد.`:`فایل با موفقیت ذخیره شد: ${x.fileName}`);}catch(e){setFormStatus(E.uploadImageStatus,e.message,true);/* The status line sits above the buttons and is easy to miss on a phone, so failures are repeated as a toast. */showToast(e.message,"error");}}
 
 function patientExtraPayload(prefix){
  const val=key=>{const el=byId(prefix+key);return el?el.value:"";};
@@ -1309,12 +1318,27 @@ E.editPatientForm?.addEventListener("submit",e=>{e.preventDefault();updatePatien
 E.uploadImageForm?.addEventListener("submit",e=>{e.preventDefault();uploadImage();});
 E.mergePatientForm?.addEventListener("submit",e=>{e.preventDefault();mergePatient();});
 [[E.cancelNewPatientButton,E.cancelNewPatientButtonBottom]].flat().forEach(b=>b&&(b.onclick=()=>{E.newPatientSection?.classList.add("hidden");E.patientsSection?.classList.remove("hidden");showPatientsScreen();}));[E.cancelEditPatientButton,E.cancelEditPatientButtonBottom,E.cancelNewStudyButtonBottom,E.cancelMergePatientButton,E.cancelMergePatientButtonBottom].forEach(b=>b&&(b.onclick=()=>{E.editPatientSection?.classList.add("hidden");E.patientsSection?.classList.remove("hidden");openPatient(selectedPatientID);}));// بازگشت از فرم آپلود به همان‌جایی که فراخوانده شده (برچسب: «بازگشت به مراجعه»).
-function goBackFromUpload(){
- const r = uploadReturnTo;
- if (r && r.kind === "images" && r.study) return openStudyImages(r.study);
- if (r && r.kind === "details" && r.study) return openStudyDetails(r.study);
- openPatient((r && r.patientID) || selectedPatientID);
+function returnFromUpload(refresh){
+ const r=uploadReturnTo;
+ if(r&&r.kind==="images"&&r.study)return openStudyImages(r.study);
+ if(r&&r.kind==="details"&&r.study)return openStudyDetails(r.study);
+ if(r&&r.kind==="record"&&r.sections){
+  E.uploadImageSection?.classList.add("hidden");
+  const s=r.sections;
+  E.patientsSection?.classList.toggle("hidden",!s.patients);
+  E.patientDetailsSection?.classList.toggle("hidden",!s.details);
+  E.studyDetailsSection?.classList.toggle("hidden",!s.studyDetails);
+  E.studyImagesSection?.classList.toggle("hidden",!s.studyImages);
+  if(refresh&&r.study){
+   const grid=document.querySelector(`.study-scroll-card[data-study-id="${r.study.studyID}"] .images-grid`);
+   if(grid&&typeof grid._refreshImages==="function")grid._refreshImages();
+  }
+  window.scrollTo(0,r.scrollY||0);
+  return;
+ }
+ openPatient((r&&r.patientID)||selectedPatientID);
 }
+function goBackFromUpload(){returnFromUpload(false);}
 [E.cancelUploadImageButton,E.cancelUploadImageButtonBottom].forEach(b=>b.onclick=goBackFromUpload);
 // دکمهٔ «عکس/فایل جدید» در هدر مراجعه (کنار بقیهٔ کارهای تصویر)
 document.getElementById("visitHeaderUploadButton")?.addEventListener("click",()=>{if(selectedStudy)openUploadImageForm(selectedStudy);});
