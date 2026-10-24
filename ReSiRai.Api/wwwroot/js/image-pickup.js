@@ -44,6 +44,25 @@
   }
 
   let modal = null, listEl = null, statusEl = null, studyInDialog = null;
+  const autoTried = new Set();
+
+  // تشخیصِ نوع با بررسیِ خودِ تصویر؛ اگر سرویسِ AI تنظیم نشده باشد، دکمهٔ
+  // انتخابِ دستیِ نوع سرِ جایش می‌ماند و چیزی خراب نمی‌شود.
+  async function autoClassify(image, cardEl, typeEl) {
+    if (image.imageTypeID || image.imageTypeName) return;
+    if (autoTried.has(image.imageID)) return;
+    autoTried.add(image.imageID);
+    try {
+      const r = await fetch(`/api/ai/images/${image.imageID}/classify`, { method: "POST" });
+      const x = await readJson(r);
+      if (!r.ok || !x.success || !x.imageTypeName) return;
+      image.imageTypeName = x.imageTypeName;
+      typeEl.textContent = "نوع تصویر: " + x.imageTypeName;
+      const classifyBtn = cardEl.querySelector('[data-role="classify"]');
+      if (classifyBtn) classifyBtn.remove();
+      refreshGrid(studyInDialog);
+    } catch { /* بدونِ AI: انتخابِ دستی */ }
+  }
 
   function ensureModal() {
     if (modal) return modal;
@@ -54,7 +73,7 @@
       '<div class="confirm-dialog pickup-dialog">' +
       '<button class="modal-close-button pickup-close" type="button" aria-label="بستن">×</button>' +
       "<h3>الصاق تصویر موجود از پرونده</h3>" +
-      '<p class="pickup-hint">تصاویر پروندهٔ این بیمار که نوعشان تعیین نشده یا به این مراجعه وصل نیستند. یک تصویر می‌تواند هم‌زمان در چند مراجعه معتبر باشد؛ «الصاق» فقط اضافه می‌کند و اتصال‌های دیگر را دست نمی‌زند.</p>' +
+      '<p class="pickup-hint">تصاویر پروندهٔ این بیمار که به این مراجعه وصل نیستند. یک تصویر می‌تواند هم‌زمان در چند مراجعه معتبر باشد؛ «الصاق» فقط اضافه می‌کند و اتصال‌های دیگر را دست نمی‌زند.</p>' +
       '<div id="imagePickupStatus" class="status-message"></div>' +
       '<div id="imagePickupList" class="pickup-list"></div>' +
       "</div>";
@@ -248,6 +267,7 @@
     }
 
     el.append(media, name, typeEl, badge, actions);
+    autoClassify(image, el, typeEl);
     return el;
   }
 
@@ -265,7 +285,7 @@
       const x = await readJson(r);
       if (!r.ok || !x.success) throw new Error(x.message || "فهرست تصاویر دریافت نشد.");
       const images = (x.images || [])
-        .filter((i) => !i.imageTypeID || !i.attached)
+        .filter((i) => !i.attached)
         // کارتِ سابقه سند است و نباید به‌عنوان تصویرِ رادیولوژی الصاق شود.
         .filter((i) => String(i.imageTypeName ?? "").trim() !== "کارت سابقه")
         .sort((a, b) => (a.imageTypeID ? 1 : 0) - (b.imageTypeID ? 1 : 0));

@@ -26,6 +26,8 @@ function setStudyFormMode(mode){studyFormMode=mode;E.studyDetailsSection?.classL
 
 const ids=["openStudiesOnly","dueFollowUpOnly","statPatientsWithOpenStudies","studyDetailsStatus2","studyDetailsWaitBox","studyDetailsWaitStage","studyDetailsFollowUpBox","studyDetailsFollowUpDate","studyDetailsFollowUpNote","studyDetailsDoctor","studyDetailsStatusBadge","patientsSection","patientStatistics","statTotalPatients","statActivePatients","statInactivePatients","statPatientsWithStudies","patientSearch","searchButton","clearSearchButton","includeInactivePatients","newPatientButton","patientsTableBody","statusMessage","patientDetailsSection","studyDetailsSection","studyImagesSection","backToPatientDetailsButton","backToStudyDetailsButton","studyDetailsTitle","studyDetailsDate","studyCreateActions","newStudySubmitButton","studyDetailsTeethChart","studyDetailsUploadButton","studyDetailsEditButton","studyDetailsImagesButton","studyDetailsSaveButton","studyDetailsCancelButton","studyImagesTitle","studyDetailsImagesStatus","studyDetailsImagesGrid","backToPatientsButton","editPatientButton","newStudyButton","printPatientButton","mergePatientButton","deactivatePatientButton","patientFullName","patientDisplayCode","patientNationalCode","patientStatusBadge","patientProfilePhoto","patientPhotoInput","patientPhotoButton","detailPatientCode","detailFirstName","detailLastName","detailNationalCode","detailMobile","detailBirthDate","detailGender","detailIsActive","detailAddress","detailDescription","studyCount","totalImageCount","studiesContainer","newPatientSection","newPatientForm","cancelNewPatientButton","cancelNewPatientButtonBottom","newFirstName","newLastName","newNationalCode","newMobile","newBirthDate","newGender","newAddress","newDescription","newPatientStatus","editPatientSection","editPatientForm","cancelEditPatientButton","cancelEditPatientButtonBottom","editFirstName","editLastName","editNationalCode","editMobile","editBirthDate","editGender","editAddress","editDescription","editPatientStatus","newStudyForm","cancelNewStudyButtonBottom","newStudyType","newBodyPart","newStudyDate","newStudyDescription","newStudyDiagnosis","studyDetailsWorkEndDate","studyDetailsWorkEndButton","uploadImageSection","uploadImageForm","cancelUploadImageButton","cancelUploadImageButtonBottom","uploadImageStudyInfo","uploadImageType","imageFileInput","cameraFileInput","cameraPreviewPanel","cameraPreviewImage","confirmCameraButton","retakeCameraButton","uploadImageStatus","mergePatientSection","mergePatientForm","cancelMergePatientButton","cancelMergePatientButtonBottom","mergeTargetNationalCode","mergePatientStatus","imageModal","closeImageModalButton","zoomOutImageButton","zoomInImageButton","rotateLeftImageButton","rotateRightImageButton","flipHorizontalImageButton","resetImageViewButton","largeImage","largeImageCaption","confirmModal","confirmTitle","confirmMessage","confirmYesButton","confirmNoButton","toastContainer"];
 const E={}; ids.forEach(id=>E[id]=byId(id));
+// هر تصویر فقط یک‌بار برای تشخیصِ خودکارِ نوع به سرور می‌رود (حتی با رفرش‌های بعدی).
+const autoClassifiedImages=new Set();
 E.lastStudyDateSummary=byId("lastStudyDateSummary");
 E.recentStudiesSummary=byId("recentStudiesSummary");
 // فیلدهای «اطلاعات تکمیلی» بیمار (کشو و ورودی) — به‌صورت صریح به E اضافه می‌شوند
@@ -34,7 +36,7 @@ E.recentStudiesSummary=byId("recentStudiesSummary");
 // اجزایِ باکسِ autocompleteِ «نوعِ مراجعه» (index.html + study-type-ui.js).
 ["newStudyTypeList","newStudyTypeID","newStudyTypeHint","studyTypeOtherBox","studyTypeNote"].forEach(id=>E[id]=byId(id));
 
-function hideMainSections(){[E.patientsSection,E.patientDetailsSection,E.studyDetailsSection,E.studyImagesSection].forEach(x=>x?.classList.add("hidden"));E.newPatientSection?.classList.add("hidden");E.editPatientSection?.classList.add("hidden");}
+function hideMainSections(){[E.patientsSection,E.patientDetailsSection,E.studyDetailsSection,E.studyImagesSection,E.uploadImageSection,E.mergePatientSection].forEach(x=>x?.classList.add("hidden"));E.newPatientSection?.classList.add("hidden");E.editPatientSection?.classList.add("hidden");}
 function showPatientsScreen(){hideMainSections();E.patientsSection.classList.remove("hidden");window.ReSiRaiPatientDraft&&window.ReSiRaiPatientDraft.mount();window.scrollTo(0,0);}
 function showToast(message,type="success",title=""){const t=document.createElement("div");t.className=`toast ${type}`;t.innerHTML=`<div class="toast-title"></div><div class="toast-message"></div>`;t.children[0].textContent=title||(type==="success"?"انجام شد":type==="error"?"خطا":"توجه");t.children[1].textContent=message;E.toastContainer.appendChild(t);setTimeout(()=>t.remove(),4300);}
 function askConfirmation({title="تأیید عملیات",message,confirmText="تأیید",danger=true}){return new Promise(resolve=>{E.confirmTitle.textContent=title;E.confirmMessage.textContent=message;E.confirmYesButton.textContent=confirmText;E.confirmYesButton.classList.toggle("danger-button",danger);E.confirmModal.classList.remove("hidden");const done=v=>{E.confirmModal.classList.add("hidden");E.confirmYesButton.onclick=E.confirmNoButton.onclick=null;resolve(v);};E.confirmYesButton.onclick=()=>done(true);E.confirmNoButton.onclick=()=>done(false);});}
@@ -761,6 +763,11 @@ const status=document.createElement("div");status.className="status-message";sta
   });
  }
 async function hydrateStudyCard(study,chart,status,grid,docsSection){
+ grid._refreshImages=async()=>{
+  if(grid._refreshing||grid.classList.contains("is-selecting"))return;
+  grid._refreshing=true;
+  try{await hydrateStudyCard(study,chart,status,grid,docsSection);}finally{grid._refreshing=false;}
+ };
  const [imagesResult,studyResult]=await Promise.allSettled([fetch(`/api/radiologyimages/study/${study.studyID}`).then(async r=>({r,x:await readApiJson(r)})),fetch(`/api/radiologystudies/${study.studyID}`).then(async r=>({r,x:await readApiJson(r)}))]);
  let teeth=[];
  if(studyResult.status==="fulfilled"&&studyResult.value.r.ok){const x=studyResult.value.x;teeth=x.toothNumbers||x.study?.toothNumbers||[];}
@@ -773,6 +780,30 @@ async function hydrateStudyCard(study,chart,status,grid,docsSection){
  else status.textContent="تصاویر مطالعه دریافت نشد.";status.classList.toggle("error",!imagesResult.value?.r?.ok);
 }
 
+// تصاویرِ مراجعه‌ای که روی صفحه باز است دوباره خوانده می‌شوند تا عکسی که
+// با دوربینِ گوشی (لینک/کیوآرکد) اضافه شده، بدونِ رفرشِ دستی دیده شود.
+let studyImagesRefreshTimer=null;
+function refreshVisibleStudyImages(){
+ if(document.visibilityState!=="visible")return;
+ const modal=E.imageModal;
+ if(modal&&!modal.classList.contains("hidden"))return;
+ const imagesSection=E.studyImagesSection;
+ if(imagesSection&&!imagesSection.classList.contains("hidden")&&selectedStudy&&typeof selectedStudy==="object"&&typeof loadStudyDetailsImages==="function"&&!window.__studyImagesRefreshBusy){
+  window.__studyImagesRefreshBusy=true;
+  Promise.resolve(loadStudyDetailsImages(selectedStudy)).finally(()=>{window.__studyImagesRefreshBusy=false;});
+ }
+ document.querySelectorAll(".study-scroll-card .images-grid").forEach(grid=>{
+  if(grid.classList.contains("is-selecting"))return;
+  const body=grid.closest(".study-scroll-body");
+  if(body&&body.classList.contains("hidden"))return;
+  if(typeof grid._refreshImages==="function")grid._refreshImages();
+ });
+}
+function startStudyImageRefresh(){
+ if(studyImagesRefreshTimer)return;
+ studyImagesRefreshTimer=setInterval(refreshVisibleStudyImages,6000);
+ document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")refreshVisibleStudyImages();});
+}
 function renderImagesInGrid(images,grid,opts){
  // تصاویر به تفکیکِ نوعِ تشخیص‌داده‌شده توسطِ رسیرای نمایش داده می‌شوند؛ بخش‌های
  // بازشونده با شمارنده تا گالری شلوغ نشود. بزرگ‌ترین گروه باز می‌ماند.
@@ -805,7 +836,14 @@ function renderImagesInGrid(images,grid,opts){
   });
   return;
  }
- grid.innerHTML="";(images||[]).forEach(image=>{const card=document.createElement("div");card.className="image-card";let media;if(image.contentType==="application/pdf"){media=document.createElement("div");media.className="pdf-thumbnail";media.textContent="PDF";}else{media=document.createElement("img");media.src=`/api/radiologyimages/${image.imageID}`;media.alt=image.fileName;media.loading="lazy";}media.onclick=()=>openLargeImage(image);const title=document.createElement("div");title.className="image-card-title";title.textContent=image.fileName;const type=document.createElement("div");type.className="field-hint";type.textContent=image.imageTypeName?`نوع تصویر: ${image.imageTypeName}`:"نوع تصویر: تعیین نشده";card.append(media,title,type);
+ grid.innerHTML="";(images||[]).forEach(image=>{
+  if(!image.imageTypeName&&image.contentType?.startsWith("image/")&&!autoClassifiedImages.has(image.imageID)){
+   autoClassifiedImages.add(image.imageID);
+   fetch(`/api/ai/images/${image.imageID}/classify`,{method:"POST"}).then(readApiJson).then(x=>{
+    if(x&&x.success&&x.imageTypeName){image.imageTypeName=x.imageTypeName;refreshVisibleStudyImages();}
+   }).catch(()=>{});
+  }
+  const card=document.createElement("div");card.className="image-card";let media;if(image.contentType==="application/pdf"){media=document.createElement("div");media.className="pdf-thumbnail";media.textContent="PDF";}else{media=document.createElement("img");media.src=`/api/radiologyimages/${image.imageID}`;media.alt=image.fileName;media.loading="lazy";}media.onclick=()=>openLargeImage(image);const title=document.createElement("div");title.className="image-card-title";title.textContent=image.fileName;const type=document.createElement("div");type.className="field-hint";type.textContent=image.imageTypeName?`نوع تصویر: ${image.imageTypeName}`:"نوع تصویر: تعیین نشده";card.append(media,title,type);
 if(image.contentType?.startsWith("image/")){const re=document.createElement("button");re.type="button";re.className="secondary-button";re.textContent="تشخیص نوع با رسیرای";re.onclick=async ev=>{ev.stopPropagation();re.disabled=true;re.textContent="در حال تشخیص...";try{const r=await fetch(`/api/ai/images/${image.imageID}/classify`,{method:"POST"});const x=await readApiJson(r);if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"تشخیص نوع انجام نشد."));image.imageTypeName=x.imageTypeName||image.imageTypeName;type.textContent=image.imageTypeName?`نوع تصویر: ${image.imageTypeName}`:"نوع تصویر: تعیین نشده";}catch(e){showToast(e.message||"تشخیص نوع انجام نشد.","error");}re.disabled=false;re.textContent="تشخیص نوع با رسیرای";};card.appendChild(re);}if(!opts?.docs&&image.contentType?.startsWith("image/")){const ai=document.createElement("button"),isDocument=/(کارت|سند|مدرک|مدارک)/i.test(image.imageTypeName||"");ai.dataset.aiImage=image.imageID;ai.type="button";ai.className="card-extraction-button"+(image.hasAnalysis?" is-cached":"");ai.textContent=isDocument?"استخراج اطلاعات از کارت":(image.hasAnalysis?"نمایش تحلیل تصویر":"تحلیل تصویر");ai.onclick=ev=>{ev.stopPropagation();isDocument?window.ReSiRaiImageAI?.open(image):window.ReSiRaiImageAI?.analyze(image);};card.appendChild(ai);}if(!image.imageTypeName){const classify=document.createElement("button");classify.type="button";classify.className="secondary-button";classify.textContent="تعیین نوع تصویر";classify.onclick=async ev=>{ev.stopPropagation();try{const r=await fetch("/api/imagetypes"),x=await readApiJson(r);if(!r.ok||!x.success)throw new Error(apiErrorMessage(r,x,"انواع تصویر دریافت نشد."));const types=x.imageTypes||[];if(!types.length){showToast("هنوز نوع تصویری ثبت نشده است.","error");return;}const box=document.createElement("span");box.style.cssText="display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:6px";const sel=document.createElement("select");sel.style.cssText="min-height:34px;border:1px solid var(--border);border-radius:8px;padding:4px 8px;font:inherit;font-size:13px;background:#fff";types.forEach(t=>{const o=document.createElement("option");o.value=t.imageTypeID;o.textContent=t.imageTypeName;sel.appendChild(o);});const ok=document.createElement("button");ok.type="button";ok.className="secondary-button";ok.textContent="ثبت";const cancel=document.createElement("button");cancel.type="button";cancel.className="secondary-button";cancel.textContent="انصراف";box.append(sel,ok,cancel);classify.replaceWith(box);cancel.onclick=ce=>{ce.stopPropagation();box.replaceWith(classify);};ok.onclick=async ce=>{ce.stopPropagation();const imageTypeID=Number(sel.value);try{const u=await fetch(`/api/radiologyimages/${image.imageID}/type`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({imageTypeID})}),y=await u.json();if(!u.ok||!y.success)throw new Error(getApiError(y,"تعیین نوع تصویر انجام نشد."));image.imageTypeID=y.imageTypeID;image.imageTypeName=y.imageTypeName;type.textContent=`نوع تصویر: ${y.imageTypeName}`;box.remove();if(typeof selectedStudy==="object"&&selectedStudy)openStudyImages(selectedStudy);showToast("نوع تصویر تعیین شد.");}catch(e2){showToast(e2.message||"تعیین نوع تصویر انجام نشد.","error");}};}catch(e){showToast(e.message||"انواع تصویر دریافت نشد.","error");}};card.appendChild(classify);}
 const del=document.createElement("button");
 del.type="button";
@@ -1303,3 +1341,4 @@ window.addEventListener("resirai-auth-changed",e=>{ if(e.detail) loadApplication
 if(window.reSiRaiCurrentUser) loadApplicationData();
 // ← for patient-draft.js (بدونِ ناوبری) و ابزارهای دیگر
 window.openPatient=openPatient;window.openPatientInline=openPatientInline;window.openEditPatientForm=openEditPatientForm;window.loadPatients=loadPatients;
+startStudyImageRefresh();

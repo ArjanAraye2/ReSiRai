@@ -6152,6 +6152,12 @@ textarea.visit-input{resize:vertical}
 @media (max-width: 700px) {
     #patientsSection .patient-statistics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     #patientsSection .patient-statistics > div { border-radius: 13px; }
+    /* تصاویر کنارِ هم، نه زیرِ هم — حتی روی گوشی */
+    .images-grid,
+    .image-type-grid,
+    .pickup-list { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    #studyImagesSection #studyDetailsImagesGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 8px; }
+    .pickup-card img.pickup-thumb { height: 104px; }
 }
 
 /* دکمهٔ عکس چهره در کنارِ «انتخاب فایل تصویر» — دو کارِ جدا در یک ستونِ آرام */
