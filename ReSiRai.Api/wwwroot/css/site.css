@@ -5878,6 +5878,7 @@ textarea.visit-input{resize:vertical}
 #patientsSection .patient-statistics > div {
     position: relative;
     overflow: hidden;
+    flex-direction: row-reverse;
     border: 0;
     border-radius: 15px;
     color: #ffffff;
