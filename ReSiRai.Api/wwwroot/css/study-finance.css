@@ -113,9 +113,14 @@
 .study-actions-body { display: grid; gap: 7px; padding: 9px 10px 10px; }
 .study-actions-form {
     display: grid;
-    grid-template-columns: minmax(0, 3.2fr) minmax(0, .9fr) minmax(0, .9fr) auto;
-    gap: 6px;
+    grid-template-columns: minmax(0, 3fr) minmax(0, .7fr) minmax(0, .7fr) minmax(0, .7fr) auto;
+    gap: 7px;
+    align-items: center;
+    padding-inline: 7px;
 }
+/* «خالص» فقط در فهرست و سرستون است، نه ورودی؛ جای خالیِ همین ستون جلوی
+   «+ ثبت» نگه داشته می‌شود تا فیلدها دقیقاً زیرِ عنوان‌هایشان بنشینند. */
+.study-actions-net-spacer { pointer-events: none; }
 .study-actions-list { display: grid; gap: 5px; }
 .study-actions-rows { display: grid; gap: 5px; }
 .study-actions-list-head,
@@ -414,6 +419,7 @@
     .study-actions-list-head,
     .study-actions-row { grid-template-columns: 1fr; }
     .study-actions-form { grid-template-columns: 1fr 1fr; }
+    .study-actions-net-spacer { display: none; }
     .study-finance-row .row-actions,
     .study-actions-row .row-actions { justify-content: flex-start; }
 }

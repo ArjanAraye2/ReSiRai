@@ -74,7 +74,10 @@
   const form=document.createElement("div");form.className="study-actions-form";
   const desc=field("شرح اقدام"),amount=field("هزینه","number"),discount=field("تخفیف","number"),add=button("+ ثبت");
   discount.value="0";
-  form.append(desc,amount,discount,add);
+  // «خالص» یک ستونِ نمایشی است: ورودی ندارد، ولی جایِ خالی‌اش نگه داشته
+  // می‌شود تا شرح/هزینه/تخفیف درست زیرِ عنوان‌هایشان بنشینند و «+ ثبت» آخر.
+  const netSpacer=document.createElement("span");netSpacer.className="study-actions-net-spacer";
+  form.append(desc,amount,discount,netSpacer,add);
 
   const list=document.createElement("div");list.className="study-actions-list";
   // برچسب‌ها یک بار در بالای فهرست، نه در هر سطر: ده اقدام هم یک صفحه می‌ماند
