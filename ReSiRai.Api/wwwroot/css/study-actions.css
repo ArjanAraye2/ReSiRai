@@ -4,126 +4,191 @@
    ========================================================== */
 
 .study-actions {
-    border: 1px solid #dde9f6;
-    border-radius: 16px;
+    position: relative;
+    border: 1px solid #dbe8f7;
+    border-radius: 18px;
     background:
-        radial-gradient(520px 160px at 100% -20%, rgba(126, 143, 242, .10), transparent 65%),
-        radial-gradient(420px 150px at 0% 0%, rgba(111, 195, 232, .12), transparent 62%),
+        radial-gradient(560px 190px at 100% -30%, rgba(126, 143, 242, .12), transparent 68%),
+        radial-gradient(460px 160px at 0% 0%, rgba(111, 195, 232, .14), transparent 64%),
+        radial-gradient(420px 140px at 70% 120%, rgba(217, 166, 210, .10), transparent 70%),
         #ffffff;
-    box-shadow: 0 10px 26px rgba(23, 74, 104, .07);
+    box-shadow: 0 14px 34px rgba(23, 74, 104, .09);
     overflow: hidden;
+}
+/* روبانِ باریکِ رنگی بالای کارت — هویتِ بصری */
+.study-actions::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #6fc3e8, #7e8ff2 42%, #d9a6d2 74%, #f6c48e);
 }
 
 /* سربرگ: نوارِ روشن و چیپِ رنگی */
 .study-actions-head {
-    padding: 11px 14px;
+    padding: 12px 15px;
     border-bottom: 1px solid #e8eff9;
-    background: linear-gradient(115deg, #f8fdff 0%, #f6f7ff 60%, #fdf8ff 100%);
+    background: linear-gradient(115deg, #f8fdff 0%, #f6f7ff 58%, #fdf8ff 100%);
     transition: background .15s ease;
 }
-.study-actions-head:hover { background: linear-gradient(115deg, #f2fbff 0%, #f2f4ff 60%, #fcf4ff 100%); }
-.study-actions-head strong { color: #10465b; font-size: 14px; font-weight: 800; }
-.study-actions-arrow { color: #6b8af0; }
+.study-actions-head:hover { background: linear-gradient(115deg, #f0fbff 0%, #f1f3ff 58%, #fcf3ff 100%); }
+.study-actions-head strong {
+    color: #10465b;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: .1px;
+}
+.study-actions-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 7px;
+    background: #eef4ff;
+    color: #5b7bd8;
+    font-size: 12px;
+}
 .study-actions-desc { color: #7089a0; }
 .study-actions-chip {
-    padding: 3px 10px;
+    padding: 3px 11px;
     border-radius: 999px;
-    background: linear-gradient(135deg, #eaf3ff, #f3f0ff);
+    background: linear-gradient(135deg, #e8f3ff, #f2efff);
     color: #3f5fb8;
-    box-shadow: inset 0 0 0 1px #dbe6fa;
+    font-weight: 800;
+    box-shadow: inset 0 0 0 1px #dbe6fa, 0 2px 6px rgba(91, 123, 216, .10);
 }
 
-/* فرمِ ورود: فیلدهای سفیدِ نرم با فوکوسِ آبی */
-.study-actions-body { padding: 12px 14px 14px; }
+/* فرمِ ورود */
+.study-actions-body { padding: 13px 15px 15px; }
+.study-actions-form {
+    padding: 9px 9px 9px 9px;
+    border: 1px dashed #d9e6f7;
+    border-radius: 13px;
+    background: linear-gradient(135deg, #fbfdff, #f8f9ff);
+}
 .study-actions-form input {
-    min-height: 36px;
-    padding: 6px 11px;
+    min-height: 38px;
+    padding: 7px 12px;
     border: 1px solid #e0e9f6;
     border-radius: 10px;
-    background: #fbfdff;
+    background: #ffffff;
     color: #1f3542;
     font-size: 12.5px;
     transition: border-color .15s, box-shadow .15s, background .15s;
 }
-.study-actions-form input::placeholder { color: #93a6b8; }
-.study-actions-form input:hover { background: #ffffff; border-color: #d3e2f5; }
+.study-actions-form input::placeholder { color: #97a9ba; }
+.study-actions-form input:hover { border-color: #cfe0f4; }
 .study-actions-form input:focus {
     outline: 0;
-    background: #ffffff;
     border-color: #8f9cf0;
-    box-shadow: 0 0 0 3px rgba(126, 143, 242, .14);
+    box-shadow: 0 0 0 3px rgba(126, 143, 242, .15);
 }
 .study-actions-form button {
-    min-height: 36px;
-    padding: 6px 16px;
+    min-height: 38px;
+    padding: 7px 18px;
     border: 0;
     border-radius: 10px;
     background: linear-gradient(135deg, #0e7f95, #5b8def);
     color: #ffffff;
     font-weight: 800;
     font-size: 12.5px;
-    box-shadow: 0 6px 14px rgba(14, 127, 149, .22);
+    box-shadow: 0 7px 16px rgba(14, 127, 149, .24);
     cursor: pointer;
     transition: filter .15s, transform .15s;
 }
-.study-actions-form button:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.study-actions-form button:hover { filter: brightness(1.07); transform: translateY(-1px); }
 
-/* فهرست: سرستونِ آرام، سطرهای کارت‌مانند */
-.study-actions-list { margin-top: 4px; }
+/* فهرست: سرستونِ آرام، سطرهای کارت‌مانندِ رنگی */
+.study-actions-list { margin-top: 6px; }
 .study-actions-list-head {
-    padding: 4px 10px 6px;
+    padding: 4px 12px 7px;
     color: #71879a;
     letter-spacing: .2px;
+    border-bottom: 1px solid #eef3fa;
 }
-.study-actions-rows { gap: 7px; }
+.study-actions-rows { gap: 8px; margin-top: 8px; }
 .study-actions-row {
     position: relative;
-    padding: 9px 11px;
+    padding: 10px 12px;
     border: 1px solid #e6eef9;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #fbfdff, #f8f9ff);
-    box-shadow: 0 2px 8px rgba(23, 74, 104, .04);
+    border-radius: 13px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fbff 55%, #f8f7ff 100%);
+    box-shadow: 0 3px 10px rgba(23, 74, 104, .05);
     transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
 .study-actions-row:hover {
-    border-color: #cfdff3;
-    box-shadow: 0 8px 18px rgba(23, 74, 104, .09);
+    border-color: #c9dcf2;
+    box-shadow: 0 10px 22px rgba(23, 74, 104, .11);
     transform: translateY(-1px);
 }
+/* نوارِ رنگیِ کنارِ هر سطر + دایرهٔ کوچکِ ابتدای آن */
 .study-actions-row::before {
     content: "";
     position: absolute;
     inset-inline-start: 0;
-    top: 8px;
-    bottom: 8px;
-    width: 3px;
+    top: 7px;
+    bottom: 7px;
+    width: 4px;
     border-radius: 999px;
-    background: linear-gradient(180deg, #6fc3e8, #7e8ff2);
+    background: linear-gradient(180deg, #6fc3e8, #7e8ff2 60%, #d9a6d2);
 }
 .study-actions-row > span:first-child {
-    color: #123f52;
-    font-weight: 700;
+    color: #103d52;
+    font-weight: 800;
     font-size: 12.5px;
-    padding-inline-start: 6px;
+    padding-inline-start: 10px;
+}
+.study-actions-row > span:first-child::before {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-inline-end: 7px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6fc3e8, #7e8ff2);
+    box-shadow: 0 0 0 3px rgba(126, 143, 242, .12);
+    vertical-align: middle;
 }
 /* اعداد: رقمی با عرضِ یکسان تا ستون‌ها روی هم بنشینند */
-.study-actions-row > span:not(.row-actions) { font-variant-numeric: tabular-nums; }
-.study-actions-row > span:nth-child(2) { color: #3f5f78; }
-.study-actions-row > span:nth-child(3) { color: #b26811; }
+.study-actions-row > span:not(.row-actions) {
+    font-variant-numeric: tabular-nums;
+    font-size: 12.5px;
+}
+.study-actions-row > span:nth-child(2) { color: #35576f; }
+.study-actions-row > span:nth-child(3) {
+    display: inline-flex;
+    width: fit-content;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #fff6e8;
+    color: #a9640a;
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1px #f4e2c4;
+}
 .study-actions-row > span:nth-child(4) {
-    color: #0f7a5a;
-    font-weight: 800;
+    display: inline-flex;
+    width: fit-content;
+    padding: 1px 9px;
+    border-radius: 999px;
+    background: #e7f8f0;
+    color: #0c7a53;
+    font-weight: 900;
+    box-shadow: inset 0 0 0 1px #bde6d3;
 }
 
 /* دکمه‌های سطر */
 .study-actions-row button {
-    border-radius: 8px;
+    border-radius: 9px;
     font-weight: 700;
-    transition: filter .15s, background .15s;
+    transition: filter .15s, background .15s, transform .15s;
 }
-.study-actions-row button:hover { filter: brightness(1.05); }
+.study-actions-row button:hover { filter: brightness(1.05); transform: translateY(-1px); }
 
 @media (max-width: 650px) {
     .study-actions-body { padding: 10px 10px 12px; }
     .study-actions-row::before { display: none; }
+    .study-actions-row > span:nth-child(3),
+    .study-actions-row > span:nth-child(4) { width: auto; }
 }
