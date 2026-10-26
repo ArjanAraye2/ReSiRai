@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8" />
@@ -9,9 +9,9 @@
 <link rel="apple-touch-icon" href="images/resirai-icon-180.png?v=20261001.19" />
 <link rel="apple-touch-icon" sizes="192x192" href="images/resirai-icon-192.png?v=20261001.19" />
 <script>
-/* نگهبانِ ورود: تا وضعیتِ ورود (پروبِ /api/auth/me) روشن نشده، درخواست‌های
-   /api نگه داشته می‌شوند؛ اگر مهمان باشد همان‌جا با پاسخِ 401ِ ساختگی آزاد
-   می‌شوند — بدونِ رفت‌وآمدِ شبکه، بدونِ پیامِ «Failed to load resource». */
+/* ??????? ????: ?? ?????? ???? (????? /api/auth/me) ???? ????? ???????????
+   /api ??? ????? ???????? ??? ????? ???? ??????? ?? ????? 401? ?????? ????
+   ??????? � ????? ????????? ????? ????? ????? �Failed to load resource�. */
 (function(){
   var orig = window.fetch.bind(window), state = 'unknown', queue = [];
   function release(guest){
@@ -37,7 +37,7 @@
 </script>
     <link rel="stylesheet" href="/css/fonts.css?v=20261001.19" />
     <link rel="stylesheet" href="/css/site.css?v=20261024.8" />
-    <link rel="stylesheet" href="/css/study-finance.css?v=20261025.1" />
+    <link rel="stylesheet" href="/css/study-finance.css?v=20261027.1" />
 <link rel="stylesheet" href="/css/factors.css?v=20261023.3" />
 <link rel="stylesheet" href="/css/study-sections.css?v=20261023.11" />
     <!-- Loaded up-front so Study/Teeth forms never flash unstyled; the JS
@@ -53,14 +53,14 @@
 <body>
 <aside class="app-sidebar">
   <div class="sidebar-brand"><img class="sidebar-brand-logo" src="images/resirai-logo-dark.svg?v=20261001.19" alt="ReSiRai - Medical Intelligence Platform" /></div>
-  <nav class="sidebar-nav" aria-label="منوی اصلی">
-    <a href="#" class="sidebar-link active" data-nav="dashboard"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.2 12 3l9 7.2"/><path d="M5 9.6V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.6"/><path d="M9.5 21v-5.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V21"/></svg></span>داشبورد</a>
-    <a href="#" class="sidebar-link" data-nav="patients"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.5"/><path d="M17.6 14.7c2.2.6 3.6 2.3 3.6 4.5"/></svg></span>بیماران</a>
-    <a href="#" class="sidebar-link" data-nav="messages"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-3.8-.8L3 21l1.9-5.2A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5Z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg></span>پیام‌ها<span id="messagesUnreadBadge" class="nav-badge hidden"></span></a>
-    <a href="#" class="sidebar-link hidden" data-nav="reports"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M8.5 13.5h7"/><path d="M8.5 17h4.5"/></svg></span>گزارش‌ها</a>
-    <a href="#" class="sidebar-link" data-nav="help"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H19v3H6.5A2.5 2.5 0 0 1 4 20.5z"/><path d="M8 7.5h7"/><path d="M8 11h5"/></svg></span>راهنما</a>
-    <a href="#" class="sidebar-link hidden" data-nav="events"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>لاگ رویدادها</a>
-    <a href="#" class="sidebar-link" data-nav="settings"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.3a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.54 15a1.7 1.7 0 0 0-1.56-1.03H2.9a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.54 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.54a1.7 1.7 0 0 0 1.03-1.56V2.9a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9.1a1.7 1.7 0 0 0 1.56 1.03h.09a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg></span>تنظیمات</a>
+  <nav class="sidebar-nav" aria-label="???? ????">
+    <a href="#" class="sidebar-link active" data-nav="dashboard"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.2 12 3l9 7.2"/><path d="M5 9.6V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.6"/><path d="M9.5 21v-5.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V21"/></svg></span>???????</a>
+    <a href="#" class="sidebar-link" data-nav="patients"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.5"/><path d="M17.6 14.7c2.2.6 3.6 2.3 3.6 4.5"/></svg></span>???????</a>
+    <a href="#" class="sidebar-link" data-nav="messages"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-3.8-.8L3 21l1.9-5.2A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5Z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg></span>???????<span id="messagesUnreadBadge" class="nav-badge hidden"></span></a>
+    <a href="#" class="sidebar-link hidden" data-nav="reports"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M14 3v5h5"/><path d="M8.5 13.5h7"/><path d="M8.5 17h4.5"/></svg></span>????????</a>
+    <a href="#" class="sidebar-link" data-nav="help"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H19v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H19v3H6.5A2.5 2.5 0 0 1 4 20.5z"/><path d="M8 7.5h7"/><path d="M8 11h5"/></svg></span>??????</a>
+    <a href="#" class="sidebar-link hidden" data-nav="events"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>??? ????????</a>
+    <a href="#" class="sidebar-link" data-nav="settings"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.09A1.7 1.7 0 0 0 8.9 19.3a1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.54 15a1.7 1.7 0 0 0-1.56-1.03H2.9a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.54 8.9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 8.9 4.54a1.7 1.7 0 0 0 1.03-1.56V2.9a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9.1a1.7 1.7 0 0 0 1.56 1.03h.09a2 2 0 1 1 0 4h-.09A1.7 1.7 0 0 0 19.4 15Z"/></svg></span>???????</a>
   </nav>
   <div class="sidebar-footer"><strong>ReSiRai</strong><span>Medical Intelligence Platform</span></div>
 </aside>
@@ -69,109 +69,109 @@
   <div class="header-brand"><img class="header-brand-logo" src="images/resirai-logo.svg?v=20261001.19" alt="ReSiRai - Medical Intelligence Platform" /></div>
 </div></header>
 <main class="page-container">
-<section id="patientsSection" class="card"><div class="section-header"><div><h2>بیماران</h2><p>جستجو، ثبت و مدیریت پرونده بیماران</p></div></div><div id="patientStatistics" class="patient-statistics"><div><strong id="statTotalPatients">0</strong><span>کل بیماران</span></div><div><strong id="statActivePatients">0</strong><span>فعال</span></div><div><strong id="statInactivePatients">0</strong><span>غیرفعال</span></div><div><strong id="statPatientsWithStudies">0</strong><span>دارای مراجعه</span></div><div><strong id="statPatientsWithOpenStudies">0</strong><span>مراجعهٔ باز دارند</span></div></div><div id="statusMessage" class="status-message">در حال دریافت اطلاعات...</div>
-<!-- ناحیهٔ «معرفیِ بیمار» بدونِ ناوبری: همیشه بالایِ فهرست؛ اول کدِ ملی — بعد بقیه (patient-draft.js) -->
+<section id="patientsSection" class="card"><div class="section-header"><div><h2>???????</h2><p>?????? ??? ? ?????? ?????? ???????</p></div></div><div id="patientStatistics" class="patient-statistics"><div><strong id="statTotalPatients">0</strong><span>?? ???????</span></div><div><strong id="statActivePatients">0</strong><span>????</span></div><div><strong id="statInactivePatients">0</strong><span>???????</span></div><div><strong id="statPatientsWithStudies">0</strong><span>????? ??????</span></div><div><strong id="statPatientsWithOpenStudies">0</strong><span>??????? ??? ?????</span></div></div><div id="statusMessage" class="status-message">?? ??? ?????? ???????...</div>
+<!-- ?????? �?????? ?????� ????? ??????: ????? ?????? ?????? ??? ??? ??? � ??? ???? (patient-draft.js) -->
 <div id="patientDraftHost" class="patient-draft-host"></div>
-<!--- نمای فشردهٔ بیماران: نام+سن، تماس+کد ملی، بیمه، مراجعات (باز/بسته)، آخرین مراجعه، پیگیری، وضعیت، عملیات -->
+<!--- ???? ?????? ???????: ???+??? ????+?? ???? ????? ??????? (???/????)? ????? ??????? ??????? ?????? ?????? -->
 <div class="table-container">
-<div class="search-panel patient-list-toolbar"><div class="search-container"><input id="patientSearch" type="text" placeholder="نام، نام خانوادگی، کد ملی یا موبایل..." autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" /><button id="searchButton" type="button">جستجو</button><button id="clearSearchButton" type="button" class="secondary-button">پاک کردن</button></div><label class="checkbox-row"><input id="includeInactivePatients" type="checkbox" /><span>نمایش بیماران غیرفعال</span></label>
+<div class="search-panel patient-list-toolbar"><div class="search-container"><input id="patientSearch" type="text" placeholder="???? ??? ????????? ?? ??? ?? ??????..." autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false" /><button id="searchButton" type="button">?????</button><button id="clearSearchButton" type="button" class="secondary-button">??? ????</button></div><label class="checkbox-row"><input id="includeInactivePatients" type="checkbox" /><span>????? ??????? ???????</span></label>
         <div class="patient-reminder-filters">
-          <label class="checkbox-row"><input id="openStudiesOnly" type="checkbox" /><span>فقط بیماران با مطالعه باز</span></label>
-          <label class="checkbox-row"><input id="dueFollowUpOnly" type="checkbox" /><span>فقط پیگیری‌های سررسیده</span></label>
+          <label class="checkbox-row"><input id="openStudiesOnly" type="checkbox" /><span>??? ??????? ?? ?????? ???</span></label>
+          <label class="checkbox-row"><input id="dueFollowUpOnly" type="checkbox" /><span>??? ?????????? ???????</span></label>
         </div></div>
-<table class="patient-table patient-table-compact"><thead><tr><th>بیمار</th><th>تماس</th><th>بیمه</th><th>مراجعات</th><th>آخرین مراجعه</th><th>پیگیری</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody id="patientsTableBody"></tbody></table></div></section>
+<table class="patient-table patient-table-compact"><thead><tr><th>?????</th><th>????</th><th>????</th><th>???????</th><th>????? ??????</th><th>??????</th><th>?????</th><th>??????</th></tr></thead><tbody id="patientsTableBody"></tbody></table></div></section>
 <section id="patientDetailsSection" class="card hidden">
-  <div class="details-toolbar" aria-label="عملیات پرونده بیمار">
-    <button id="backToPatientsButton" type="button" class="secondary-button">← بازگشت</button>
-    <button id="editPatientButton" type="button" class="secondary-button">ویرایش بیمار</button>
-    <button id="printPatientButton" type="button" class="secondary-button">چاپ اطلاعات</button>
-    <button id="patientFactorsReportButton" type="button" class="secondary-button">روند فاکتورها</button>
-    <button id="deactivatePatientButton" type="button" class="danger-button">غیرفعال کردن</button>
-    <button id="deletePatientButton" type="button" class="danger-button">حذف بیمار</button>
-    <button id="mergePatientButton" type="button" class="warning-button">ادغام بیمار</button>
+  <div class="details-toolbar" aria-label="?????? ?????? ?????">
+    <button id="backToPatientsButton" type="button" class="secondary-button">? ??????</button>
+    <button id="editPatientButton" type="button" class="secondary-button">?????? ?????</button>
+    <button id="printPatientButton" type="button" class="secondary-button">??? ???????</button>
+    <button id="patientFactorsReportButton" type="button" class="secondary-button">???? ????????</button>
+    <button id="deactivatePatientButton" type="button" class="danger-button">??????? ????</button>
+    <button id="deletePatientButton" type="button" class="danger-button">??? ?????</button>
+    <button id="mergePatientButton" type="button" class="warning-button">????? ?????</button>
   </div>
   <div class="patient-overview-grid">
     <section class="patient-overview-column patient-overview-identity">
       <div class="patient-identity-hero">
-        <div class="patient-photo-frame"><img id="patientProfilePhoto" alt="تصویر بیمار" /></div>
-        <div class="patient-identity-copy"><h2 id="patientFullName">پرونده بیمار</h2><p id="patientDisplayCode" class="patient-identity-line">شناسه پرونده: -</p><span id="patientStatusBadge" class="status-badge"></span></div>
-        <div class="patient-photo-action"><p id="patientNationalCode">کد ملی: -</p><input id="patientPhotoInput" type="file" accept="image/*" capture="environment" class="hidden" /><button id="patientPhotoButton" type="button">انتخاب فایل تصویر</button><button id="patientPhotoCameraButton" type="button">عکس بیمار (چهره)</button></div>
+        <div class="patient-photo-frame"><img id="patientProfilePhoto" alt="????? ?????" /></div>
+        <div class="patient-identity-copy"><h2 id="patientFullName">?????? ?????</h2><p id="patientDisplayCode" class="patient-identity-line">????? ??????: -</p><span id="patientStatusBadge" class="status-badge"></span></div>
+        <div class="patient-photo-action"><p id="patientNationalCode">?? ???: -</p><input id="patientPhotoInput" type="file" accept="image/*" capture="environment" class="hidden" /><button id="patientPhotoButton" type="button">?????? ???? ?????</button><button id="patientPhotoCameraButton" type="button">??? ????? (????)</button></div>
       </div>
-      <!-- بنر ایمنی: گروه خونیِ ثبت‌شده همان‌جایی می‌درخشد که چشمِ پزشک اول می‌افتد؛
-           نه برایِ قشنگی، برایِ اینکه در لحظهٔ تصاحب پرونده دیده شود. -->
-      <div id="patientSafetyBanner" class="patient-safety-banner hidden"><span class="patient-safety-icon">🩸</span><div><strong id="patientSafetyBloodType">-</strong><small id="patientSafetyHint">گروه خونی ثبت‌شدهٔ بیمار</small></div></div>
+      <!-- ??? ?????: ???? ????? ??????? ????????? ???????? ?? ???? ???? ??? ????????
+           ?? ????? ?????? ????? ????? ?? ????? ????? ?????? ???? ???. -->
+      <div id="patientSafetyBanner" class="patient-safety-banner hidden"><span class="patient-safety-icon">??</span><div><strong id="patientSafetyBloodType">-</strong><small id="patientSafetyHint">???? ???? ???????? ?????</small></div></div>
       <details class="patient-info-more">
-        <summary>اطلاعات کامل بیمار</summary>
+        <summary>??????? ???? ?????</summary>
         <div class="patient-info-grid">
-          <div class="info-item patient-detail-hidden"><span class="info-label">شناسه پرونده:</span><span id="detailPatientCode">-</span></div>
-          <div class="info-item patient-detail-hidden"><span class="info-label">نام:</span><span id="detailFirstName">-</span></div>
-          <div class="info-item patient-detail-hidden"><span class="info-label">نام خانوادگی:</span><span id="detailLastName">-</span></div>
-          <div class="info-item"><span class="info-label">کد ملی:</span><span id="detailNationalCode">-</span></div>
-          <div class="info-item"><span class="info-label">موبایل:</span><span id="detailMobile">-</span></div>
-          <div class="info-item"><span class="info-label">تاریخ تولد:</span><span id="detailBirthDate">-</span><span id="detailAge" class="info-age"></span></div>
-          <div class="info-item"><span class="info-label">جنسیت:</span><span id="detailGender">-</span></div>
-          <div class="info-item"><span class="info-label">گروه خونی:</span><span id="detailBloodType">-</span></div>
-          <div class="info-item"><span class="info-label">موبایل دوم:</span><span id="detailMobile2">-</span></div>
-          <div class="info-item"><span class="info-label">بیمهٔ پایه:</span><span id="detailBaseInsurance">-</span></div>
-          <div class="info-item"><span class="info-label">بیمهٔ تکمیلی:</span><span id="detailSuppInsurance">-</span></div>
-          <div class="info-item"><span class="info-label">تماس اضطراری:</span><span id="detailEmergencyContact">-</span></div>
-          <div class="info-item"><span class="info-label">شماره پروندهٔ مطب:</span><span id="detailFileNumber">-</span></div>
-          <div class="info-item"><span class="info-label">ترجیح اطلاع‌رسانی:</span><span id="detailContactPreference">-</span></div>
-          <!-- سطرِ بارداری/شیردهی به‌طور پیش‌فرض مخفی است و فقط با جنسیتِ «زن» باز می‌شود
-               (app.js). بیمارِ مرد — حتی با JSِ کهنه یا ناتمام — این سطر را نمی‌بیند. -->
-          <div class="info-item" style="display:none"><span class="info-label">بارداری/شیردهی:</span><span id="detailPregnancyStatus">-</span></div>
-          <div class="info-item patient-detail-hidden"><span class="info-label">وضعیت:</span><span id="detailIsActive">-</span></div>
-          <div class="info-item full-width"><span class="info-label">آدرس:</span><span id="detailAddress">-</span></div>
-          <div class="info-item full-width"><span class="info-label">توضیحات:</span><span id="detailDescription">-</span></div>
+          <div class="info-item patient-detail-hidden"><span class="info-label">????? ??????:</span><span id="detailPatientCode">-</span></div>
+          <div class="info-item patient-detail-hidden"><span class="info-label">???:</span><span id="detailFirstName">-</span></div>
+          <div class="info-item patient-detail-hidden"><span class="info-label">??? ????????:</span><span id="detailLastName">-</span></div>
+          <div class="info-item"><span class="info-label">?? ???:</span><span id="detailNationalCode">-</span></div>
+          <div class="info-item"><span class="info-label">??????:</span><span id="detailMobile">-</span></div>
+          <div class="info-item"><span class="info-label">????? ????:</span><span id="detailBirthDate">-</span><span id="detailAge" class="info-age"></span></div>
+          <div class="info-item"><span class="info-label">?????:</span><span id="detailGender">-</span></div>
+          <div class="info-item"><span class="info-label">???? ????:</span><span id="detailBloodType">-</span></div>
+          <div class="info-item"><span class="info-label">?????? ???:</span><span id="detailMobile2">-</span></div>
+          <div class="info-item"><span class="info-label">????? ????:</span><span id="detailBaseInsurance">-</span></div>
+          <div class="info-item"><span class="info-label">????? ??????:</span><span id="detailSuppInsurance">-</span></div>
+          <div class="info-item"><span class="info-label">???? ???????:</span><span id="detailEmergencyContact">-</span></div>
+          <div class="info-item"><span class="info-label">????? ??????? ???:</span><span id="detailFileNumber">-</span></div>
+          <div class="info-item"><span class="info-label">????? ???????????:</span><span id="detailContactPreference">-</span></div>
+          <!-- ???? ???????/?????? ?????? ??????? ???? ??? ? ??? ?? ?????? �??� ??? ??????
+               (app.js). ?????? ??? � ??? ?? JS? ???? ?? ?????? � ??? ??? ?? ????????. -->
+          <div class="info-item" style="display:none"><span class="info-label">???????/??????:</span><span id="detailPregnancyStatus">-</span></div>
+          <div class="info-item patient-detail-hidden"><span class="info-label">?????:</span><span id="detailIsActive">-</span></div>
+          <div class="info-item full-width"><span class="info-label">????:</span><span id="detailAddress">-</span></div>
+          <div class="info-item full-width"><span class="info-label">???????:</span><span id="detailDescription">-</span></div>
         </div>
       </details>
     </section>
     <section class="patient-overview-column patient-overview-studies">
       <div class="summary-row">
-        <div class="summary-box summary-study"><span id="studyCount" class="summary-number">0</span><span class="summary-label">تعداد مطالعات</span></div>
-        <div class="summary-box summary-image"><span id="totalImageCount" class="summary-number">0</span><span class="summary-label">تعداد تصاویر</span></div>
-        <div class="summary-box summary-last"><span id="lastStudyDateSummary" class="summary-number">-</span><span class="summary-label">آخرین مراجعه</span></div>
+        <div class="summary-box summary-study"><span id="studyCount" class="summary-number">0</span><span class="summary-label">????? ???????</span></div>
+        <div class="summary-box summary-image"><span id="totalImageCount" class="summary-number">0</span><span class="summary-label">????? ??????</span></div>
+        <div class="summary-box summary-last"><span id="lastStudyDateSummary" class="summary-number">-</span><span class="summary-label">????? ??????</span></div>
       </div>
       <details class="patient-info-more">
-        <summary>آخرین مطالعات</summary>
-        <div class="recent-studies-card"><div class="recent-studies-heading"><strong>آخرین مطالعات</strong><span>نمایش سه مورد اخیر</span></div><div id="recentStudiesSummary" class="recent-studies-list"></div></div>
+        <summary>????? ???????</summary>
+        <div class="recent-studies-card"><div class="recent-studies-heading"><strong>????? ???????</strong><span>????? ?? ???? ????</span></div><div id="recentStudiesSummary" class="recent-studies-list"></div></div>
       </details>
     </section>
   </div>
-  <div class="subsection-header study-list-header"><div><h3>مراجعات بیمار</h3><p>مرتب‌شده از جدیدترین به قدیمی‌ترین</p></div><button id="newStudyButton" type="button" class="primary-button">+ مراجعهٔ جدید</button></div>
-  <!-- ناحیهٔ «مراجعه» بدونِ ناوبری: پیش‌نویسِ بالایِ لیست (بدونِ رکورد) که با انتخابِ بیمار ساخته می‌شود و بعد از ثبت، جای خود را به مراجعهٔ واقعی می‌دهد. فیلدهایِ ثابت در هر کارت مستقیم‌قابلِ ویرایش‌اند (visit-draft.js). -->
+  <div class="subsection-header study-list-header"><div><h3>??????? ?????</h3><p>???????? ?? ???????? ?? ??????????</p></div><button id="newStudyButton" type="button" class="primary-button">+ ??????? ????</button></div>
+  <!-- ?????? �??????� ????? ??????: ????????? ?????? ???? (????? ?????) ?? ?? ??????? ????? ????? ?????? ? ??? ?? ???? ??? ??? ?? ?? ??????? ????? ??????. ???????? ???? ?? ?? ???? ???????????? ?????????? (visit-draft.js). -->
 <div id="visitDraftHost" class="visit-draft-host"></div>
 <div id="studiesContainer" class="studies-container"></div>
 
-  <!-- فرم‌هایِ بیمار بدونِ ناوبری: به‌جایِ رفتن به صفحهٔ جدا، درونِ همان پرونده باز می‌شوند (app.js). -->
+  <!-- ???????? ????? ????? ??????: ??????? ???? ?? ????? ???? ????? ???? ?????? ??? ??????? (app.js). -->
   <div id="patientFormHost">
 
-<section id="editPatientSection" class="card hidden"><div class="details-toolbar"><button id="cancelEditPatientButton" type="button" class="secondary-button hidden">انصراف</button></div><div class="section-header"><div><h2>ویرایش بیمار</h2><p>اطلاعات پرونده را اصلاح کنید.</p></div></div><form id="editPatientForm"><div class="form-grid"><div class="form-field"><label for="editFirstName">نام</label><input id="editFirstName" type="text" maxlength="100" required /></div><div class="form-field"><label for="editLastName">نام خانوادگی</label><input id="editLastName" type="text" maxlength="100" required /></div><div class="form-field"><label for="editNationalCode">کد ملی</label><input id="editNationalCode" type="text" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" required /><small class="field-hint">کد ملی معتبر ۱۰ رقمی؛ تغییر آن نام فایل‌های تصاویر بیمار را نیز هماهنگ می‌کند.</small></div><div class="form-field"><label for="editMobile">موبایل</label><input id="editMobile" type="text" maxlength="30" inputmode="tel" /></div><div class="form-field"><label for="editBirthDate">تاریخ تولد شمسی</label><input id="editBirthDate" data-jalali-date type="text" maxlength="10" inputmode="numeric" placeholder="مثال: 1363/07/15" /><small class="field-hint">فرمت: سال/ماه/روز</small></div><div class="form-field"><label for="editGender">جنسیت</label><select id="editGender" required><option value="">انتخاب نشده</option><option value="1">مرد</option><option value="2">زن</option></select></div><div class="form-field full-width"><label for="editAddress">آدرس</label><textarea id="editAddress" maxlength="500" rows="3"></textarea></div><div class="form-field full-width"><label for="editDescription">توضیحات</label><textarea id="editDescription" maxlength="1000" rows="4"></textarea></div></div><details id="editPatientExtraDetails" class="patient-extra-details"><summary>اطلاعات تکمیلی (بیمه، تماس اضطراری، گروه خونی)</summary><div class="form-grid"><div class="form-field"><label for="editBloodType">گروه خونی</label><select id="editBloodType"><option value="">ثبت نشده</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div><div class="form-field"><label for="editMobile2">موبایل دوم</label><input id="editMobile2" type="text" maxlength="30" inputmode="tel" /></div><div class="form-field"><label for="editFileNumber">شماره پروندهٔ مطب</label><input id="editFileNumber" type="text" maxlength="50" /></div><div class="form-field"><label for="editContactPreference">ترجیح اطلاع‌رسانی</label><select id="editContactPreference"><option value="">ثبت نشده</option><option value="sms">پیامک</option><option value="call">تماس تلفنی</option><option value="none">بدون اطلاع‌رسانی</option></select></div><div class="form-field"><label for="editEmergencyContactName">نام تماس اضطراری</label><input id="editEmergencyContactName" type="text" maxlength="100" /></div><div class="form-field"><label for="editEmergencyContactRelation">نسبت</label><input id="editEmergencyContactRelation" type="text" maxlength="50" /></div><div class="form-field"><label for="editEmergencyContactPhone">شمارهٔ تماس اضطراری</label><input id="editEmergencyContactPhone" type="text" maxlength="30" inputmode="tel" /></div><div class="form-field"><label for="editBaseInsuranceType">بیمهٔ پایه</label><select id="editBaseInsuranceType"><option value="">ثبت نشده</option></select></div><div class="form-field"><label for="editBaseInsuranceNo">شمارهٔ بیمهٔ پایه</label><input id="editBaseInsuranceNo" type="text" maxlength="50" /></div><div class="form-field"><label for="editSupp1InsuranceType">بیمهٔ تکمیلی ۱</label><select id="editSupp1InsuranceType"><option value="">ثبت نشده</option></select></div><div class="form-field"><label for="editSupp1InsuranceNo">شمارهٔ تکمیلی ۱</label><input id="editSupp1InsuranceNo" type="text" maxlength="50" /></div><div class="form-field"><label for="editSupp2InsuranceType">بیمهٔ تکمیلی ۲</label><select id="editSupp2InsuranceType"><option value="">ثبت نشده</option></select></div><div class="form-field"><label for="editSupp2InsuranceNo">شمارهٔ تکمیلی ۲</label><input id="editSupp2InsuranceNo" type="text" maxlength="50" /></div></div></details><div id="editPatientStatus" class="status-message"></div><div class="form-actions"><button type="submit" id="editPatientSubmitButton">ذخیره تغییرات</button><button id="cancelEditPatientButtonBottom" type="button" class="secondary-button">انصراف</button></div></form></section>
+<section id="editPatientSection" class="card hidden"><div class="details-toolbar"><button id="cancelEditPatientButton" type="button" class="secondary-button hidden">??????</button></div><div class="section-header"><div><h2>?????? ?????</h2><p>??????? ?????? ?? ????? ????.</p></div></div><form id="editPatientForm"><div class="form-grid"><div class="form-field"><label for="editFirstName">???</label><input id="editFirstName" type="text" maxlength="100" required /></div><div class="form-field"><label for="editLastName">??? ????????</label><input id="editLastName" type="text" maxlength="100" required /></div><div class="form-field"><label for="editNationalCode">?? ???</label><input id="editNationalCode" type="text" maxlength="10" inputmode="numeric" pattern="[0-9]{10}" required /><small class="field-hint">?? ??? ????? ?? ????? ????? ?? ??? ???????? ?????? ????? ?? ??? ?????? ??????.</small></div><div class="form-field"><label for="editMobile">??????</label><input id="editMobile" type="text" maxlength="30" inputmode="tel" /></div><div class="form-field"><label for="editBirthDate">????? ???? ????</label><input id="editBirthDate" data-jalali-date type="text" maxlength="10" inputmode="numeric" placeholder="????: 1363/07/15" /><small class="field-hint">????: ???/???/???</small></div><div class="form-field"><label for="editGender">?????</label><select id="editGender" required><option value="">?????? ????</option><option value="1">???</option><option value="2">??</option></select></div><div class="form-field full-width"><label for="editAddress">????</label><textarea id="editAddress" maxlength="500" rows="3"></textarea></div><div class="form-field full-width"><label for="editDescription">???????</label><textarea id="editDescription" maxlength="1000" rows="4"></textarea></div></div><details id="editPatientExtraDetails" class="patient-extra-details"><summary>??????? ?????? (????? ???? ???????? ???? ????)</summary><div class="form-grid"><div class="form-field"><label for="editBloodType">???? ????</label><select id="editBloodType"><option value="">??? ????</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div><div class="form-field"><label for="editMobile2">?????? ???</label><input id="editMobile2" type="text" maxlength="30" inputmode="tel" /></div><div class="form-field"><label for="editFileNumber">????? ??????? ???</label><input id="editFileNumber" type="text" maxlength="50" /></div><div class="form-field"><label for="editContactPreference">????? ???????????</label><select id="editContactPreference"><option value="">??? ????</option><option value="sms">?????</option><option value="call">???? ?????</option><option value="none">???? ???????????</option></select></div><div class="form-field"><label for="editEmergencyContactName">??? ???? ???????</label><input id="editEmergencyContactName" type="text" maxlength="100" /></div><div class="form-field"><label for="editEmergencyContactRelation">????</label><input id="editEmergencyContactRelation" type="text" maxlength="50" /></div><div class="form-field"><label for="editEmergencyContactPhone">?????? ???? ???????</label><input id="editEmergencyContactPhone" type="text" maxlength="30" inputmode="tel" /></div><div class="form-field"><label for="editBaseInsuranceType">????? ????</label><select id="editBaseInsuranceType"><option value="">??? ????</option></select></div><div class="form-field"><label for="editBaseInsuranceNo">?????? ????? ????</label><input id="editBaseInsuranceNo" type="text" maxlength="50" /></div><div class="form-field"><label for="editSupp1InsuranceType">????? ?????? ?</label><select id="editSupp1InsuranceType"><option value="">??? ????</option></select></div><div class="form-field"><label for="editSupp1InsuranceNo">?????? ?????? ?</label><input id="editSupp1InsuranceNo" type="text" maxlength="50" /></div><div class="form-field"><label for="editSupp2InsuranceType">????? ?????? ?</label><select id="editSupp2InsuranceType"><option value="">??? ????</option></select></div><div class="form-field"><label for="editSupp2InsuranceNo">?????? ?????? ?</label><input id="editSupp2InsuranceNo" type="text" maxlength="50" /></div></div></details><div id="editPatientStatus" class="status-message"></div><div class="form-actions"><button type="submit" id="editPatientSubmitButton">????? ???????</button><button id="cancelEditPatientButtonBottom" type="button" class="secondary-button">??????</button></div></form></section>
   </div>
 </section>
 <section id="studyDetailsSection" class="card hidden">
-  <!-- فرمِ واحدِ مراجعه: «ثبتِ مراجعهٔ جدید» و «مشاهده/ویرایش مراجعه» هر دو همین یک بخش‌اند؛
-       حالتِ فرم با کلاسِ study-mode-new رویِ بخش مشخص می‌شود. شناسهٔ فرم newStudyForm مانده تا
-       study-card-scan / study-type-lookup / study-delete و راهنمای فرم همچنان همین فرم را پیدا کنند. -->
+  <!-- ???? ????? ??????: �???? ??????? ????� ? �??????/?????? ??????� ?? ?? ???? ?? ????????
+       ????? ??? ?? ????? study-mode-new ???? ??? ???? ??????. ?????? ??? newStudyForm ????? ??
+       study-card-scan / study-type-lookup / study-delete ? ??????? ??? ?????? ???? ??? ?? ???? ????. -->
   <form id="newStudyForm">
     <div class="details-toolbar">
-      <button id="backToPatientDetailsButton" type="button" class="secondary-button">← بازگشت به پرونده بیمار</button>
-      <button id="studyDetailsEditButton" type="button" class="secondary-button">ویرایش Study</button>
-      <button id="studyDetailsImagesButton" type="button">تصاویر این مراجعه</button>
-      <!-- «پایانِ کار»: یک کلیک بدونِ تایپ — ساعتِ همین حالا رویِ همین مراجعه
-           ثبت می‌شود (فیلدِ «پایانِ کار» در کارتِ وضعیت کار) و بعداً قابلِ اصلاح است. -->
-      <button id="studyDetailsWorkEndButton" type="button" class="secondary-button hidden">پایانِ کار</button>
-      <button id="studyDetailsSaveButton" type="button" class="hidden">ذخیره تغییرات</button>
-      <button id="studyDetailsCancelButton" type="button" class="secondary-button hidden">انصراف</button>
+      <button id="backToPatientDetailsButton" type="button" class="secondary-button">? ?????? ?? ?????? ?????</button>
+      <button id="studyDetailsEditButton" type="button" class="secondary-button">?????? Study</button>
+      <button id="studyDetailsImagesButton" type="button">?????? ??? ??????</button>
+      <!-- �?????? ???�: ?? ???? ????? ???? � ????? ???? ???? ???? ???? ??????
+           ??? ?????? (????? �?????? ???� ?? ????? ????? ???) ? ????? ????? ????? ???. -->
+      <button id="studyDetailsWorkEndButton" type="button" class="secondary-button hidden">?????? ???</button>
+      <button id="studyDetailsSaveButton" type="button" class="hidden">????? ???????</button>
+      <button id="studyDetailsCancelButton" type="button" class="secondary-button hidden">??????</button>
     </div>
 
     <div class="section-header study-header">
       <div><h2 id="studyDetailsTitle">Study</h2><p id="studyDetailsDate"></p></div>
       <div class="section-header-actions">
-        <button id="studyCameraPhoneButton" type="button">عکس با دوربین گوشی</button>
-        <button id="studyReceiveImagesButton" type="button" class="secondary-button">دریافت لینک رادیولوژی از گوشی</button>
-        <button id="visitHeaderUploadButton" type="button">عکس/فایل جدید (دوربین یا کامپیوتر)</button>
-        <button id="pickupHeaderButton" type="button" data-needs-images="1">الصاق تصویر موجود از پرونده</button>
+        <button id="studyCameraPhoneButton" type="button">??? ?? ?????? ????</button>
+        <button id="studyReceiveImagesButton" type="button" class="secondary-button">?????? ???? ????????? ?? ????</button>
+        <button id="visitHeaderUploadButton" type="button">???/???? ???? (?????? ?? ????????)</button>
+        <button id="pickupHeaderButton" type="button" data-needs-images="1">????? ????? ????? ?? ??????</button>
         <span id="voiceStatus" class="voice-status hidden"></span>
       </div>
       <div id="studyDetailsStatusBadge" class="study-details-badge"></div>
@@ -180,127 +180,127 @@
     <div id="studyDetailsStatus" class="status-message"></div>
 
     <section class="study-form-card">
-      <h3 class="study-form-card-title">اطلاعات اصلی</h3>
+      <h3 class="study-form-card-title">??????? ????</h3>
       <div class="form-grid">
         <div class="form-field">
-          <label for="newStudyType">دلیل مراجعه</label>
-          <!-- باکسِ autocomplete (الگویِ باکسِ تخصص در staff-ui.js): متن + datalist
-               با حفظِ شناسه. شناسهٔ انتخاب‌شده در #newStudyTypeID می‌ماند تا
-               payload همچنان StudyTypeID بگیرد؛ متنِ دیده‌شده در #newStudyType. -->
+          <label for="newStudyType">???? ??????</label>
+          <!-- ????? autocomplete (?????? ????? ???? ?? staff-ui.js): ??? + datalist
+               ?? ???? ?????. ?????? ?????????? ?? #newStudyTypeID ??????? ??
+               payload ?????? StudyTypeID ?????? ???? ???????? ?? #newStudyType. -->
           <span class="gsec-micbox study-type-micbox">
             <input id="newStudyType" class="gsec-txt" type="text" list="newStudyTypeList" autocomplete="off"
-                   maxlength="150" required placeholder="در حال دریافت دلایل مراجعه..." />
+                   maxlength="150" required placeholder="?? ??? ?????? ????? ??????..." />
           </span>
           <datalist id="newStudyTypeList"></datalist>
           <select id="newStudyTypeID" class="hidden" tabindex="-1" aria-hidden="true"></select>
-          <small id="newStudyTypeHint" class="field-hint study-type-hint">نام را بنویسید؛ فهرست با تخصصِ پزشک فیلتر می‌شود.</small>
+          <small id="newStudyTypeHint" class="field-hint study-type-hint">??? ?? ???????? ????? ?? ????? ???? ????? ??????.</small>
         </div>
         <div id="studyTypeOtherBox" class="form-field full-width hidden">
-          <label for="studyTypeNote">توضیحِ سایر</label>
+          <label for="studyTypeNote">?????? ????</label>
           <span class="gsec-micbox study-type-micbox">
             <input id="studyTypeNote" class="gsec-txt" type="text" maxlength="500"
-                   placeholder="منظور از «سایر» را بنویسید…" />
+                   placeholder="????? ?? �????� ?? ???????�" />
           </span>
-          <small class="field-hint">نوعِ مراجعه «سایر» است؛ همین متن کنارِ نوع نمایش داده می‌شود.</small>
+          <small class="field-hint">???? ?????? �????� ???? ???? ??? ????? ??? ????? ???? ??????.</small>
         </div>
         <div class="form-field">
-          <label for="newStudyDate">تاریخ و زمان شمسی</label>
-          <input id="newStudyDate" data-jalali-datetime type="text" maxlength="16" placeholder="مثال: 1405/06/22 14:30" />
-          <small class="field-hint">فرمت: سال/ماه/روز ساعت:دقیقه</small>
+          <label for="newStudyDate">????? ? ???? ????</label>
+          <input id="newStudyDate" data-jalali-datetime type="text" maxlength="16" placeholder="????: 1405/06/22 14:30" />
+          <small class="field-hint">????: ???/???/??? ????:?????</small>
         </div>
         <div class="form-field">
-          <label for="studyDetailsDoctor">دندانپزشک</label>
+          <label for="studyDetailsDoctor">?????????</label>
           <select id="studyDetailsDoctor"></select>
-          <small class="field-hint">مرحله انتظار از تخصص دندانپزشک پیشنهاد می‌شود.</small>
+          <small class="field-hint">????? ?????? ?? ???? ????????? ??????? ??????.</small>
         </div>
         <div class="form-field">
-          <label for="newBodyPart">ناحیه</label>
+          <label for="newBodyPart">?????</label>
           <input id="newBodyPart" type="text" maxlength="100" />
         </div>
       </div>
     </section>
 
     <section class="study-form-card">
-      <h3 class="study-form-card-title">وضعیت کار</h3>
+      <h3 class="study-form-card-title">????? ???</h3>
       <div class="form-grid">
         <div class="form-field full-width">
-          <label for="studyDetailsStatus2">وضعیت مراجعه</label>
+          <label for="studyDetailsStatus2">????? ??????</label>
           <select id="studyDetailsStatus2" class="study-status-select" disabled>
-            <option value="1">باز — کار در جریان است</option>
-            <option value="2">تمام‌شده</option>
-            <option value="3">در انتظار</option>
+            <option value="1">??? � ??? ?? ????? ???</option>
+            <option value="2">????????</option>
+            <option value="3">?? ??????</option>
           </select>
         </div>
         <div class="form-field full-width study-followup-field hidden" id="studyDetailsWaitBox">
-          <label for="studyDetailsWaitStage">مرحله انتظار</label>
+          <label for="studyDetailsWaitStage">????? ??????</label>
           <select id="studyDetailsWaitStage" disabled></select>
         </div>
         <div class="form-field full-width study-followup-field hidden" id="studyDetailsFollowUpBox">
-          <label for="studyDetailsFollowUpDate">تاریخ پیگیری</label>
-          <input id="studyDetailsFollowUpDate" data-jalali-date type="text" maxlength="10" inputmode="numeric" placeholder="مثال: 1405/07/15" readonly />
-          <small class="field-hint">در این تاریخ، مراجعه در فهرست پیگیری‌ها ظاهر می‌شود.</small>
-          <label for="studyDetailsFollowUpNote" style="margin-top:8px">یادداشت پیگیری</label>
+          <label for="studyDetailsFollowUpDate">????? ??????</label>
+          <input id="studyDetailsFollowUpDate" data-jalali-date type="text" maxlength="10" inputmode="numeric" placeholder="????: 1405/07/15" readonly />
+          <small class="field-hint">?? ??? ?????? ?????? ?? ????? ????????? ???? ??????.</small>
+          <label for="studyDetailsFollowUpNote" style="margin-top:8px">??????? ??????</label>
           <input id="studyDetailsFollowUpNote" type="text" maxlength="500" readonly />
         </div>
         <div class="form-field full-width">
-          <label for="studyDetailsWorkEndDate">پایانِ کار</label>
-          <input id="studyDetailsWorkEndDate" data-jalali-datetime type="text" maxlength="16" placeholder="مثال: 1405/06/22 15:10" readonly />
-          <small class="field-hint">اختیاری. دکمهٔ «پایانِ کار» در نوارِ ابزار، همین حالا را ثبت می‌کند؛ مدتِ کار = پایانِ کار − تاریخِ مراجعه.</small>
+          <label for="studyDetailsWorkEndDate">?????? ???</label>
+          <input id="studyDetailsWorkEndDate" data-jalali-datetime type="text" maxlength="16" placeholder="????: 1405/06/22 15:10" readonly />
+          <small class="field-hint">???????. ????? �?????? ???� ?? ????? ?????? ???? ???? ?? ??? ??????? ???? ??? = ?????? ??? - ?????? ??????.</small>
         </div>
       </div>
     </section>
 
     <section class="study-form-card">
-      <h3 class="study-form-card-title">شرح و تشخیص</h3>
+      <h3 class="study-form-card-title">??? ? ?????</h3>
       <div class="form-grid">
         <div class="form-field full-width">
-          <label for="newStudyDescription">توضیحات</label>
+          <label for="newStudyDescription">???????</label>
           <textarea id="newStudyDescription" maxlength="1000" rows="3"></textarea>
         </div>
         <div class="form-field full-width">
-          <label for="newStudyDiagnosis">تشخیص</label>
+          <label for="newStudyDiagnosis">?????</label>
           <textarea id="newStudyDiagnosis" rows="4"></textarea>
-          <small class="field-hint">تشخیصِ نهاییِ این مراجعه؛ در کارتِ مراجعه و لینکِ اشتراک دیده می‌شود.</small>
+          <small class="field-hint">?????? ?????? ??? ??????? ?? ????? ?????? ? ????? ?????? ???? ??????.</small>
         </div>
       </div>
     </section>
 
     <section class="study-form-card">
-      <h3 class="study-form-card-title">بخش‌های مراجعه</h3>
+      <h3 class="study-form-card-title">??????? ??????</h3>
       <div id="studySectionsPanel" class="study-sections-panel"></div>
     </section>
 
     <section class="study-form-card">
-      <h3 class="study-form-card-title">شرایط فعلی بیمار و فاکتورهای بالینی</h3>
+      <h3 class="study-form-card-title">????? ???? ????? ? ????????? ??????</h3>
       <div id="studyFactorsPanel" class="factors-panel"></div>
     </section>
 
-    <!-- شمای دندان‌ها موقتاً پنهان است (تصمیم کاربر) — نه حذف شده، نه JS آن دست خورده؛
-         هر وقت برگردد فقط کافی است این display:none برداشته شود. -->
+    <!-- ???? ???????? ?????? ????? ??? (????? ?????) � ?? ??? ???? ?? JS ?? ??? ??????
+         ?? ??? ?????? ??? ???? ??? ??? display:none ??????? ???. -->
     <section class="study-form-card" style="display:none">
-      <h3 class="study-form-card-title">شمای دندان‌ها</h3>
+      <h3 class="study-form-card-title">???? ????????</h3>
       <div id="studyDetailsTeethChart"></div>
     </section>
 
-    <!-- دکمه‌های «ثبت مراجعه» فقط در حالتِ جدید دیده می‌شوند (app.js). -->
+    <!-- ???????? �??? ??????� ??? ?? ????? ???? ???? ??????? (app.js). -->
     <div id="studyCreateActions" class="form-actions hidden">
-      <button type="submit" id="newStudySubmitButton">ثبت مراجعه</button>
-      <button type="button" id="cancelNewStudyButtonBottom" class="secondary-button">انصراف</button>
+      <button type="submit" id="newStudySubmitButton">??? ??????</button>
+      <button type="button" id="cancelNewStudyButtonBottom" class="secondary-button">??????</button>
     </div>
   </form>
-</section><section id="studyImagesSection" class="card hidden"><div class="details-toolbar"><button id="backToStudyDetailsButton" type="button" class="secondary-button">← بازگشت به Study</button><button id="imagesToolbarCameraButton" type="button">عکس با دوربین گوشی</button><button id="imagesToolbarReceiveButton" type="button" class="secondary-button">دریافت لینک رادیولوژی از گوشی</button><button id="studyDetailsUploadButton" type="button">عکس/فایل جدید (دوربین یا کامپیوتر)</button><button id="pickupUnlinkedImageButton" type="button" data-needs-images="1">الصاق تصویر موجود از پرونده</button></div><div class="section-header"><div><h2 id="studyImagesTitle">تصاویر Study</h2></div></div><div id="studyDetailsImagesStatus" class="status-message"></div><div id="studyDetailsImagesGrid" class="images-grid"></div></section>
+</section><section id="studyImagesSection" class="card hidden"><div class="details-toolbar"><button id="backToStudyDetailsButton" type="button" class="secondary-button">? ?????? ?? Study</button><button id="imagesToolbarCameraButton" type="button">??? ?? ?????? ????</button><button id="imagesToolbarReceiveButton" type="button" class="secondary-button">?????? ???? ????????? ?? ????</button><button id="studyDetailsUploadButton" type="button">???/???? ???? (?????? ?? ????????)</button><button id="pickupUnlinkedImageButton" type="button" data-needs-images="1">????? ????? ????? ?? ??????</button></div><div class="section-header"><div><h2 id="studyImagesTitle">?????? Study</h2></div></div><div id="studyDetailsImagesStatus" class="status-message"></div><div id="studyDetailsImagesGrid" class="images-grid"></div></section>
 
 <!-- New files still enter through a Study. The input accepts PDF and mobile camera capture; ReSiRai itself imposes no explicit size cap. -->
-<section id="uploadImageSection" class="card hidden"><div class="details-toolbar"><button id="cancelUploadImageButton" type="button" class="secondary-button hidden">بازگشت به مراجعه</button></div><div class="section-header"><div><h2>آپلود تصویر یا PDF جدید</h2><p id="uploadImageStudyInfo"></p></div></div><form id="uploadImageForm"><div class="form-field"><label>نوع تصویر</label><small class="field-hint">لازم نیست انتخاب کنید — هوش مصنوعی نوع تصویر را خودش تشخیص می‌دهد.</small></div><div class="form-field"><label for="imageFileInput">انتخاب فایل موجود</label><div class="file-picker"><input id="imageFileInput" type="file" accept="image/*,.pdf,application/pdf" required /><span class="file-picker-face"><span class="file-picker-button">انتخاب فایل</span><span class="file-picker-name">فایلی انتخاب نشده</span></span></div><small class="field-hint">تمام فرمت‌های تصویری قابل‌شناسایی و PDF</small></div><div class="form-field"><label for="cameraFileInput">یا عکس‌برداری با دوربین</label><div class="file-picker"><input id="cameraFileInput" type="file" accept="image/*" capture="environment" /><span class="file-picker-face"><span class="file-picker-button">گرفتن عکس با دوربین</span><span class="file-picker-name">عکسی گرفته نشده</span></span></div><small class="field-hint">در موبایل می‌توانید مستقیماً از دوربین دستگاه استفاده کنید.</small></div><div id="cameraPreviewPanel" class="hidden"><img id="cameraPreviewImage" alt="پیش‌نمایش تصویر دوربین" /><div class="form-actions"><button id="confirmCameraButton" type="button">تأیید تصویر</button><button id="retakeCameraButton" type="button" class="secondary-button">عکس‌برداری مجدد</button></div></div><div id="uploadImageStatus" class="status-message"></div><div class="form-actions"><button type="submit" id="uploadImageSubmitButton">ذخیره و اتصال به Study</button><button id="cancelUploadImageButtonBottom" type="button" class="secondary-button">بازگشت به مراجعه</button></div></form></section>
-<section id="mergePatientSection" class="card hidden"><div class="details-toolbar"><button id="cancelMergePatientButton" type="button" class="secondary-button hidden">انصراف</button></div><div class="section-header"><div><h2>ادغام بیمار</h2><p>پروندهٔ فعلی، مبدأ ادغام است.</p></div></div><div class="warning-box">این عملیات مهم است. مراجعه‌ها و تصاویرِ مبدأ به بیمار مقصد منتقل می‌شوند و پروندهٔ مبدأ حذف خواهد شد.</div><form id="mergePatientForm"><div class="form-field"><label for="mergeTargetNationalCode">کد ملی بیمار مقصد</label><input id="mergeTargetNationalCode" type="text" inputmode="numeric" maxlength="20" required /></div><div id="mergePatientStatus" class="status-message"></div><div class="form-actions"><button type="submit" id="mergeSubmitButton" class="warning-button">بررسی و انجام ادغام</button><button id="cancelMergePatientButtonBottom" type="button" class="secondary-button">انصراف</button></div></form></section>
+<section id="uploadImageSection" class="card hidden"><div class="details-toolbar"><button id="cancelUploadImageButton" type="button" class="secondary-button hidden">?????? ?? ??????</button></div><div class="section-header"><div><h2>????? ????? ?? PDF ????</h2><p id="uploadImageStudyInfo"></p></div></div><form id="uploadImageForm"><div class="form-field"><label>??? ?????</label><small class="field-hint">???? ???? ?????? ???? � ??? ?????? ??? ????? ?? ???? ????? ??????.</small></div><div class="form-field"><label for="imageFileInput">?????? ???? ?????</label><div class="file-picker"><input id="imageFileInput" type="file" accept="image/*,.pdf,application/pdf" required /><span class="file-picker-face"><span class="file-picker-button">?????? ????</span><span class="file-picker-name">????? ?????? ????</span></span></div><small class="field-hint">???? ???????? ?????? ???????????? ? PDF</small></div><div class="form-field"><label for="cameraFileInput">?? ?????????? ?? ??????</label><div class="file-picker"><input id="cameraFileInput" type="file" accept="image/*" capture="environment" /><span class="file-picker-face"><span class="file-picker-button">????? ??? ?? ??????</span><span class="file-picker-name">???? ????? ????</span></span></div><small class="field-hint">?? ?????? ????????? ???????? ?? ?????? ?????? ??????? ????.</small></div><div id="cameraPreviewPanel" class="hidden"><img id="cameraPreviewImage" alt="????????? ????? ??????" /><div class="form-actions"><button id="confirmCameraButton" type="button">????? ?????</button><button id="retakeCameraButton" type="button" class="secondary-button">?????????? ????</button></div></div><div id="uploadImageStatus" class="status-message"></div><div class="form-actions"><button type="submit" id="uploadImageSubmitButton">????? ? ????? ?? Study</button><button id="cancelUploadImageButtonBottom" type="button" class="secondary-button">?????? ?? ??????</button></div></form></section>
+<section id="mergePatientSection" class="card hidden"><div class="details-toolbar"><button id="cancelMergePatientButton" type="button" class="secondary-button hidden">??????</button></div><div class="section-header"><div><h2>????? ?????</h2><p>??????? ????? ???? ????? ???.</p></div></div><div class="warning-box">??? ?????? ??? ???. ????????? ? ??????? ???? ?? ????? ???? ????? ??????? ? ??????? ???? ??? ????? ??.</div><form id="mergePatientForm"><div class="form-field"><label for="mergeTargetNationalCode">?? ??? ????? ????</label><input id="mergeTargetNationalCode" type="text" inputmode="numeric" maxlength="20" required /></div><div id="mergePatientStatus" class="status-message"></div><div class="form-actions"><button type="submit" id="mergeSubmitButton" class="warning-button">????? ? ????? ?????</button><button id="cancelMergePatientButtonBottom" type="button" class="secondary-button">??????</button></div></form></section>
 <section id="helpSection" class="card hidden shell-page">
-  <div class="section-header"><div><h2>راهنما</h2><p>راهنمای کامل کار با ReSiRai — همان متن‌هایی که زیر فرم‌ها دیده می‌شوند، یک‌جا.</p></div></div>
+  <div class="section-header"><div><h2>??????</h2><p>??????? ???? ??? ?? ReSiRai � ???? ???????? ?? ??? ?????? ???? ???????? ?????.</p></div></div>
   <div id="helpPageBody" class="help-page"></div>
 </section>
 </main>
 </div>
-<div id="imageModal" class="image-modal hidden"><div class="image-modal-content"><div class="image-viewer-toolbar"><button id="prevImageButton" type="button" data-voice="قبلی" title="فرمان صوتی: «دنتا» + تصویر قبلی | قبلی | عکس قبلی | previous">›</button><button id="nextImageButton" type="button" data-voice="بعدی" title="فرمان صوتی: «دنتا» + تصویر بعدی | بعدی | عکس بعدی | next">‹</button><button id="zoomOutImageButton" type="button" data-voice="کوچک‌تر" title="فرمان صوتی: «دنتا» + کوچک‌تر | کوچک‌نمایی | زوم اوت | zoom out">−</button><button id="zoomInImageButton" type="button" data-voice="بزرگ‌تر" title="فرمان صوتی: «دنتا» + بزرگ‌تر | بزرگ‌نمایی | زوم این | zoom in">+</button><button id="rotateLeftImageButton" type="button" data-voice="چرخش چپ" title="فرمان صوتی: «دنتا» + چرخش به چپ | بچرخان به چپ | چرخش">↺</button><button id="rotateRightImageButton" type="button" data-voice="چرخش راست" title="فرمان صوتی: «دنتا» + چرخش به راست | بچرخان به راست">↻</button><button id="flipHorizontalImageButton" type="button">پشت‌ورو</button><button id="resetImageViewButton" type="button" data-voice="صددرصد" title="فرمان صوتی: «دنتا» + صددرصد | صد درصد | اندازهٔ اصلی | reset">100%</button></div><button id="closeImageModalButton" type="button" class="modal-close-button" data-voice="بستن" title="فرمان صوتی: «دنتا» + بستن | ببند | close">×</button><img id="largeImage" alt="تصویر پرونده" /><div id="largeImageCaption" class="image-caption"></div><div id="voiceStatusViewer" class="voice-status-viewer hidden"></div></div></div>
-<div id="confirmModal" class="confirm-overlay hidden"><div class="confirm-dialog"><div id="confirmIcon" class="confirm-icon">!</div><h3 id="confirmTitle">تأیید عملیات</h3><p id="confirmMessage"></p><div class="confirm-actions"><button id="confirmYesButton" type="button" class="danger-button">تأیید</button><button id="confirmNoButton" type="button" class="secondary-button">انصراف</button></div></div></div>
+<div id="imageModal" class="image-modal hidden"><div class="image-modal-content"><div class="image-viewer-toolbar"><button id="prevImageButton" type="button" data-voice="????" title="????? ????: �????� + ????? ???? | ???? | ??? ???? | previous">�</button><button id="nextImageButton" type="button" data-voice="????" title="????? ????: �????� + ????? ???? | ???? | ??? ???? | next">�</button><button id="zoomOutImageButton" type="button" data-voice="???????" title="????? ????: �????� + ??????? | ?????????? | ??? ??? | zoom out">-</button><button id="zoomInImageButton" type="button" data-voice="???????" title="????? ????: �????� + ??????? | ?????????? | ??? ??? | zoom in">+</button><button id="rotateLeftImageButton" type="button" data-voice="???? ??" title="????? ????: �????� + ???? ?? ?? | ?????? ?? ?? | ????">?</button><button id="rotateRightImageButton" type="button" data-voice="???? ????" title="????? ????: �????� + ???? ?? ???? | ?????? ?? ????">?</button><button id="flipHorizontalImageButton" type="button">???????</button><button id="resetImageViewButton" type="button" data-voice="??????" title="????? ????: �????� + ?????? | ?? ???? | ??????? ???? | reset">100%</button></div><button id="closeImageModalButton" type="button" class="modal-close-button" data-voice="????" title="????? ????: �????� + ???? | ???? | close">�</button><img id="largeImage" alt="????? ??????" /><div id="largeImageCaption" class="image-caption"></div><div id="voiceStatusViewer" class="voice-status-viewer hidden"></div></div></div>
+<div id="confirmModal" class="confirm-overlay hidden"><div class="confirm-dialog"><div id="confirmIcon" class="confirm-icon">!</div><h3 id="confirmTitle">????? ??????</h3><p id="confirmMessage"></p><div class="confirm-actions"><button id="confirmYesButton" type="button" class="danger-button">?????</button><button id="confirmNoButton" type="button" class="secondary-button">??????</button></div></div></div>
 <div id="toastContainer" class="toast-container"></div>
 <script src="/js/jalali-picker.js?v=20261001.19"></script>
 <script src="/js/input-language.js?v=20261004.1"></script>
@@ -324,8 +324,8 @@ window.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 
-<!-- لینکِ مستقلِ ثبتنامِ پزشک (خارج از JS: همیشه، حتی با کشِ قدیمی اسکریپتها) -->
-<div id="loginSignupLink" style="display:none;position:fixed;bottom:14px;left:0;right:0;text-align:center;z-index:1040;font:600 14px/1.9 Tahoma,Arial"><a href="/signup.html" style="color:#0f766e;text-decoration:none;background:#fff;border:1px solid #0f766e;border-radius:999px;padding:6px 18px">ثبت‌نام پزشک جدید — خرید حساب</a></div>
+<!-- ????? ?????? ??????? ???? (???? ?? JS: ?????? ??? ?? ??? ????? ?????????) -->
+<div id="loginSignupLink" style="display:none;position:fixed;bottom:14px;left:0;right:0;text-align:center;z-index:1040;font:600 14px/1.9 Tahoma,Arial"><a href="/signup.html" style="color:#0f766e;text-decoration:none;background:#fff;border:1px solid #0f766e;border-radius:999px;padding:6px 18px">??????? ???? ???? � ???? ????</a></div>
 <script src="/js/login-ui.js?v=20261024.1"></script>
 <script src="/js/app.js?v=20261025.1"></script>
 <script src="/js/visit-draft.js?v=20261023.6"></script>
@@ -369,7 +369,7 @@ window.addEventListener('DOMContentLoaded',function(){
     var onLogin=document.body.classList.contains("resirai-login-active");
     e.style.display=(!loggedIn&&onLogin)?"block":"none";
   }
-  // اگر مرورگر کد ملیِ خودِ کاربر را در کادر جست‌وجوی بیماران پر کرده باشد، پاک می‌شود.
+  // ??? ?????? ?? ???? ???? ????? ?? ?? ???? ???????? ??????? ?? ???? ????? ??? ??????.
   function clearOwnCodeFromPatientSearch(){
     var ps=document.getElementById("patientSearch"); if(!ps) return;
     var u=window.reSiRaiCurrentUser;
@@ -384,12 +384,12 @@ window.addEventListener('DOMContentLoaded',function(){
     var ps0=document.getElementById("patientSearch");
     if(ps0){
       ["focus","input","pointerdown","keydown"].forEach(function(ev){ps0.addEventListener(ev,clearOwnCodeFromPatientSearch,true);});
-      // ریشه‌ای: تا لحظهٔ فوکوس، فیلد readonly است تا autofillِ مرورگر اصلاً داخلش ننویسد.
+      // ???????: ?? ????? ?????? ???? readonly ??? ?? autofill? ?????? ????? ????? ??????.
       ps0.setAttribute("readonly","readonly");
       var __unlock=function(){ps0.removeAttribute("readonly");};
       ["focus","pointerdown","mousedown","touchstart"].forEach(function(ev){ps0.addEventListener(ev,__unlock,true);});
     }
-    // نگهبانِ دوره‌ای: autofillِ مرورگر ممکن است با تأخیر (وقتی فیلد نمایان می‌شود) بنویسد.
+    // ??????? ???????: autofill? ?????? ???? ??? ?? ????? (???? ???? ?????? ??????) ??????.
     setInterval(clearOwnCodeFromPatientSearch,500);
   });
 })();</script></body>
