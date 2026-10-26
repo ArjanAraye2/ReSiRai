@@ -20,7 +20,7 @@ volumes:
 
 services:
   resirai:
-    image: resirai:20261025c
+    image: resirai:20261027b
     container_name: resirai
     restart: unless-stopped
     ports:
